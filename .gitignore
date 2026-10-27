@@ -1,0 +1,18 @@
+node_modules/
+dist/
+.DS_Store
+.env
+.env.*
+!.env.example
+.vscode/
+coverage/
+*.local
+
+# Credenciales y claves (nunca subir a GitHub)
+*.pem
+*.key
+*.p12
+*.pfx
+credentials*.json
+secrets*.json
+.wrangler/
