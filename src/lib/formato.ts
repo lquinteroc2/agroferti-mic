@@ -1,0 +1,49 @@
+/**
+ * Dos formatos distintos:
+ * - PRESENTACIÓN (formatearNumero, formatearResultado, formatearExacto): para leer, en es-CO.
+ * - EDITABLE (numeroATexto): para precargar formularios; `parsearDecimal` lo recupera sin cambiar el valor.
+ */
+export function formatearNumero(n: number, max = 2): string {
+  if (!Number.isFinite(n)) return '—';
+  const formato = new Intl.NumberFormat('es-CO', { maximumFractionDigits: max });
+  // Una cantidad positiva que el redondeo dejaría en 0 se muestra como "< 0,01".
+  const minimo = 10 ** -max;
+  if (n > 0 && n < minimo / 2) return `< ${formato.format(minimo)}`;
+  return formato.format(n);
+}
+
+/** Resultado calculado: antepone "≈" cuando lo mostrado está redondeado. */
+export function formatearResultado(n: number, max = 2): string {
+  const texto = formatearNumero(n, max);
+  if (texto.startsWith('<') || texto === '—') return texto;
+  return Number(n.toFixed(max)) === n ? texto : `≈ ${texto}`;
+}
+
+/** Dato ingresado: se muestra completo, sin redondear. */
+export function formatearExacto(n: number): string {
+  if (!Number.isFinite(n)) return '—';
+  const texto = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 20 }).format(n);
+  return Number(texto.replace(/\./g, '').replace(',', '.')) === n ? texto : numeroATexto(n);
+}
+
+export function fechaLegible(fecha?: string) {
+  if (!fecha) return 'Sin registrar';
+  const valor = new Date(`${fecha}T12:00:00`);
+  if (Number.isNaN(valor.getTime())) return 'Fecha no válida';
+  return valor.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+/**
+ * Número a texto editable con coma decimal, SIN pérdida: `parsearDecimal(numeroATexto(n)) === n`
+ * para todo número finito. Usa decimales normales si lo representan exactamente; si no,
+ * la notación científica mínima de JavaScript (p. ej. 1e-21), que el parser admite.
+ */
+export function numeroATexto(n?: number): string {
+  if (n === undefined || !Number.isFinite(n)) return '';
+  const minimo = String(n);
+  if (minimo.includes('e')) {
+    const llano = n.toLocaleString('en-US', { useGrouping: false, maximumFractionDigits: 20 });
+    if (llano.length <= 25 && Number(llano) === n) return llano.replace('.', ',');
+  }
+  return minimo.replace('.', ',');
+}
