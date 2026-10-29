@@ -87,8 +87,8 @@ Aplicación web progresiva (PWA) **multicultivo** para preparar el cálculo, la 
 **Fase 5 — informe para el productor (botón "Informe para el productor" en la ficha del lote)**
 ✅ Vista imprimible del lote; "Imprimir o guardar como PDF" usa la impresión del navegador (sin librerías ni servicios externos; funciona sin conexión). Al imprimir solo sale el informe.
 ✅ Contenido: el lote; el análisis de suelo más reciente con sus equivalencias (con la nota de que no son dosis); **la recomendación de fertilización del plan aprobado más reciente** (fertilizante, para qué nutriente, dosis por hectárea, cantidad para el lote, bultos y costo estimado; aportes por nutriente; de dónde salen las metas; quién aprobó y cuándo); lo aplicado frente a lo recomendado; tareas y observaciones recientes; y advertencias en lenguaje claro.
-✅ La recomendación es la del plan aprobado: sus metas vienen de la fuente técnica escrita por el usuario. La app no calcula dosis por su cuenta ni a partir del análisis de suelo. Sin plan aprobado, el informe lo dice y no incluye recomendación. Avisa si hay datos de EJEMPLO.
-✅ 146 pruebas automáticas. Recorrido en Chrome: 117 comprobaciones, incluida la impresión a PDF.
+✅ La recomendación es la del plan aprobado: sus metas vienen de la fuente técnica escrita por el usuario. La app no calcula dosis por su cuenta ni a partir del análisis de suelo. Sin plan aprobado, el informe lo dice y no incluye recomendación. Avisa si hay datos de EJEMPLO, planes aprobados con datos por corregir y aplicaciones que no se suman.
+✅ 149 pruebas automáticas. Recorrido en Chrome: 117 comprobaciones, incluida la impresión a PDF. Una revisión de código del informe encontró 10 puntos; todos están corregidos.
 
 **No implementado aún:** validación con datos reales y comparación con cálculos manuales (fase 6).
 

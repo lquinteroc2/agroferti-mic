@@ -483,9 +483,15 @@ export function validarCambioEstado(plan: PlanVerificado, nuevo: EstadoPlan, res
   return errores.length ? { ok: false, errores } : { ok: true };
 }
 
+/** Último paso a aprobado del historial (con su marca de tiempo completa y su responsable), si lo hay. */
+export function cambioAprobacion(plan: Pick<PlanVerificado, 'historial'>): CambioEstadoPlan | undefined {
+  for (let i = plan.historial.length - 1; i >= 0; i--) if (plan.historial[i].estado === 'aprobado') return plan.historial[i];
+  return undefined;
+}
+
 /** Fecha local (AAAA-MM-DD) del último paso a aprobado del historial, si lo hay. */
 export function fechaAprobacion(plan: Pick<PlanVerificado, 'historial'>): string | undefined {
-  const cambio = [...plan.historial].reverse().find(c => c.estado === 'aprobado');
+  const cambio = cambioAprobacion(plan);
   const fecha = cambio && new Date(cambio.fecha);
   return fecha && !Number.isNaN(fecha.getTime()) ? fechaLocalISO(fecha) : undefined;
 }

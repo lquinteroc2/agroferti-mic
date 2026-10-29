@@ -36,6 +36,16 @@ export function formatearDiferencia(d: number, max = 2): { texto: string; signo:
   return { texto: `${d > 0 ? '+' : ''}${formatearResultado(d, max)}`, signo: d > 0 ? 1 : -1 };
 }
 
+/**
+ * "15.000 COP (1 aplicación sin costo registrado)", o null si ninguna aplicación tiene costo
+ * (mostrar "0 COP" se leería como si no hubiera costado nada).
+ */
+export function textoCostoRegistrado(costo: { totalCop: { ok: boolean; valor?: number }; sinCosto: number }, aplicaciones: number): string | null {
+  if (aplicaciones === 0 || costo.sinCosto === aplicaciones || !costo.totalCop.ok || costo.totalCop.valor === undefined) return null;
+  const sin = costo.sinCosto > 0 ? ` (${costo.sinCosto} ${costo.sinCosto === 1 ? 'aplicación' : 'aplicaciones'} sin costo registrado)` : '';
+  return `${formatearExacto(costo.totalCop.valor)} COP${sin}`;
+}
+
 /** Dato ingresado: se muestra completo, sin redondear. */
 export function formatearExacto(n: number): string {
   if (!Number.isFinite(n)) return '—';

@@ -404,3 +404,18 @@ export function costoRegistrado(aplicaciones: ReadonlyArray<{ costoCop?: number 
     sinCosto: aplicaciones.length - costos.length
   };
 }
+
+/**
+ * Aplicaciones de un plan: en orden cronológico, repartidas por línea (avance), cuántas son de
+ * productos que no están en el plan (no se suman) y el costo registrado de las que sí cuentan.
+ */
+export function resumenAplicaciones<T extends AplicacionAvance & { fecha: string; createdAt: string; costoCop?: number }>(
+  entrada: EntradaPlan,
+  aplicaciones: ReadonlyArray<T>,
+  calculo: CalculoPlan = calcularPlan(entrada)
+) {
+  const ordenadas = [...aplicaciones].sort((x, y) => x.fecha.localeCompare(y.fecha) || x.createdAt.localeCompare(y.createdAt));
+  const avance = avancePlan(entrada, ordenadas, calculo);
+  const delPlan = avance.flatMap(a => a.aplicaciones);
+  return { avance, delPlan, ajenas: aplicaciones.length - delPlan.length, costo: costoRegistrado(delPlan) };
+}

@@ -1,7 +1,15 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { repositorioAnalisis, repositorioPlanes, repositorioSeguimiento } from '../lib/db';
 import { areaM2AHa, type Calculo } from '../lib/calculos';
-import { fechaHoraDeMarca, fechaLegible, formatearExacto, formatearNumero, formatearResultado, nombreCultivo } from '../lib/formato';
+import {
+  fechaHoraDeMarca,
+  fechaLegible,
+  formatearExacto,
+  formatearNumero,
+  formatearResultado,
+  nombreCultivo,
+  textoCostoRegistrado
+} from '../lib/formato';
 import { armarInforme, type DatosInforme } from '../lib/informe';
 import { tareaVencida } from '../lib/validacionSeguimiento';
 import type { Lote } from '../types';
@@ -10,9 +18,19 @@ type Lectura = { ok: true; informe: DatosInforme } | { ok: false };
 
 const kg = (n: number) => formatearResultado(n, 2);
 const sinDato = <span className="missing">No registrado</span>;
+const plural = (n: number, uno: string, varios: string) => `${n} ${n === 1 ? uno : varios}`;
 
 function Valor({ c, formato }: { c: Calculo<number>; formato: (n: number) => string }) {
   return c.ok ? <>{formato(c.valor)}</> : <span className="missing">{c.motivo === 'falta-dato' ? 'Sin dato' : 'No calculado'}</span>;
+}
+
+/** Área en hectáreas sin romper la pantalla si el lote guardado tiene un área inválida. */
+function hectareas(areaM2: number): string {
+  try {
+    return `${formatearNumero(areaM2AHa(areaM2), 4)} ha`;
+  } catch {
+    return 'área no válida';
+  }
 }
 
 function SeccionAnalisis({ d }: { d: DatosInforme }) {
@@ -47,36 +65,54 @@ function SeccionAnalisis({ d }: { d: DatosInforme }) {
   </>;
 }
 
+/** Aviso de planes aprobados con datos dañados: no se usan, y el productor debe saberlo. */
+function AvisoAprobadosDanados({ d }: { d: DatosInforme }) {
+  const { nombres, masReciente } = d.aprobadosDanados;
+  if (!nombres.length) return null;
+  const lista = nombres.map(n => `«${n}»`).join(', ');
+  return <p className="informe-aviso-ejemplo">
+    {masReciente && d.recomendacion
+      ? <><strong>Atención:</strong> hay un plan aprobado más reciente con datos por corregir ({lista}). Este informe muestra el anterior; corrija o revise ese plan en la app.</>
+      : <><strong>Atención:</strong> {nombres.length === 1 ? 'un plan aprobado tiene' : 'hay planes aprobados con'} datos por corregir ({lista}) y no se usa en este informe.</>}
+  </p>;
+}
+
 function SeccionRecomendacion({ d }: { d: DatosInforme }) {
   const r = d.recomendacion;
   if (!r) {
-    return <p><strong>Este lote no tiene un plan de fertilización aprobado</strong>, así que el informe no incluye recomendación. Para incluirla, apruebe un plan en la ficha del lote.</p>;
+    return <>
+      <AvisoAprobadosDanados d={d} />
+      <p><strong>Este lote no tiene un plan de fertilización aprobado que se pueda usar</strong>, así que el informe no incluye recomendación. Para incluirla, apruebe un plan en la ficha del lote.</p>
+    </>;
   }
   const area = r.plan.areaM2AlCrear;
+  const aprobado = [r.aprobadoEl && `el ${fechaLegible(r.aprobadoEl)}`, r.aprobadoPor && `por ${r.aprobadoPor}`].filter(Boolean).join(' ');
+  const total = r.calculo.costoTotalCop;
   return <>
+    <AvisoAprobadosDanados d={d} />
     <p className="informe-destacado">
-      Según el plan <strong>«{r.plan.nombre}»</strong>, aprobado {r.aprobadoEl ? `el ${fechaLegible(r.aprobadoEl)}` : ''}{r.aprobadoPor ? ` por ${r.aprobadoPor}` : ''}, se recomienda aplicar en este lote{area !== undefined ? ` (${formatearExacto(area)} m²)` : ''}:
+      Según el plan <strong>«{r.plan.nombre}»</strong>, aprobado{aprobado ? ` ${aprobado}` : ''}, se recomienda aplicar en este lote{area !== undefined ? ` (${formatearExacto(area)} m²)` : ''}:
     </p>
     <table className="soil-table informe-tabla-recomendacion">
       <caption className="sr-only">Fertilizantes y dosis recomendados</caption>
       <thead><tr><th scope="col">Fertilizante</th><th scope="col">Para</th><th scope="col">Dosis por hectárea</th><th scope="col">Para su lote</th><th scope="col">Bultos</th><th scope="col">Costo estimado</th></tr></thead>
-      <tbody>{r.filas.map((f, i) => <tr key={i}>
-        <td><strong>{f.producto}</strong>{f.esEjemplo && <> <span className="badge badge-example">EJEMPLO</span></>}</td>
-        <td>{f.para}</td>
-        {f.sinCalculo
-          ? <td colSpan={4}>No se pudo calcular: {f.sinCalculo}</td>
-          : <>
-            <td>{f.dosisKgHa !== undefined ? `${kg(f.dosisKgHa)} kg/ha` : '—'}</td>
-            <td><Valor c={f.kgLote} formato={n => `${kg(n)} kg`} /></td>
-            <td>{f.presentacionKg !== undefined ? <><Valor c={f.bultos} formato={n => formatearResultado(n, 2)} /> de {formatearExacto(f.presentacionKg)} kg</> : '—'}</td>
-            <td><Valor c={f.costoCop} formato={n => `${formatearResultado(n, 0)} COP`} /></td>
-          </>}
-      </tr>)}</tbody>
+      <tbody>{r.calculo.lineas.map(l => {
+        const p = l.linea.producto;
+        return <tr key={l.linea.id}>
+          <td><strong>{p.nombre}</strong>{p.esEjemplo && <> <span className="badge badge-example">EJEMPLO</span></>}</td>
+          <td>{l.meta ? `${l.meta.elemento} (${l.meta.forma})` : 'Meta no disponible'}</td>
+          {l.estado === 'sin-calculo'
+            ? <td colSpan={4}>No se pudo calcular: {l.mensaje}</td>
+            : <>
+              <td>{kg(l.productoKgHa)} kg/ha</td>
+              <td><Valor c={l.productoKgLote} formato={n => `${kg(n)} kg`} /></td>
+              <td>{p.presentacionKg !== undefined ? <><Valor c={l.bultos} formato={n => formatearResultado(n, 2)} /> de {formatearExacto(p.presentacionKg)} kg</> : '—'}</td>
+              <td><Valor c={l.costoCop} formato={n => `${formatearResultado(n, 0)} COP`} /></td>
+            </>}
+        </tr>;
+      })}</tbody>
     </table>
-    <p>
-      <strong>Costo total estimado:</strong>{' '}
-      {r.calculo.costoTotalCop.ok ? `${formatearResultado(r.calculo.costoTotalCop.valor, 0)} COP` : `no se calcula (${r.calculo.costoTotalCop.mensaje.replace(/\.$/, '').toLowerCase()}).`}
-    </p>
+    <p><strong>Costo total estimado:</strong> {total.ok ? `${formatearResultado(total.valor, 0)} COP` : `no se calcula. ${total.mensaje}`}</p>
     <p><strong>De dónde salen las metas:</strong> {r.fuentes.map(f => `${f.fuente} (${fechaLegible(f.fecha)})`).join('; ')}.</p>
     {d.planesAprobados > 1 && <p className="informe-nota">Hay {d.planesAprobados} planes aprobados para este lote; este informe usa el aprobado más recientemente.</p>}
     <h3>Nutrientes que aporta el plan</h3>
@@ -96,36 +132,42 @@ function SeccionRecomendacion({ d }: { d: DatosInforme }) {
 function SeccionAvance({ d }: { d: DatosInforme }) {
   const r = d.recomendacion;
   if (!r) return <p>Sin plan aprobado no hay avance que mostrar.</p>;
-  const total = r.avance.reduce((s, a) => s + a.aplicaciones.length, 0);
-  if (total === 0) return <p>Todavía no se han registrado aplicaciones de este plan.</p>;
+  const { avance, delPlan, ajenas, costo } = r.aplicado;
+  // Lo que no se suma se avisa, para que el productor no crea que falta una aplicación.
+  const avisos = <>
+    {r.aplicacionesDanadas > 0 && <p className="informe-nota">{plural(r.aplicacionesDanadas, 'aplicación de este plan tiene', 'aplicaciones de este plan tienen')} datos por corregir y no se suman.</p>}
+    {ajenas > 0 && <p className="informe-nota">{plural(ajenas, 'aplicación registrada es', 'aplicaciones registradas son')} de productos que no están en este plan y no se suman.</p>}
+  </>;
+  if (delPlan.length === 0) return <><p>Todavía no se han registrado aplicaciones de este plan.</p>{avisos}</>;
+  const costoTexto = textoCostoRegistrado(costo, delPlan.length);
   return <>
     <table className="soil-table">
       <caption className="sr-only">Lo aplicado frente a lo recomendado</caption>
       <thead><tr><th scope="col">Fertilizante</th><th scope="col">Recomendado para el lote</th><th scope="col">Aplicado</th><th scope="col">Avance</th></tr></thead>
-      <tbody>{r.avance.map(a => <tr key={a.linea.id}>
+      <tbody>{avance.map(a => <tr key={a.linea.id}>
         <td>{a.linea.producto.nombre}</td>
         <td><Valor c={a.planeadoKg} formato={n => `${kg(n)} kg`} /></td>
-        <td><Valor c={a.aplicadoKg} formato={n => `${kg(n)} kg`} /> ({a.aplicaciones.length} {a.aplicaciones.length === 1 ? 'aplicación' : 'aplicaciones'})</td>
+        <td><Valor c={a.aplicadoKg} formato={n => `${kg(n)} kg`} /> ({plural(a.aplicaciones.length, 'aplicación', 'aplicaciones')})</td>
         <td>{a.porcentaje?.ok ? `${formatearResultado(a.porcentaje.valor, 1)} %` : '—'}</td>
       </tr>)}</tbody>
     </table>
-    {r.costoAplicado.sinCosto === total
-      ? <p><strong>Costo de lo aplicado:</strong> no se registraron costos.</p>
-      : r.costoAplicado.totalCop.ok && <p><strong>Costo registrado de lo aplicado:</strong> {formatearExacto(r.costoAplicado.totalCop.valor)} COP{r.costoAplicado.sinCosto > 0 ? ` (${r.costoAplicado.sinCosto} ${r.costoAplicado.sinCosto === 1 ? 'aplicación' : 'aplicaciones'} sin costo registrado)` : ''}.</p>}
+    <p><strong>Costo de lo aplicado:</strong> {costoTexto ? `${costoTexto} (registrado por el usuario).` : 'no se registraron costos.'}</p>
+    {avisos}
   </>;
 }
 
 function SeccionSeguimiento({ d }: { d: DatosInforme }) {
   const vacio = !d.tareasPendientes.length && !d.tareasHechas.length && !d.observaciones.length;
-  if (vacio) return <p>No hay tareas ni observaciones registradas.</p>;
   return <>
+    {vacio && <p>No hay tareas ni observaciones registradas.</p>}
     {d.tareasPendientes.length > 0 && <><h3>Tareas pendientes</h3><ul className="informe-lista">{d.tareasPendientes.map(t =>
       <li key={t.id}><strong>{fechaLegible(t.fechaPrevista)}</strong>{tareaVencida(t) ? ' (fecha pasada)' : ''}: {t.descripcion}</li>)}</ul></>}
     {d.tareasHechas.length > 0 && <><h3>Tareas hechas (las más recientes)</h3><ul className="informe-lista">{d.tareasHechas.map(t =>
       <li key={t.id}><strong>{fechaLegible(t.fechaRealizada)}</strong>: {t.descripcion}</li>)}</ul></>}
     {d.observaciones.length > 0 && <><h3>Observaciones (las más recientes)</h3><ul className="informe-lista">{d.observaciones.map(o =>
       <li key={o.id}><strong>{fechaLegible(o.fecha)}</strong>: {o.descripcion}</li>)}</ul></>}
-    {d.registrosDanados > 0 && <p className="informe-nota">{d.registrosDanados} {d.registrosDanados === 1 ? 'registro tiene' : 'registros tienen'} datos por corregir y no se muestran.</p>}
+    {/* Se avisa aunque no haya registros válidos: un registro dañado no debe pasar desapercibido. */}
+    {d.registrosDanados > 0 && <p className="informe-nota">{plural(d.registrosDanados, 'registro de seguimiento tiene', 'registros de seguimiento tienen')} datos por corregir y no se muestran.</p>}
   </>;
 }
 
@@ -164,7 +206,7 @@ export function InformeLote({ lote, onVolver }: { lote: Lote; onVolver: () => vo
             <h2>1. El lote</h2>
             <dl className="data-list">
               <div><dt>Cultivo</dt><dd>{nombreCultivo(lote.cultivo)}</dd></div>
-              <div><dt>Área</dt><dd>{formatearExacto(lote.areaM2)} m² ({formatearNumero(areaM2AHa(lote.areaM2), 4)} ha)</dd></div>
+              <div><dt>Área</dt><dd>{formatearExacto(lote.areaM2)} m² ({hectareas(lote.areaM2)})</dd></div>
               <div><dt>Fecha de siembra</dt><dd>{fechaLegible(lote.fechaSiembra)}</dd></div>
               <div><dt>Ubicación</dt><dd>{lote.ubicacion || 'No registrada'}</dd></div>
             </dl>

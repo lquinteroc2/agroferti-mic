@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
-import { avancePlan, costoRegistrado, type AvanceLinea, type CalculoPlan } from '../lib/calculos';
-import { fechaLegible, formatearDiferencia, formatearExacto, formatearResultado } from '../lib/formato';
+import { resumenAplicaciones, type AvanceLinea, type CalculoPlan } from '../lib/calculos';
+import { fechaLegible, formatearDiferencia, formatearExacto, formatearResultado, textoCostoRegistrado } from '../lib/formato';
 import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import { fechaLocalISO, numeroSinAmbiguedad } from '../lib/validacion';
 import { fechaAprobacion, resumenErrores } from '../lib/validacionPlan';
@@ -156,13 +156,9 @@ export function AplicacionesPlan({ plan, calculo, aplicaciones, aplicacionesDana
   const [error, setError] = useState('');
   /** Mientras se elimina, los botones quedan bloqueados (evita una segunda confirmación por doble toque). */
   const [eliminando, setEliminando] = useState(false);
-  // Orden cronológico una sola vez; avancePlan reparte las aplicaciones por línea conservando este orden.
-  const ordenadas = [...aplicaciones].sort((x, y) => x.fecha.localeCompare(y.fecha) || x.createdAt.localeCompare(y.createdAt));
-  const avance = avancePlan(plan, ordenadas, calculo);
   // Solo cuentan las aplicaciones de productos de este plan; las demás se avisan y no se suman.
-  const delPlan = avance.flatMap(a => a.aplicaciones);
-  const ajenas = aplicaciones.length - delPlan.length;
-  const costo = costoRegistrado(delPlan);
+  const { avance, delPlan, ajenas, costo } = resumenAplicaciones(plan, aplicaciones, calculo);
+  const costoTexto = textoCostoRegistrado(costo, delPlan.length);
   const aprobado = fechaAprobacion(plan);
   const ocupado = !!abierto || eliminando;
 
@@ -220,9 +216,7 @@ export function AplicacionesPlan({ plan, calculo, aplicaciones, aplicacionesDana
       {delPlan.length > 0 && <div className="calc-step">
         <strong>Costo registrado</strong>
         <p>Suma de los costos reales que escribiste; la app no los calcula.</p>
-        {costo.sinCosto === delPlan.length
-          ? <p className="calc-skip">Ninguna aplicación tiene costo registrado.</p>
-          : costo.totalCop.ok && <code>Total registrado: <b>{formatearExacto(costo.totalCop.valor)} COP</b>{costo.sinCosto > 0 && <em> ({costo.sinCosto} {costo.sinCosto === 1 ? 'aplicación' : 'aplicaciones'} sin costo registrado)</em>}</code>}
+        {costoTexto ? <code>Total registrado: <b>{costoTexto}</b></code> : <p className="calc-skip">Ninguna aplicación tiene costo registrado.</p>}
       </div>}
     </section>
   );

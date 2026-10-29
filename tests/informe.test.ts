@@ -6,7 +6,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { armarInforme, MAX_OBSERVACIONES, MAX_TAREAS_HECHAS } from '../src/lib/informe.ts';
 import { verificarAnalisis } from '../src/lib/validacion.ts';
-import { copiarProducto, verificarPlan } from '../src/lib/validacionPlan.ts';
+import { textoCostoRegistrado } from '../src/lib/formato.ts';
+import { cambioAprobacion, copiarProducto, verificarPlan } from '../src/lib/validacionPlan.ts';
 import { verificarRegistro } from '../src/lib/validacionSeguimiento.ts';
 import type { Lote, PlanFertilizacion, ProductoFertilizante } from '../src/types.ts';
 
@@ -43,10 +44,14 @@ test('recomendación: usa el plan aprobado más reciente y sano; propuestas y da
   const informe = armarInforme({ lote, analisis: [], planes, registros: [] }, HOY);
   assert.equal(informe.recomendacion?.plan.id, 'nuevo');
   assert.equal(informe.planesAprobados, 2);
+  assert.deepEqual(informe.aprobadosDanados, { nombres: ['Plan danado'], masReciente: true }, 'el dañado (aprobado después) se avisa');
   assert.equal(informe.recomendacion?.aprobadoPor, 'Agrónomo');
   assert.equal(informe.recomendacion?.aprobadoEl, '2026-10-25');
   const sinAprobado = armarInforme({ lote, analisis: [], planes: [planes[2]], registros: [] }, HOY);
   assert.equal(sinAprobado.recomendacion, undefined, 'sin plan aprobado no hay recomendación');
+  const soloDanado = armarInforme({ lote, analisis: [], planes: [planes[3]], registros: [] }, HOY);
+  assert.equal(soloDanado.recomendacion, undefined);
+  assert.equal(soloDanado.aprobadosDanados.nombres.length, 1, 'no dice simplemente que no hay plan aprobado');
 });
 
 test('recomendación: dosis, cantidad para el lote, bultos, costo, fuentes y avance de lo aplicado', () => {
@@ -57,16 +62,18 @@ test('recomendación: dosis, cantidad para el lote, bultos, costo, fuentes y ava
   const r = armarInforme({ lote, analisis: [], planes: [verificarPlan(plan('p'))], registros }, HOY).recomendacion;
   assert.ok(r);
   if (!r) return;
-  const [fila] = r.filas;
-  assert.equal(fila.producto, 'DAP');
-  assert.equal(fila.para, 'Fósforo (P₂O₅)');
-  cerca(fila.dosisKgHa ?? 0, 100 / 0.46);
-  assert.ok(fila.kgLote.ok && fila.bultos.ok && fila.costoCop.ok);
-  if (fila.kgLote.ok) cerca(fila.kgLote.valor, 10.869565217391303);
-  if (fila.costoCop.ok) cerca(fila.costoCop.valor, 10.869565217391303 * 3_000);
+  const [linea] = r.calculo.lineas;
+  assert.ok(linea.estado === 'calculada');
+  if (linea.estado !== 'calculada') return;
+  assert.equal(linea.linea.producto.nombre, 'DAP');
+  assert.equal(linea.meta.forma, 'P₂O₅');
+  cerca(linea.productoKgHa, 100 / 0.46);
+  assert.ok(linea.productoKgLote.ok && linea.bultos.ok && linea.costoCop.ok);
+  if (linea.productoKgLote.ok) cerca(linea.productoKgLote.valor, 10.869565217391303);
+  if (linea.costoCop.ok) cerca(linea.costoCop.valor, 10.869565217391303 * 3_000);
   assert.deepEqual(r.fuentes, [{ fuente: 'Fuente técnica X', fecha: '2026-09-15' }]);
-  assert.equal(r.avance[0].aplicaciones.length, 1, 'solo las aplicaciones de este plan');
-  assert.ok(r.costoAplicado.totalCop.ok && r.costoAplicado.totalCop.valor === 15_000);
+  assert.equal(r.aplicado.avance[0].aplicaciones.length, 1, 'solo las aplicaciones de este plan');
+  assert.ok(r.aplicado.costo.totalCop.ok && r.aplicado.costo.totalCop.valor === 15_000);
 });
 
 test('análisis: el más reciente; seguimiento: pendientes por fecha, hechas y observaciones recientes con tope', () => {
@@ -100,4 +107,31 @@ test('el informe advierte datos de EJEMPLO en el lote, el plan o el seguimiento'
   assert.equal(armarInforme({ lote, analisis: [], planes: [conMetaEjemplo], registros: [] }, HOY).hayEjemplo, true);
   const obs = registro('o', { tipo: 'observacion', fecha: '2026-10-01', descripcion: 'x', esEjemplo: true });
   assert.equal(armarInforme({ lote, analisis: [], planes: [], registros: [obs] }, HOY).hayEjemplo, true);
+});
+
+// ---- Revisión del informe ----
+
+test('revisión: el aprobado más recientemente se decide por la hora, no solo por el día', () => {
+  const x = verificarPlan(plan('x', { createdAt: '2026-10-01T09:00:00.000Z' }, '2026-10-29T15:00:00.000Z'));
+  const y = verificarPlan(plan('y', { createdAt: '2026-10-01T10:00:00.000Z' }, '2026-10-29T11:00:00.000Z'));
+  assert.equal(armarInforme({ lote, analisis: [], planes: [y, x], registros: [] }, HOY).recomendacion?.plan.id, 'x');
+  assert.equal(cambioAprobacion(x)?.fecha, '2026-10-29T15:00:00.000Z');
+});
+
+test('revisión: las aplicaciones dañadas y las de productos que no están en el plan se cuentan para avisarlas', () => {
+  const registros = [
+    registro('a1', { tipo: 'aplicacion', planId: 'p', lineaId: 'l-dap', productoNombre: 'DAP', fecha: '2026-10-21', cantidadKg: 5 }),
+    registro('a22', { tipo: 'aplicacion', planId: 'p', lineaId: 'no-esta', productoNombre: 'Otro', fecha: '2026-10-21', cantidadKg: 2 }),
+    registro('a333', { tipo: 'aplicacion', planId: 'p', lineaId: 'l-dap', productoNombre: 'DAP', fecha: '2026-10-21', cantidadKg: 'x' })
+  ];
+  const r = armarInforme({ lote, analisis: [], planes: [verificarPlan(plan('p'))], registros }, HOY).recomendacion;
+  assert.equal(r?.aplicado.delPlan.length, 1);
+  assert.equal(r?.aplicado.ajenas, 1);
+  assert.equal(r?.aplicacionesDanadas, 1);
+});
+
+test('revisión: el costo registrado no se muestra como "0 COP" si ninguna aplicación lo tiene', () => {
+  assert.equal(textoCostoRegistrado({ totalCop: { ok: true, valor: 0 }, sinCosto: 2 }, 2), null);
+  assert.equal(textoCostoRegistrado({ totalCop: { ok: true, valor: 15_000 }, sinCosto: 1 }, 2), '15.000 COP (1 aplicación sin costo registrado)');
+  assert.equal(textoCostoRegistrado({ totalCop: { ok: true, valor: 15_000 }, sinCosto: 0 }, 1), '15.000 COP');
 });
