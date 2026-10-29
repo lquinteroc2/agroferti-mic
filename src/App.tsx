@@ -5,6 +5,7 @@ import { LoteForm, type DatosLote } from './components/LoteForm';
 import { PlanesSeccion } from './components/PlanesSeccion';
 import { ProductosSeccion } from './components/ProductosSeccion';
 import { RespaldoSeccion } from './components/RespaldoSeccion';
+import { SeguimientoSeccion } from './components/SeguimientoSeccion';
 import { db, eliminarLoteYRelacionados } from './lib/db';
 import { areaM2AHa } from './lib/calculos';
 import { fechaLegible, formatearNumero } from './lib/formato';
@@ -129,10 +130,11 @@ export default function App() {
           <section className="workflow"><div className="section-kicker">CÓMO SE USA</div><h2>Tres pasos para manejar tu cultivo</h2><div className="workflow-grid">
             <div className="workflow-step ready"><div className="step-number">01</div><h3>Crear el lote</h3><p>Datos del área, ubicación y cultivo.</p><span className="tag ready-tag">Disponible</span></div>
             <div className="workflow-step ready"><div className="step-number">02</div><h3>Suelo y plan</h3><p>Análisis de laboratorio con equivalencias explicadas y plan de fertilización con metas de tu fuente técnica.</p><span className="tag ready-tag">Disponible</span></div>
-            <div className="workflow-step ready"><div className="step-number">03</div><h3>Hacer seguimiento</h3><p>Registrar lo aplicado frente a un plan aprobado, con su costo. Observaciones y tareas llegan después.</p><span className="tag ready-tag">Aplicaciones disponibles</span></div>
+            <div className="workflow-step ready"><div className="step-number">03</div><h3>Hacer seguimiento</h3><p>Aplicaciones de un plan aprobado, observaciones y tareas, con fecha y responsable.</p><span className="tag ready-tag">Disponible</span></div>
           </div></section>
           <AnalisisSueloSeccion key={activo.id} lote={activo} />
           <PlanesSeccion key={`plan-${activo.id}`} lote={activo} onIrAProductos={() => ir('productos')} />
+          <SeguimientoSeccion key={`seg-${activo.id}`} lote={activo} />
           <div className="info-box"><strong>Importante:</strong> esta versión no prescribe fertilizantes: solo calcula la cantidad de producto para las metas que escribes con su fuente técnica. Las dosis requieren un objetivo nutricional técnico respaldado por un análisis agronómico. Convertir ppm a kg/ha no determina automáticamente una dosis.</div>
           <button className="danger-link" onClick={() => void borrarLote()}>Eliminar este lote</button>
         </>}

@@ -128,3 +128,17 @@
 .link-button.peligro{color:#b6544d}
 .link-button:disabled{opacity:.5;cursor:not-allowed}
 .calc-step>.btn-small{margin-top:8px}
+.seguimiento-botones{display:flex;flex-shrink:0;gap:8px;justify-content:flex-end}
+@media(max-width:720px){.seguimiento-botones{flex-direction:column;flex-shrink:1}}
+.filtro-seguimiento{display:inline-flex;align-items:center;gap:10px;font-size:.85rem;font-weight:700;color:#344d3e;margin-bottom:12px}
+.filtro-seguimiento select{border:1px solid #d7e0d6;border-radius:9px;padding:8px 10px;background:#fdfefc;font:inherit}
+.seguimiento-lista{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.seguimiento-lista>li{display:flex;flex-direction:column;gap:5px;background:white;border:1px solid #e0e7dd;border-radius:12px;padding:14px 16px;font-size:.88rem;color:#344d3e}
+.seguimiento-lista>li small{color:#738479}
+.seguimiento-lista>li.registro-danado{border-color:#f0bdb9;background:#fff8f7}
+.registro-danado ul{margin:2px 0;padding-left:18px;font-size:.84rem}
+.registro-danado code{overflow-wrap:anywhere}
+.registro-cabeza{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.registro-texto{white-space:pre-wrap;overflow-wrap:anywhere}
+.registro-acciones{display:flex;flex-wrap:wrap;gap:14px;margin-top:2px}
+.fields textarea{width:100%;border:1px solid #d7e0d6;border-radius:9px;padding:12px;font:inherit;color:#294737;background:#fdfefc;resize:vertical}

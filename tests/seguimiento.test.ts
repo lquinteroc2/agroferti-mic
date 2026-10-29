@@ -11,8 +11,13 @@ import { formatearDiferencia } from '../src/lib/formato.ts';
 import { copiarProducto, fechaAprobacion } from '../src/lib/validacionPlan.ts';
 import {
   ordenarRegistros,
+  tareaVencida,
   validarAplicacionFormulario,
   validarDatosRegistro,
+  validarObservacionFormulario,
+  validarTareaFormulario,
+  type EntradaObservacion,
+  type EntradaTarea,
   verificarRegistro,
   type EntradaAplicacion
 } from '../src/lib/validacionSeguimiento.ts';
@@ -313,4 +318,60 @@ test('revisión 4b: una aplicación dañada conserva su plan para avisar solo en
   const v = verificarRegistro({ id: 'r', loteId: 'lote-a', ...aplicacion({ cantidadKg: 'x' }), createdAt: 'x', updatedAt: 'x' });
   assert.equal(v.registro, undefined);
   assert.equal(v.planId, 'plan-a');
+});
+
+// ---- Fase 4c: observaciones y tareas ----
+
+const formObs = (cambios: Partial<EntradaObservacion> = {}): EntradaObservacion => ({
+  fecha: '2026-10-21', descripcion: ' Hojas amarillas en el borde EJEMPLO ', responsable: '', origen: 'ejemplo', ...cambios
+});
+const formTarea = (cambios: Partial<EntradaTarea> = {}): EntradaTarea => ({
+  descripcion: 'Segunda fracción EJEMPLO', fechaPrevista: '2026-11-15', estado: 'pendiente', fechaRealizada: '', responsable: '', origen: 'ejemplo', ...cambios
+});
+
+test('formulario de observación: válida con texto recortado; rechaza vacía, futura, larga o sin origen', () => {
+  const r = validarObservacionFormulario(formObs(), HOY);
+  assert.ok(r.ok && r.datos.tipo === 'observacion' && r.datos.descripcion === 'Hojas amarillas en el borde EJEMPLO' && r.datos.responsable === undefined);
+  const errores = (cambios: Partial<EntradaObservacion>) => {
+    const x = validarObservacionFormulario(formObs(cambios), HOY);
+    assert.ok(!x.ok);
+    return x.ok ? {} : x.errores;
+  };
+  assert.match(errores({ descripcion: '  ' }).descripcion ?? '', /obligatoria/);
+  assert.match(errores({ descripcion: 'x'.repeat(501) }).descripcion ?? '', /más de 500/);
+  assert.match(errores({ fecha: '2026-10-30' }).fecha ?? '', /futura/);
+  assert.match(errores({ fecha: '' }).fecha ?? '', /obligatoria/);
+  assert.match(errores({ origen: '' }).origen ?? '', /real o de EJEMPLO/);
+  assert.match(errores({ responsable: 'x'.repeat(81) }).responsable ?? '', /más de 80/);
+});
+
+test('formulario de tarea: prevista futura sí; hecha exige fecha no futura; pendiente no guarda fecha de realización', () => {
+  const pendiente = validarTareaFormulario(formTarea({ fechaRealizada: '2026-10-20' }), HOY);
+  assert.ok(pendiente.ok && pendiente.datos.tipo === 'tarea' && pendiente.datos.fechaRealizada === undefined && pendiente.datos.fechaPrevista === '2026-11-15');
+  const hecha = validarTareaFormulario(formTarea({ estado: 'hecha', fechaRealizada: '2026-10-28' }), HOY);
+  assert.ok(hecha.ok && hecha.datos.tipo === 'tarea' && hecha.datos.estado === 'hecha' && hecha.datos.fechaRealizada === '2026-10-28');
+  const errores = (cambios: Partial<EntradaTarea>) => {
+    const x = validarTareaFormulario(formTarea(cambios), HOY);
+    assert.ok(!x.ok);
+    return x.ok ? {} : x.errores;
+  };
+  assert.match(errores({ estado: 'hecha' }).fechaRealizada ?? '', /obligatoria/);
+  assert.match(errores({ estado: 'hecha', fechaRealizada: '2026-11-01' }).fechaRealizada ?? '', /futura/);
+  assert.match(errores({ fechaPrevista: '' }).fechaPrevista ?? '', /obligatoria/);
+  assert.match(errores({ descripcion: '' }).descripcion ?? '', /obligatoria/);
+});
+
+test('tarea vencida: pendiente con fecha prevista anterior a hoy', () => {
+  assert.equal(tareaVencida({ estado: 'pendiente', fechaPrevista: '2026-10-28' }, HOY), true);
+  assert.equal(tareaVencida({ estado: 'pendiente', fechaPrevista: '2026-10-29' }, HOY), false, 'hoy no está vencida');
+  assert.equal(tareaVencida({ estado: 'hecha', fechaPrevista: '2026-10-01' }, HOY), false);
+});
+
+test('registro dañado: conserva los datos válidos para precargar la corrección', () => {
+  const v = verificarRegistro({ id: 'r', loteId: 'l', ...tarea({ descripcion: 42, responsable: 'Productor EJEMPLO' }), createdAt: 'x', updatedAt: 'x' });
+  assert.equal(v.registro, undefined);
+  assert.equal(v.parcial.fechaPrevista, '2026-11-15');
+  assert.equal(v.parcial.responsable, 'Productor EJEMPLO');
+  assert.equal(v.parcial.descripcion, undefined);
+  assert.equal(v.problemas.find(p => p.campo === 'descripcion')?.textoEditable, '42');
 });

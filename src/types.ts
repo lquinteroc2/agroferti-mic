@@ -271,6 +271,8 @@ export interface RegistroVerificado {
   fechaOrden?: string;
   /** Plan de una aplicación, leído aunque el registro tenga otros datos dañados. */
   planId?: string;
+  /** Datos válidos del registro (aunque otros estén dañados), para precargar el formulario y corregir solo lo dañado. */
+  parcial: Partial<Record<string, unknown>>;
   problemas: ProblemaDato[];
   camposAdicionales: string[];
 }

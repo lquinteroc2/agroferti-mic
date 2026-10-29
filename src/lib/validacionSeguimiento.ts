@@ -25,14 +25,17 @@ export type DatosRegistro = RegistroSeguimiento extends infer R
   ? R extends RegistroSeguimiento ? Omit<R, 'id' | 'loteId' | 'createdAt' | 'updatedAt'> : never
   : never;
 
-/** Lee los campos de un registro; devuelve los datos completos solo si nada tiene problemas. */
-function leerCampos(r: Record<string, unknown>, problemas: ProblemaDato[]): DatosRegistro | undefined {
+/**
+ * Lee los campos de un registro. `datos` está completo solo si nada tiene problemas; `parcial`
+ * conserva los datos válidos aunque otros estén dañados.
+ */
+function leerCampos(r: Record<string, unknown>, problemas: ProblemaDato[]): { datos?: DatosRegistro; parcial: Record<string, unknown> } {
   const antes = problemas.length;
   const l = lector(r, problemas);
   const tipo = TIPOS_REGISTRO.includes(r.tipo as TipoRegistro) ? r.tipo as TipoRegistro : undefined;
   if (!tipo) {
     l.nota('tipo', 'Tipo de registro', 'No es aplicación, observación ni tarea.');
-    return undefined;
+    return { parcial: {} };
   }
   /** Texto con tope de largo (el de los formularios): un texto enorme rompería la lista. */
   const texto = (campo: string, etiqueta: string, max: number, requerido = false) => {
@@ -67,8 +70,8 @@ function leerCampos(r: Record<string, unknown>, problemas: ProblemaDato[]): Dato
       fechaRealizada
     };
   }
-  if (problemas.length > antes) return undefined;
-  return { tipo, ...datos, responsable, esEjemplo } as DatosRegistro;
+  const parcial = { tipo, ...datos, responsable, esEjemplo };
+  return { datos: problemas.length > antes ? undefined : parcial as DatosRegistro, parcial };
 }
 
 /** Verifica un registro leído de IndexedDB sin lanzar errores ni modificarlo. */
@@ -84,7 +87,7 @@ export function verificarRegistro(registro: unknown): RegistroVerificado {
     const l = lector(r, problemas);
     if (!id) l.nota('id', 'Identificador', 'El registro no tiene identificador.');
     if (!loteId) l.nota('loteId', 'Lote', 'El registro no indica a qué lote pertenece.');
-    const datos = leerCampos(r, problemas);
+    const { datos, parcial } = leerCampos(r, problemas);
     const tipo = TIPOS_REGISTRO.includes(r.tipo as TipoRegistro) ? r.tipo as TipoRegistro : undefined;
     const fechaOrden = [r.fecha, r.fechaPrevista].find((f): f is string => typeof f === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(f));
     const registroCompleto = datos && problemas.length === 0 ? {
@@ -101,13 +104,14 @@ export function verificarRegistro(registro: unknown): RegistroVerificado {
       registro: registroCompleto,
       fechaOrden,
       planId: tipo === 'aplicacion' && typeof r.planId === 'string' ? r.planId : undefined,
+      parcial,
       problemas,
       camposAdicionales: tipo ? Object.keys(r).filter(k => !CAMPOS_POR_TIPO[tipo].has(k)) : []
     };
   } catch {
     return {
       id: '', loteId: '', problemas: [{ campo: 'registro', etiqueta: 'Registro', detalle: 'No se pudo leer el registro guardado.', valorOriginal: describirValor(registro) }],
-      camposAdicionales: []
+      camposAdicionales: [], parcial: {}
     };
   }
 }
@@ -120,7 +124,7 @@ export function validarDatosRegistro(datos: unknown, { hoy = new Date() }: { hoy
   try {
     if (!esObjeto(datos)) return { ok: false, errores: ['Los datos del registro no tienen la estructura esperada.'] };
     const problemas: ProblemaDato[] = [];
-    const leido = leerCampos(datos, problemas);
+    const leido = leerCampos(datos, problemas).datos;
     const errores = problemas.map(p => `${p.etiqueta}: ${p.detalle}`);
     const limite = fechaLocalISO(hoy);
     if (leido && 'fecha' in leido && leido.fecha > limite) errores.push('Fecha: no puede ser una fecha futura.');
@@ -190,4 +194,90 @@ export function validarAplicacionFormulario(
   // Misma comprobación que se hace antes de persistir.
   const final = validarDatosRegistro(datos, { hoy });
   return final.ok ? final : { ok: false, errores: { general: final.errores } };
+}
+
+// ---- Formularios de observación y tarea (fase 4c) ----
+
+export interface EntradaObservacion {
+  fecha: string;
+  descripcion: string;
+  responsable: string;
+  origen: '' | 'real' | 'ejemplo';
+}
+
+export interface EntradaTarea {
+  descripcion: string;
+  fechaPrevista: string;
+  estado: 'pendiente' | 'hecha';
+  fechaRealizada: string;
+  responsable: string;
+  origen: '' | 'real' | 'ejemplo';
+}
+
+export type ErroresFormulario<T> = Partial<Record<keyof T, string>> & { general?: string[] };
+
+/** Fecha obligatoria; `hoy` (si se indica) impide fechas futuras. */
+function fechaObligatoria(texto: string, campo: string, hoy?: Date) {
+  return texto.trim() ? validarFecha(texto, campo, hoy) : { ok: false as const, error: `${campo}: es obligatoria.` };
+}
+
+function textoObligatorio(texto: string, campo: string, max: number): { ok: true; valor: string } | { ok: false; error: string } {
+  const valor = texto.trim();
+  if (!valor) return { ok: false, error: `${campo}: es obligatoria.` };
+  if (valor.length > max) return { ok: false, error: `${campo}: tiene más de ${max} caracteres.` };
+  return { ok: true, valor };
+}
+
+function cierre<T>(datos: Record<string, unknown>, hoy: Date): { ok: true; datos: DatosRegistro } | { ok: false; errores: ErroresFormulario<T> } {
+  // Misma comprobación que se hace antes de persistir.
+  const final = validarDatosRegistro(datos, { hoy });
+  return final.ok ? final : { ok: false, errores: { general: final.errores } as ErroresFormulario<T> };
+}
+
+/** Observación de campo: texto libre con fecha (no futura). No es una medición. */
+export function validarObservacionFormulario(
+  entrada: EntradaObservacion,
+  hoy: Date = new Date()
+): { ok: true; datos: DatosRegistro } | { ok: false; errores: ErroresFormulario<EntradaObservacion> } {
+  const errores: ErroresFormulario<EntradaObservacion> = {};
+  const fecha = fechaObligatoria(entrada.fecha, 'Fecha', hoy);
+  if (!fecha.ok) errores.fecha = fecha.error;
+  const descripcion = textoObligatorio(entrada.descripcion, 'Descripción', MAX_DESCRIPCION);
+  if (!descripcion.ok) errores.descripcion = descripcion.error;
+  if (entrada.responsable.trim().length > MAX_RESPONSABLE) errores.responsable = `Responsable: tiene más de ${MAX_RESPONSABLE} caracteres.`;
+  if (!entrada.origen) errores.origen = 'Indica si es una observación real o de EJEMPLO.';
+  if (!fecha.ok || !descripcion.ok || errores.responsable || errores.origen) return { ok: false, errores };
+  return cierre({
+    tipo: 'observacion', fecha: fecha.valor, descripcion: descripcion.valor,
+    responsable: entrada.responsable.trim() || undefined, esEjemplo: entrada.origen === 'ejemplo'
+  }, hoy);
+}
+
+/** Tarea: la fecha prevista puede ser futura; si está hecha, la fecha en que se hizo no. */
+export function validarTareaFormulario(
+  entrada: EntradaTarea,
+  hoy: Date = new Date()
+): { ok: true; datos: DatosRegistro } | { ok: false; errores: ErroresFormulario<EntradaTarea> } {
+  const errores: ErroresFormulario<EntradaTarea> = {};
+  const descripcion = textoObligatorio(entrada.descripcion, 'Descripción', MAX_DESCRIPCION);
+  if (!descripcion.ok) errores.descripcion = descripcion.error;
+  const prevista = fechaObligatoria(entrada.fechaPrevista, 'Fecha prevista');
+  if (!prevista.ok) errores.fechaPrevista = prevista.error;
+  const hecha = entrada.estado === 'hecha';
+  const realizada = hecha ? fechaObligatoria(entrada.fechaRealizada, 'Fecha en que se hizo', hoy) : undefined;
+  if (realizada && !realizada.ok) errores.fechaRealizada = realizada.error;
+  if (entrada.responsable.trim().length > MAX_RESPONSABLE) errores.responsable = `Responsable: tiene más de ${MAX_RESPONSABLE} caracteres.`;
+  if (!entrada.origen) errores.origen = 'Indica si es una tarea real o de EJEMPLO.';
+  if (!descripcion.ok || !prevista.ok || (realizada && !realizada.ok) || errores.responsable || errores.origen) return { ok: false, errores };
+  return cierre({
+    tipo: 'tarea', descripcion: descripcion.valor, fechaPrevista: prevista.valor, estado: entrada.estado,
+    // Una tarea pendiente no conserva fecha de realización.
+    fechaRealizada: realizada?.ok ? realizada.valor : undefined,
+    responsable: entrada.responsable.trim() || undefined, esEjemplo: entrada.origen === 'ejemplo'
+  }, hoy);
+}
+
+/** Pendiente y con fecha prevista anterior a hoy. Es un hecho de calendario, no una alerta agronómica. */
+export function tareaVencida(tarea: { estado: string; fechaPrevista: string }, hoy: Date = new Date()): boolean {
+  return tarea.estado === 'pendiente' && tarea.fechaPrevista < fechaLocalISO(hoy);
 }

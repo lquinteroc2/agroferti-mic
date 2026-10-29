@@ -2,7 +2,7 @@
 
 Aplicación web progresiva (PWA) **multicultivo** para preparar el cálculo, la explicación y el monitoreo de fertilización, empezando por **papa** como cultivo piloto.
 
-## Estado actual: fases 1 a 3 completas, copia de seguridad y fase 4 en curso (aplicaciones listas; faltan observaciones y tareas)
+## Estado actual: fases 1 a 4 completas y copia de seguridad (falta el informe para el productor y la validación)
 
 **Fase 1 (lotes)**
 ✅ Registro de lotes: crear, editar, eliminar y consultar.
@@ -78,7 +78,13 @@ Aplicación web progresiva (PWA) **multicultivo** para preparar el cálculo, la 
 ✅ Registrar, editar o eliminar aplicaciones no cambia el plan aprobado. Al editar, una aplicación no cambia de plan ni de producto. Una aplicación con fecha anterior a la aprobación del plan se acepta, pero se marca "Antes de la aprobación". Las aplicaciones con datos dañados no se suman al avance y se avisa en su plan.
 ✅ 136 pruebas automáticas. Recorrido en Chrome: 91 comprobaciones. Una revisión de código del 4a y el 4b encontró 10 puntos; todos están corregidos.
 
-**No implementado aún:** pantalla de observaciones y tareas, y lista general del seguimiento del lote (4c); informe para el productor (fase 5).
+**Fase 4 — 4c: seguimiento del lote (sección "Seguimiento del lote" en la ficha)**
+✅ Lista de todos los registros del lote, del más reciente al más antiguo, con filtro por tipo: aplicaciones (se editan en su plan), observaciones y tareas.
+✅ Observaciones (fecha no futura, descripción, responsable, origen real o EJEMPLO) y tareas (descripción, fecha prevista, pendiente o hecha con su fecha). Crear, editar, eliminar con confirmación y "Marcar como hecha hoy". Una tarea pendiente con fecha prevista pasada se marca "Pendiente · fecha pasada" (hecho de calendario, sin notificaciones).
+✅ Los registros con datos dañados se muestran con su valor original. Las observaciones y tareas se corrigen precargando los datos válidos y el texto original de los dañados, con confirmación expresa; una aplicación dañada se elimina y se registra de nuevo desde su plan.
+✅ 140 pruebas automáticas. Recorrido en Chrome: 102 comprobaciones.
+
+**No implementado aún:** informe para el productor (fase 5) y validación con datos reales (fase 6).
 
 ## Requisitos
 
@@ -155,6 +161,13 @@ Las pruebas de persistencia (`tests/persistencia.test.ts`) usan un almacén en m
 3. Pulsa **Copiar como nueva propuesta**: se abre una propuesta editable con las mismas cifras, "Copia del plan «…»" en el historial y un enlace al plan original.
 4. Crea una propuesta con una meta sin producto: **Marcar como revisado** queda deshabilitado con el motivo "La meta de … no tiene producto".
 
+### Pruebas manuales en navegador (fase 4, seguimiento)
+
+1. En un plan **aprobado**, en **Lo aplicado frente al plan**, registra 5 kg de un producto (origen EJEMPLO) y luego 3,5 kg con costo `15000`: el avance suma 8,5 kg y explica el porcentaje y lo aplicado en la forma de la meta. `1.500` kg debe rechazarse. Edita y elimina una aplicación: el plan sigue aprobado y sin cambios.
+2. En **Seguimiento del lote**, guarda una observación vacía: debe pedir descripción y origen. Guárdala completa, edítala y elimínala (pide confirmación).
+3. Crea una tarea con fecha prevista pasada: debe decir "Pendiente · fecha pasada". Pulsa **Marcar como hecha hoy**: queda "Hecha el …".
+4. Usa **Mostrar** para ver solo un tipo de registro.
+
 ### Pruebas manuales en navegador (copia de seguridad)
 
 1. Con datos de EJEMPLO, en **Mis lotes → Copia de seguridad**, pulsa **Descargar copia (JSON)**: se descarga `agroferti-respaldo-AAAA-MM-DD.json` y el aviso resume lo incluido.
@@ -188,6 +201,7 @@ agroferti-mic/
 │  │  ├─ PlanEstado.tsx            # Fase 3d: estados del plan e historial
 │  │  ├─ RespaldoSeccion.tsx       # Copia de seguridad: descargar y restaurar
 │  │  ├─ AplicacionesPlan.tsx      # Fase 4b: lo aplicado frente a un plan aprobado
+│  │  ├─ SeguimientoSeccion.tsx    # Fase 4c: observaciones, tareas y lista del seguimiento
 │  │  └─ useSeleccionViva.ts       # Registro abierto en una sección sobre una consulta en vivo
 │  ├─ lib/
 │  │  ├─ calculos.ts            # Matemáticas verificables, sin prescribir dosis
@@ -348,6 +362,6 @@ No inventar resultados de campo. Etiquetar todos los datos simulados como **EJEM
 - Un plan aprobado solo se elimina junto con su lote (al eliminar el lote se borran todos sus datos, con confirmación).
 - Revisar o aprobar exige un producto con cantidad calculada en cada meta, pero no exige precio: un plan aprobado puede no tener costo total.
 
-## Próximo PR: fase 4c
+## Próximo PR: fase 5 (informe para el productor)
 
-Sección "Seguimiento" en la ficha del lote: lista de todos los registros (aplicaciones, observaciones y tareas) del más reciente al más antiguo, con registros dañados visibles; crear, editar y eliminar observaciones y tareas, y marcar una tarea como hecha. Lee primero `AGENTS.md`. Sin notificaciones; las observaciones no son mediciones.
+Informe del lote para el productor: una vista imprimible (y que se pueda guardar como PDF desde el navegador) con el lote, sus análisis, el plan aprobado con sus cálculos explicados, el avance de lo aplicado y el seguimiento, con las marcas EJEMPLO. Sin servicios externos. Lee primero `AGENTS.md` y propone el contenido antes de implementarlo.

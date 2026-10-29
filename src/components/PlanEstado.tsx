@@ -110,7 +110,7 @@ export function PlanEstado({ plan, calculo, onCambiarEstado, onCopiar }: Props) 
   return (
     <section className="soil-block plan-estado" aria-labelledby={`estado-plan-${plan.id}`}>
       <h4 id={`estado-plan-${plan.id}`}>Estado del plan: <EstadoPlanBadge estado={plan.estado} /></h4>
-      <p className="hint">Propuesta: se puede editar. Revisado: alguien revisó metas, fuentes y productos. Aprobado: registro de solo lectura. El nombre lo escribe el usuario: la app no verifica identidades ni certifica aprobaciones técnicas. Lo aplicado en campo se registrará en el seguimiento (fase 4).</p>
+      <p className="hint">Propuesta: se puede editar. Revisado: alguien revisó metas, fuentes y productos. Aprobado: registro de solo lectura. El nombre lo escribe el usuario: la app no verifica identidades ni certifica aprobaciones técnicas. Lo aplicado en campo no es un estado del plan: se registra en «Lo aplicado frente al plan» cuando el plan está aprobado.</p>
 
       {danado && <p className="calc-skip">Este plan tiene datos guardados dañados: no puede cambiar de estado ni copiarse.</p>}
       {hecho && <div role="status" className="notice notice-ok"><span aria-hidden="true">✓</span>{hecho}<button onClick={() => setHecho('')} aria-label="Cerrar aviso">×</button></div>}
