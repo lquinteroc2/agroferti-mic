@@ -221,19 +221,35 @@ export function filaNutrienteVacia(fila: EntradaNutriente): boolean {
 }
 
 /** Conserva el valor y la unidad originales: nunca convierte cmol(+)/kg a mg/kg ni P a P₂O₅. */
-export function validarNutriente(fila: EntradaNutriente): Resultado<NutrienteReportado> {
+export type FilaElementoForma = Pick<EntradaNutriente, 'elemento' | 'forma' | 'elementoLibre' | 'formaLibre'>;
+
+/**
+ * Elemento y forma elegidos de las listas o escritos tal cual (informe, etiqueta o fuente técnica).
+ * Regla única para todos los formularios: rechaza combinaciones que el catálogo sabe incorrectas.
+ */
+export function validarElementoForma(
+  fila: FilaElementoForma,
+  documento: { donde: string; ejemplo: string; revisar: string }
+): Resultado<{ elemento: string; forma: string }> {
   const elemento = fila.elemento.trim();
   const forma = fila.forma.trim();
   if (!elemento) return { ok: false, error: 'Elige el elemento o escríbelo en "Otro / No reconocido".' };
   if (!fila.elementoLibre && !buscarElemento(elemento)) {
     return { ok: false, error: 'Elige un elemento de la lista o la opción "Otro / No reconocido".' };
   }
-  if (!forma) return { ok: false, error: 'Indica la forma química tal como aparece en el informe (por ejemplo, P o P₂O₅).' };
+  if (!forma) return { ok: false, error: `Indica la forma química tal como aparece en ${documento.donde} (por ejemplo, ${documento.ejemplo}).` };
   const coherencia = coherenciaNutriente(elemento, forma);
-  if (coherencia.error) return { ok: false, error: `${coherencia.error}. Revisa el informe del laboratorio.` };
+  if (coherencia.error) return { ok: false, error: `${coherencia.error}. Revisa ${documento.revisar}.` };
   if (!fila.elementoLibre && !fila.formaLibre && !coherencia.reconocido) {
     return { ok: false, error: 'Elige una forma de la lista o la opción "Otra forma / No reconocida".' };
   }
+  return { ok: true, valor: { elemento, forma } };
+}
+
+export function validarNutriente(fila: EntradaNutriente): Resultado<NutrienteReportado> {
+  const nombres = validarElementoForma(fila, { donde: 'el informe', ejemplo: 'P o P₂O₅', revisar: 'el informe del laboratorio' });
+  if (!nombres.ok) return nombres;
+  const { elemento, forma } = nombres.valor;
   if (!esUnidadValida(fila.unidad)) return { ok: false, error: 'Unidad no válida: usa mg/kg o cmol(+)/kg.' };
   const valor = validarNumero(fila.valor, { campo: 'Valor', requerido: true });
   if (!valor.ok) return valor;
@@ -299,7 +315,7 @@ export function describirValor(valor: unknown): string {
 }
 
 /** Texto para precargar el formulario con el valor dañado (solo si es texto o número). */
-function textoEditable(valor: unknown): string | undefined {
+export function textoEditable(valor: unknown): string | undefined {
   if (typeof valor === 'string') return valor;
   if (typeof valor === 'number') return String(valor);
   return undefined;

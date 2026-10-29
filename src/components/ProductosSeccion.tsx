@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { OrigenBadge, ProductoDetalle, resumenContenido } from './ProductoDetalle';
 import { ProductoForm } from './ProductoForm';
 import { repositorioProductos } from '../lib/db';
 import { fechaLegible, formatearExacto } from '../lib/formato';
+import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import type { DatosProducto } from '../lib/validacionPlan';
 import type { ProductoVerificado } from '../types';
 
@@ -25,6 +26,8 @@ export function ProductosSeccion() {
   const [modo, setModo] = useState<Modo>('lista');
   const [seleccionId, setSeleccionId] = useState<string | null>(null);
   const [aviso, setAviso] = useState<Aviso>(null);
+  /** Recién guardado: mientras la consulta no lo traiga, se espera en lugar de mostrar la lista. */
+  const [pendienteId, setPendienteId] = useState<string | null>(null);
   // El error de lectura se captura aquí para mostrar un mensaje en lugar de romper la pantalla.
   const lectura = useLiveQuery<Lectura>(async () => {
     try {
@@ -35,9 +38,17 @@ export function ProductosSeccion() {
   }, []);
   const productos = lectura?.ok ? lectura.productos : undefined;
   const seleccionado = productos?.find(p => p.id === seleccionId);
+  // Si el producto abierto ya no existe (p. ej. se eliminó en otra pestaña), se vuelve a la lista.
+  const perdido = (modo === 'ver' || modo === 'editar') && productos !== undefined && !seleccionado;
+  const esperando = perdido && pendienteId !== null && pendienteId === seleccionId;
+  const modoVisible: Modo = perdido && !esperando ? 'lista' : modo;
+  useEffect(() => {
+    if (seleccionado && seleccionado.id === pendienteId) setPendienteId(null);
+  }, [seleccionado, pendienteId]);
 
   function abrir(m: Modo, id: string | null = seleccionId) {
     setAviso(null);
+    setPendienteId(null);
     setSeleccionId(id);
     setModo(m);
   }
@@ -46,6 +57,7 @@ export function ProductosSeccion() {
     const editando = modo === 'editar' && seleccionado;
     const id = await repositorioProductos.guardar(datos, { id: editando ? seleccionado.id : undefined, descartarDanados });
     setSeleccionId(id);
+    setPendienteId(id);
     setModo('ver');
     setAviso({ tipo: 'ok', texto: editando ? 'Los cambios del producto se guardaron.' : 'El producto se guardó en el catálogo de este dispositivo.' });
   }
@@ -56,12 +68,11 @@ export function ProductosSeccion() {
       await repositorioProductos.eliminar(p.id);
       abrir('lista', null);
       setAviso({ tipo: 'ok', texto: 'El producto se eliminó del catálogo.' });
-    } catch {
-      setAviso({ tipo: 'error', texto: 'No se pudo eliminar el producto. Vuelve a intentarlo.' });
+    } catch (error) {
+      setAviso({ tipo: 'error', texto: error instanceof ErrorPersistencia ? error.message : 'No se pudo eliminar el producto. Vuelve a intentarlo.' });
     }
   }
 
-  const mostrarLista = modo === 'lista' || ((modo === 'ver' || modo === 'editar') && productos && !seleccionado);
 
   return (
     <section className="soil-section" aria-labelledby="titulo-productos">
@@ -71,7 +82,7 @@ export function ProductosSeccion() {
           <h1 id="titulo-productos">Catálogo de productos</h1>
           <p>Registra los fertilizantes tal como aparecen en su etiqueta. Este catálogo sirve para todos tus lotes. La app no recomienda productos ni dosis.</p>
         </div>
-        {modo === 'lista' && lectura?.ok && <button className="btn btn-outline" onClick={() => abrir('nuevo', null)}>+ Agregar producto</button>}
+        {modoVisible === 'lista' && lectura?.ok && <button className="btn btn-outline" onClick={() => abrir('nuevo', null)}>+ Agregar producto</button>}
       </div>
 
       {aviso && <div role={aviso.tipo === 'error' ? 'alert' : 'status'} className={`notice ${aviso.tipo === 'error' ? 'notice-error' : 'notice-ok'}`}>
@@ -91,12 +102,15 @@ export function ProductosSeccion() {
         <ProductoDetalle producto={seleccionado} onEditar={() => abrir('editar')} onEliminar={() => void borrar(seleccionado)} />
       </>}
 
-      {mostrarLista && (
+      {esperando && <div className="empty"><p>Cargando producto…</p></div>}
+
+      {modoVisible === 'lista' && (
         lectura === undefined ? <div className="empty"><p>Cargando productos…</p></div>
           : !productos ? null
           : productos.length === 0 ? <div className="empty soil-empty"><h3>Aún no hay productos en el catálogo</h3><p>Ten a mano la etiqueta del fertilizante: necesitarás su nombre y el porcentaje de cada nutriente con su forma química.</p><button className="btn btn-primary" onClick={() => abrir('nuevo', null)}>Agregar el primer producto</button></div>
-          : <ul className="soil-history" aria-label="Productos del catálogo, en orden alfabético">{productos.map(v => (
-            <li key={v.id}><button className="lot-card soil-card" onClick={() => abrir('ver', v.id)}>
+          : <ul className="soil-history" aria-label="Productos del catálogo, en orden alfabético">{productos.map((v, i) => (
+            // Un registro sin identificador válido no se puede abrir: la app no podría editarlo ni eliminarlo.
+            <li key={v.id || `sin-id-${i}`}><button className="lot-card soil-card" disabled={!v.id} title={v.id ? undefined : 'Registro sin identificador válido'} onClick={() => abrir('ver', v.id)}>
               <span className="lot-card-content">
                 <strong>{v.nombre || 'Producto sin nombre'}</strong>
                 <span>{v.producto ? resumenContenido(v.producto) : 'Contenido por corregir'}</span>

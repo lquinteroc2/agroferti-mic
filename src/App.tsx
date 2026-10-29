@@ -26,12 +26,15 @@ export default function App() {
   const [mensaje, setMensaje] = useState('');
   const [mensajeEsError, setMensajeEsError] = useState(false);
   const [guardando, setGuardando] = useState(false);
+  /** Cambia en cada navegación: el catálogo vuelve a su lista al pulsar "Productos" aunque ya esté abierto. */
+  const [visita, setVisita] = useState(0);
   const lotes = useLiveQuery(() => db.lotes.orderBy('createdAt').reverse().toArray(), []);
   const activo = lotes?.find(l => l.id === loteId);
   const totalArea = (lotes ?? []).reduce((sum, l) => sum + l.areaM2, 0);
   const totalCultivos = new Set((lotes ?? []).map(l => l.cultivo)).size;
 
   function ir(v: Vista) {
+    setVisita(n => n + 1);
     setMensaje('');
     setMensajeEsError(false);
     setVista(v);
@@ -131,7 +134,7 @@ export default function App() {
           <button className="danger-link" onClick={() => void borrarLote()}>Eliminar este lote</button>
         </>}
 
-        {vista === 'productos' && <ProductosSeccion />}
+        {vista === 'productos' && <ProductosSeccion key={visita} />}
 
         {vista === 'ayuda' && <div className="page-narrow help"><div className="section-kicker">GUÍA PARA EL PRODUCTOR</div><h1>Cómo funciona AgroFerti MIC</h1><p className="muted">El objetivo es que productores de distintos cultivos comprendan sus datos de fertilización y puedan registrar lo que realmente ocurre en el lote.</p>
           <div className="help-item"><span>1</span><div><h3>Registra el lote</h3><p>Indica cultivo, área, fecha de siembra y ubicación. Eso ya funciona en esta versión.</p></div></div>

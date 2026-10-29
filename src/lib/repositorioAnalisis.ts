@@ -63,7 +63,7 @@ export function crearRepositorioAnalisis(almacen: AlmacenAnalisis) {
       return almacen.transaccion(async () => {
         const areaLote = await almacen.obtenerAreaLote(loteId);
         if (areaLote === undefined) throw new ErrorPersistencia('El lote no existe.');
-        const previo = id ? await obtenerDelLote(loteId, id) : undefined;
+        const previo = id !== undefined ? await obtenerDelLote(loteId, id) : undefined;
         const verificado = previo ? verificarAnalisis(previo) : undefined;
 
         // Ningún dato dañado se pierde sin que el usuario lo haya corregido o descartado expresamente.

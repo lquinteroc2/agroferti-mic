@@ -17,7 +17,10 @@ import { mismaForma } from '../src/lib/catalogoNutrientes.ts';
 import {
   copiarProducto,
   validarCambioEstado,
+  validarPlanFormulario,
   validarProducto,
+  type EntradaMeta,
+  type EntradaPlan,
   type EntradaContenido,
   type EntradaProducto,
   validarDatosPlan,
@@ -365,4 +368,101 @@ test('formulario de producto: contenido coherente, sin repetir formas y con porc
   const repetida = erroresForm({ contenido: [filaForm(), filaForm({ forma: 'P2O5', formaLibre: true, porcentaje: '10' })] });
   assert.match(repetida.contenido?.[1] ?? '', /ya está declarada/);
   assert.match((erroresForm({ contenido: [filaForm({ elemento: '', forma: '', porcentaje: '' })] }).general ?? []).join(' '), /al menos un nutriente/);
+});
+
+// ---- Formulario del plan (fase 3c) ----
+
+const filaMeta = (cambios: Partial<EntradaMeta> = {}): EntradaMeta => ({
+  id: 'm-p', elemento: 'Fósforo', forma: 'P₂O₅', kgHa: '100', fuente: 'Fuente técnica EJEMPLO', fechaFuente: '2026-09-15',
+  origen: 'ejemplo', elementoLibre: false, formaLibre: false, productoId: 'dap', ...cambios
+});
+const planForm = (cambios: Partial<EntradaPlan> = {}): EntradaPlan => ({
+  nombre: ' Plan papa EJEMPLO ', analisisReferenciaId: '',
+  metas: [filaMeta(), filaMeta({ id: 'm-n', elemento: 'Nitrógeno', forma: 'N', kgHa: '120', productoId: 'urea' })], ...cambios
+});
+let idsGenerados = 0;
+const validarPlanEjemplo = (entrada: EntradaPlan, productos = [DAP, UREA, KCL]) =>
+  validarPlanFormulario(entrada, { productos, areaM2: 500, hoy: HOY, generarId: () => `linea-${++idsGenerados}` });
+const erroresPlan = (entrada: EntradaPlan) => {
+  const r = validarPlanEjemplo(entrada);
+  assert.ok(!r.ok, 'debía rechazarse');
+  return r.ok ? {} : r.errores;
+};
+
+test('formulario del plan: arma metas y líneas con copia del producto; filas vacías ignoradas', () => {
+  const vacia = filaMeta({ id: 'x', elemento: '', forma: '', kgHa: '', fuente: '', fechaFuente: '', origen: '', productoId: '' });
+  const r = validarPlanEjemplo(planForm({ metas: [...planForm().metas, vacia] }));
+  assert.ok(r.ok, r.ok ? '' : JSON.stringify(r.errores));
+  if (!r.ok) return;
+  assert.equal(r.datos.nombre, 'Plan papa EJEMPLO');
+  assert.equal(r.datos.analisisReferenciaId, undefined);
+  assert.deepEqual(r.datos.metas.map(m => [m.id, m.forma, m.kgHa, m.esEjemplo]), [['m-p', 'P₂O₅', 100, true], ['m-n', 'N', 120, true]]);
+  assert.deepEqual(r.datos.lineas.map(l => [l.metaId, l.producto.productoId, l.producto.nombre]), [['m-p', 'dap', 'DAP EJEMPLO'], ['m-n', 'urea', 'Urea EJEMPLO']]);
+  const sinProducto = validarPlanEjemplo(planForm({ metas: [filaMeta({ productoId: '', origen: 'real' })] }));
+  assert.ok(sinProducto.ok && sinProducto.datos.lineas.length === 0 && sinProducto.datos.metas[0].esEjemplo === false, 'meta sin producto todavía');
+});
+
+test('formulario del plan: conserva la copia guardada si no cambia el producto; si cambia, copia el actual', () => {
+  const guardada: LineaPlan = { id: 'l-vieja', metaId: 'm-p', producto: { ...copiarProducto(DAP), precioPresentacionCop: 100_000 } };
+  const igual = validarPlanEjemplo(planForm({ metas: [filaMeta({ lineaGuardada: guardada })] }));
+  assert.ok(igual.ok);
+  if (igual.ok) assert.deepEqual(igual.datos.lineas[0], guardada, 'misma línea y misma copia, aunque el catálogo cambió');
+  const otro = { ...DAP, id: 'map', nombre: 'MAP EJEMPLO', contenido: [{ elemento: 'Fósforo', forma: 'P₂O₅', porcentaje: 52 }] };
+  const cambiado = validarPlanEjemplo(planForm({ metas: [filaMeta({ lineaGuardada: guardada, productoId: 'map' })] }), [DAP, otro]);
+  assert.ok(cambiado.ok);
+  if (cambiado.ok) {
+    assert.notEqual(cambiado.datos.lineas[0].id, 'l-vieja');
+    assert.equal(cambiado.datos.lineas[0].producto.nombre, 'MAP EJEMPLO');
+  }
+  const borrado = validarPlanEjemplo(planForm({ metas: [filaMeta({ lineaGuardada: guardada })] }), []);
+  assert.ok(borrado.ok, 'la copia guardada sigue valiendo aunque el producto se haya borrado del catálogo');
+});
+
+test('formulario del plan: la meta exige fuente, fecha, origen y un número claro', () => {
+  const fila = (cambios: Partial<EntradaMeta>) => erroresPlan(planForm({ metas: [filaMeta(cambios)] })).metas?.[0] ?? '';
+  assert.match(fila({ fuente: ' ' }), /Fuente técnica/);
+  assert.match(fila({ fechaFuente: '' }), /Fecha de la fuente: es obligatoria/);
+  assert.match(fila({ fechaFuente: '2026-11-01' }), /futura/);
+  assert.match(fila({ origen: '' }), /fuente real o es de EJEMPLO/);
+  assert.match(fila({ kgHa: '0' }), /mayor que cero/);
+  assert.match(fila({ kgHa: '1.200' }), /se puede leer de dos formas/);
+  assert.match(fila({ forma: 'K₂O', formaLibre: true }), /corresponde a Potasio, no a Fósforo\. Revisa la fuente técnica/);
+  assert.match(fila({ productoId: 'no-existe' }), /ya no está en el catálogo/);
+  assert.match(erroresPlan(planForm({ nombre: '' })).nombre ?? '', /nombre para el plan/);
+  const repetidas = erroresPlan(planForm({ metas: [filaMeta(), filaMeta({ id: 'otra', forma: 'P2O5', formaLibre: true, productoId: '' })] }));
+  assert.match(repetidas.metas?.[1] ?? '', /Ya hay otra meta para Fósforo/);
+});
+
+test('formulario del plan: una forma distinta a la etiqueta se guarda en propuesta, pero no se calcula', () => {
+  const r = validarPlanEjemplo(planForm({ metas: [filaMeta({ forma: 'P', kgHa: '40' })] }));
+  assert.ok(r.ok);
+  if (!r.ok) return;
+  const [linea] = calcularPlan({ ...r.datos, areaM2AlCrear: 500 }).lineas;
+  assert.ok(linea.estado === 'sin-calculo' && linea.motivo === 'forma-distinta');
+  assert.match(erroresPlan(planForm({ metas: [filaMeta({ kgHa: '1000000000000000' })] })).general?.join(' ') ?? '', /demasiado grande/);
+});
+
+// ---- Revisión de 3b ----
+
+test('revisión: un nutriente guardado que queda vacío no se borra en silencio; una fila nueva vacía sí se ignora', () => {
+  const vacia = filaForm({ elemento: '', forma: '', porcentaje: '' });
+  const guardadaVacia = erroresForm({ contenido: [filaForm(), { ...vacia, existente: true }] });
+  assert.match(guardadaVacia.contenido?.[1] ?? '', /ya estaba guardado y quedó vacío/);
+  assert.ok(validarProducto(formulario({ contenido: [filaForm(), vacia] }), HOY).ok);
+  const metaVacia = { ...filaMeta({ elemento: '', forma: '', kgHa: '', fuente: '', fechaFuente: '', origen: '', productoId: '' }), existente: true };
+  assert.match(erroresPlan(planForm({ metas: [filaMeta(), metaVacia] })).metas?.[1] ?? '', /ya estaba guardada y quedó vacía/);
+});
+
+test('revisión: un producto con un dato dañado conserva los demás para precargar el formulario', () => {
+  const v = verificarProducto({ ...DAP, fechaPrecio: '01/10/2026', presentacionKg: 'cincuenta' });
+  assert.equal(v.producto, undefined);
+  assert.deepEqual(v.parcial.contenido, DAP.contenido);
+  assert.equal(v.parcial.precioPresentacionCop, 150_000);
+  assert.equal(v.parcial.esEjemplo, true);
+  assert.equal(v.parcial.fechaPrecio, undefined);
+  const fecha = v.problemas.find(p => p.campo === 'fechaPrecio');
+  assert.equal(fecha?.textoEditable, '01/10/2026', 'el texto original se precarga para corregirlo');
+  assert.equal(v.problemas.find(p => p.campo === 'presentacionKg')?.textoEditable, 'cincuenta');
+  const { id: _, ...sinId } = DAP;
+  assert.deepEqual(verificarProducto(DAP).parcial, sinId, 'en un producto válido, parcial tiene todos los datos');
 });

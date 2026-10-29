@@ -232,3 +232,9 @@ test('ida y vuelta de números extremos a través de la persistencia', async () 
   await assert.rejects(repo.guardar('lote-a', datos({ profundidadCm: 1e-4, densidadGcm3: 1e-4, nutrientes: [{ elemento: 'Boro', forma: 'B', valor: 5e-324, unidad: 'mg/kg' }] }), opciones()),
     (e: unknown) => e instanceof ErrorPersistencia && /demasiado pequeño/.test(e.detalles.join(' ')));
 });
+
+test('revisión: editar un análisis con id vacío no crea un registro nuevo', async () => {
+  const { repo, crudo, opciones } = crearAlmacen();
+  await assert.rejects(repo.guardar('lote-a', datos(), opciones({ id: '' })), /no existe/);
+  assert.equal(crudo().size, 0);
+});

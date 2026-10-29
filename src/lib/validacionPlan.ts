@@ -17,7 +17,7 @@ import type {
   ProductoVerificado
 } from '../types';
 import { calcularPlan } from './calculos.ts';
-import { buscarElemento, coherenciaNutriente, mismaForma } from './catalogoNutrientes.ts';
+import { coherenciaNutriente, mismaForma } from './catalogoNutrientes.ts';
 import {
   ausente,
   comprobarNumero,
@@ -26,8 +26,11 @@ import {
   fechaLocalISO,
   MAX_RESULTADOS,
   mayuscula,
+  textoEditable,
+  validarElementoForma,
   validarFecha,
   validarNumero,
+  type FilaElementoForma,
   validarNumeroSinAmbiguedad,
   type Resultado
 } from './validacion.ts';
@@ -62,12 +65,16 @@ export type ResultadoValidacion<T> = { ok: true; datos: T } | { ok: false; error
  */
 function lector(r: Record<string, unknown>, problemas: ProblemaDato[], ruta = '', contexto = '') {
   const nota = (campo: string, etiqueta: string, detalle: string) => {
-    problemas.push({
+    const problema: ProblemaDato = {
       campo: ruta + campo,
       etiqueta: contexto ? `${contexto} · ${etiqueta}` : etiqueta,
       detalle,
       valorOriginal: describirValor(r[campo])
-    });
+    };
+    // Texto con el que se precarga el formulario para corregir el dato (si es texto o número).
+    const editable = textoEditable(r[campo]);
+    if (editable !== undefined) problema.textoEditable = editable;
+    problemas.push(problema);
   };
   const texto = (campo: string, etiqueta: string, requerido = false): string | undefined => {
     const v = r[campo];
@@ -176,9 +183,11 @@ function leerContenido(lista: ReadonlyArray<unknown>, problemas: ProblemaDato[],
   return contenido;
 }
 
-/** Campos comunes al producto del catálogo y a su copia dentro de un plan. */
-function leerCamposProducto(r: Record<string, unknown>, problemas: ProblemaDato[], ruta = '', contexto = ''): DatosProducto | undefined {
-  const antes = problemas.length;
+/**
+ * Campos comunes al producto del catálogo y a su copia dentro de un plan. Devuelve los datos
+ * válidos aunque otros estén dañados (los dañados quedan en `problemas`).
+ */
+function leerCamposParciales(r: Record<string, unknown>, problemas: ProblemaDato[], ruta = '', contexto = ''): Partial<DatosProducto> {
   const l = lector(r, problemas, ruta, contexto.replace(/ · $/, ''));
   const nombre = l.texto('nombre', 'Nombre del producto', true);
   const lista = l.lista('contenido', 'Contenido declarado', true);
@@ -192,8 +201,14 @@ function leerCamposProducto(r: Record<string, unknown>, problemas: ProblemaDato[
     if (ausente(r.fechaPrecio)) l.nota('fechaPrecio', 'Fecha del precio', 'Es obligatoria cuando se registra el precio.');
   }
   const esEjemplo = l.booleano('esEjemplo', 'Dato de EJEMPLO');
-  if (problemas.length > antes) return undefined;
-  return { nombre, contenido, presentacionKg, precioPresentacionCop, fechaPrecio, esEjemplo } as DatosProducto;
+  return { nombre, contenido, presentacionKg, precioPresentacionCop, fechaPrecio, esEjemplo };
+}
+
+/** Datos completos solo si ningún campo tiene problemas. */
+function leerCamposProducto(r: Record<string, unknown>, problemas: ProblemaDato[], ruta = '', contexto = ''): DatosProducto | undefined {
+  const antes = problemas.length;
+  const parcial = leerCamposParciales(r, problemas, ruta, contexto);
+  return problemas.length > antes ? undefined : parcial as DatosProducto;
 }
 
 function errorDeRegistro(registro: unknown, cual: string): ProblemaDato {
@@ -210,9 +225,9 @@ export function verificarProducto(registro: unknown): ProductoVerificado {
     }
     const id = typeof r.id === 'string' ? r.id : '';
     if (!id) lector(r, problemas).nota('id', 'Identificador', 'El registro no tiene identificador.');
-    const datos = leerCamposProducto(r, problemas);
-    const producto = datos && problemas.length === 0 ? {
-      ...datos,
+    const parcial = leerCamposParciales(r, problemas);
+    const producto = problemas.length === 0 ? {
+      ...parcial as DatosProducto,
       id,
       createdAt: typeof r.createdAt === 'string' ? r.createdAt : undefined,
       updatedAt: typeof r.updatedAt === 'string' ? r.updatedAt : undefined
@@ -221,11 +236,12 @@ export function verificarProducto(registro: unknown): ProductoVerificado {
       id,
       nombre: typeof r.nombre === 'string' ? r.nombre.trim() : '',
       producto,
+      parcial,
       problemas,
       camposAdicionales: Object.keys(r).filter(k => !CAMPOS_PRODUCTO.has(k))
     };
   } catch {
-    return { id: '', nombre: '', problemas: [errorDeRegistro(registro, 'producto')], camposAdicionales: [] };
+    return { id: '', nombre: '', parcial: {}, problemas: [errorDeRegistro(registro, 'producto')], camposAdicionales: [] };
   }
 }
 
@@ -472,6 +488,8 @@ export interface EntradaContenido {
   elementoLibre: boolean;
   /** Eligió una forma fuera de la lista del elemento: la forma es texto libre. */
   formaLibre: boolean;
+  /** Fila cargada del producto guardado: si queda vacía no se omite en silencio. */
+  existente?: boolean;
 }
 
 export interface EntradaProducto {
@@ -495,21 +513,11 @@ export function filaContenidoVacia(fila: EntradaContenido): boolean {
 
 /** Conserva la forma declarada en la etiqueta: nunca convierte P₂O₅ en P ni K₂O en K. */
 export function validarFilaContenido(fila: EntradaContenido): Resultado<ContenidoDeclarado> {
-  const elemento = fila.elemento.trim();
-  const forma = fila.forma.trim();
-  if (!elemento) return { ok: false, error: 'Elige el elemento o escríbelo en "Otro / No reconocido".' };
-  if (!fila.elementoLibre && !buscarElemento(elemento)) {
-    return { ok: false, error: 'Elige un elemento de la lista o la opción "Otro / No reconocido".' };
-  }
-  if (!forma) return { ok: false, error: 'Indica la forma química tal como aparece en la etiqueta (por ejemplo, P₂O₅ o K₂O).' };
-  const coherencia = coherenciaNutriente(elemento, forma);
-  if (coherencia.error) return { ok: false, error: `${coherencia.error}. Revisa la etiqueta.` };
-  if (!fila.elementoLibre && !fila.formaLibre && !coherencia.reconocido) {
-    return { ok: false, error: 'Elige una forma de la lista o la opción "Otra forma / No reconocida".' };
-  }
+  const nombres = validarElementoForma(fila, { donde: 'la etiqueta', ejemplo: 'P₂O₅ o K₂O', revisar: 'la etiqueta' });
+  if (!nombres.ok) return nombres;
   const porcentaje = validarNumero(fila.porcentaje, { campo: 'Porcentaje', requerido: true, positivo: true, max: 100 });
   if (!porcentaje.ok) return porcentaje;
-  return { ok: true, valor: { elemento, forma, porcentaje: porcentaje.valor as number } };
+  return { ok: true, valor: { ...nombres.valor, porcentaje: porcentaje.valor as number } };
 }
 
 const valorDe = <T>(r: Resultado<T | undefined>): T | undefined => (r.ok ? r.valor : undefined);
@@ -528,7 +536,11 @@ export function validarProducto(
 
   const contenido: ContenidoDeclarado[] = [];
   entrada.contenido.forEach((fila, i) => {
-    if (filaContenidoVacia(fila)) return;
+    if (filaContenidoVacia(fila)) {
+      // Una fila nueva vacía se ignora; una fila que ya estaba guardada no se borra en silencio.
+      if (fila.existente) (errores.contenido ??= {})[i] = 'Este nutriente ya estaba guardado y quedó vacío: complétalo o usa "Quitar".';
+      return;
+    }
     const r = validarFilaContenido(fila);
     if (!r.ok) (errores.contenido ??= {})[i] = r.error;
     else if (contenido.some(c => mismaForma(c, r.valor))) (errores.contenido ??= {})[i] = `${r.valor.forma} ya está declarada en otra fila.`;
@@ -557,5 +569,99 @@ export function validarProducto(
   };
   // Misma comprobación que se hace antes de persistir.
   const final = validarDatosProducto(datos, { hoy });
+  return final.ok ? final : { ok: false, errores: { general: final.errores } };
+}
+
+// ---- Formulario del plan (fase 3c): una fila por meta, con su producto opcional ----
+
+export interface EntradaMeta extends FilaElementoForma {
+  /** Identificador de la meta; se crea al agregar la fila y se conserva al editar. */
+  id: string;
+  kgHa: string;
+  fuente: string;
+  fechaFuente: string;
+  /** '' mientras el usuario no indique si la meta viene de una fuente real o es de EJEMPLO. */
+  origen: '' | 'real' | 'ejemplo';
+  /** Producto del catálogo elegido para cubrir la meta ('' = todavía sin producto). */
+  productoId: string;
+  /** Línea ya guardada: si no se cambia de producto, se conservan su id y su copia del producto. */
+  lineaGuardada?: LineaPlan;
+  /** Meta cargada del plan guardado: si queda vacía no se omite en silencio. */
+  existente?: boolean;
+}
+
+export interface EntradaPlan {
+  nombre: string;
+  analisisReferenciaId: string;
+  metas: EntradaMeta[];
+}
+
+export type ErroresPlan = { nombre?: string; metas?: Record<number, string>; general?: string[] };
+
+export function filaMetaVacia(m: EntradaMeta): boolean {
+  return !m.productoId && !m.origen && [m.elemento, m.forma, m.kgHa, m.fuente, m.fechaFuente].every(t => !t.trim());
+}
+
+/** La meta la escribe el usuario con su fuente: la app no la calcula, no la sugiere ni la deriva del suelo. */
+export function validarMetaFormulario(fila: EntradaMeta, hoy: Date = new Date()): Resultado<MetaNutrimental> {
+  const nombres = validarElementoForma(fila, { donde: 'la fuente técnica', ejemplo: 'P₂O₅ o K₂O', revisar: 'la fuente técnica' });
+  if (!nombres.ok) return nombres;
+  const kgHa = validarNumeroSinAmbiguedad(fila.kgHa, { campo: 'Meta (kg/ha)', requerido: true, positivo: true });
+  if (!kgHa.ok) return kgHa;
+  const fuente = fila.fuente.trim();
+  if (!fuente) return { ok: false, error: 'Fuente técnica: escribe de dónde sale la meta (documento, profesional o laboratorio).' };
+  if (!fila.fechaFuente.trim()) return { ok: false, error: 'Fecha de la fuente: es obligatoria.' };
+  const fecha = validarFecha(fila.fechaFuente, 'Fecha de la fuente', hoy);
+  if (!fecha.ok) return fecha;
+  if (!fila.origen) return { ok: false, error: 'Indica si la meta viene de una fuente real o es de EJEMPLO.' };
+  return {
+    ok: true,
+    valor: { id: fila.id, ...nombres.valor, kgHa: kgHa.valor as number, fuente, fechaFuente: fecha.valor, esEjemplo: fila.origen === 'ejemplo' }
+  };
+}
+
+/**
+ * Valida el formulario del plan y arma metas y líneas. Una línea conserva su copia del producto
+ * mientras no se cambie de producto; si se elige otro, se copia el producto actual del catálogo.
+ * Solo los productos sin datos dañados (`productos`) se pueden elegir.
+ */
+export function validarPlanFormulario(
+  entrada: EntradaPlan,
+  opciones: { productos: ReadonlyArray<ProductoFertilizante>; areaM2: number; hoy?: Date; generarId?: () => string }
+): { ok: true; datos: DatosPlan } | { ok: false; errores: ErroresPlan } {
+  const { productos, areaM2, hoy = new Date(), generarId = () => crypto.randomUUID() } = opciones;
+  const errores: ErroresPlan = {};
+  const nombre = entrada.nombre.trim();
+  if (!nombre) errores.nombre = 'Escribe un nombre para el plan, por ejemplo "Siembra 2026-B".';
+  const errorFila = (i: number, mensaje: string) => { (errores.metas ??= {})[i] = mensaje; };
+
+  const metas: MetaNutrimental[] = [];
+  const lineas: LineaPlan[] = [];
+  entrada.metas.forEach((fila, i) => {
+    if (filaMetaVacia(fila)) {
+      // Una fila nueva vacía se ignora; una meta que ya estaba guardada no se borra en silencio.
+      if (fila.existente) errorFila(i, 'Esta meta ya estaba guardada y quedó vacía: complétala o usa "Quitar".');
+      return;
+    }
+    const r = validarMetaFormulario(fila, hoy);
+    if (!r.ok) return errorFila(i, r.error);
+    const meta = r.valor;
+    if (metas.some(m => mismaForma(m, meta))) return errorFila(i, `Ya hay otra meta para ${meta.elemento} (${meta.forma}).`);
+    metas.push(meta);
+    if (!fila.productoId) return;
+    const guardada = fila.lineaGuardada;
+    if (guardada?.producto.productoId === fila.productoId) {
+      lineas.push({ ...guardada, metaId: meta.id });
+      return;
+    }
+    const producto = productos.find(p => p.id === fila.productoId);
+    if (!producto) return errorFila(i, 'El producto elegido ya no está en el catálogo o tiene datos por corregir. Elige otro.');
+    lineas.push({ id: generarId(), metaId: meta.id, producto: copiarProducto(producto) });
+  });
+
+  if (Object.keys(errores).length) return { ok: false, errores };
+  const datos: DatosPlan = { nombre, analisisReferenciaId: entrada.analisisReferenciaId || undefined, metas, lineas };
+  // Misma comprobación que se hace antes de persistir, con el área que se guardará.
+  const final = validarDatosPlan(datos, { hoy, areaM2 });
   return final.ok ? final : { ok: false, errores: { general: final.errores } };
 }

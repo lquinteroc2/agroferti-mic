@@ -124,11 +124,15 @@ export interface ProductoFertilizante {
   updatedAt?: string;
 }
 
-/** Producto leído y verificado. `producto` falta si el registro tiene datos dañados. */
+/**
+ * Producto leído y verificado. `producto` falta si el registro tiene datos dañados; `parcial`
+ * conserva los datos válidos para precargar el formulario y corregir solo lo dañado.
+ */
 export interface ProductoVerificado {
   id: string;
   nombre: string;
   producto?: ProductoFertilizante;
+  parcial: Partial<Omit<ProductoFertilizante, 'id' | 'createdAt' | 'updatedAt'>>;
   problemas: ProblemaDato[];
   camposAdicionales: string[];
 }

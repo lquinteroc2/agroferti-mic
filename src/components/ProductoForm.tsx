@@ -30,22 +30,36 @@ const filaVacia = (): FilaContenido => ({ clave: siguienteClave++, elemento: '',
 /** Usa las listas solo si el texto guardado coincide exactamente; si no, conserva el texto original. */
 function filaDesdeGuardado(c: ContenidoDeclarado): FilaContenido {
   const el = CATALOGO_NUTRIENTES.find(e => e.nombre === c.elemento);
-  const base = { clave: siguienteClave++, porcentaje: numeroATexto(c.porcentaje) };
+  const base = { clave: siguienteClave++, porcentaje: numeroATexto(c.porcentaje), existente: true };
   if (!el) return { ...base, elemento: c.elemento, forma: c.forma, elementoLibre: true, formaLibre: true };
   return { ...base, elemento: el.nombre, forma: c.forma, elementoLibre: false, formaLibre: !el.formas.includes(c.forma) };
 }
 
-/** Un producto dañado no tiene datos completos: se precarga solo su nombre y se reescribe con la etiqueta. */
+/**
+ * Precarga los datos válidos. Un dato dañado se precarga con su texto original para corregirlo,
+ * no se vacía en silencio; los nutrientes dañados se listan arriba con su valor guardado.
+ */
 function entradaInicial(inicial?: ProductoVerificado): EntradaFormulario {
-  const p = inicial?.producto;
+  const p = inicial?.parcial;
+  const original = (campo: string) => inicial?.problemas.find(x => x.campo === campo)?.textoEditable ?? '';
+  const numero = (campo: string, valor?: number) => (valor !== undefined ? numeroSinAmbiguedad(valor) : original(campo));
   return {
-    nombre: p?.nombre ?? inicial?.nombre ?? '',
-    contenido: p?.contenido.length ? p.contenido.map(filaDesdeGuardado) : [filaVacia()],
-    presentacionKg: p?.presentacionKg !== undefined ? numeroSinAmbiguedad(p.presentacionKg) : '',
-    precioPresentacionCop: p?.precioPresentacionCop !== undefined ? numeroSinAmbiguedad(p.precioPresentacionCop) : '',
-    fechaPrecio: p?.fechaPrecio ?? '',
-    esEjemplo: p ? p.esEjemplo : null
+    nombre: p?.nombre ?? original('nombre'),
+    contenido: p?.contenido?.length ? p.contenido.map(filaDesdeGuardado) : [filaVacia()],
+    presentacionKg: numero('presentacionKg', p?.presentacionKg),
+    precioPresentacionCop: numero('precioPresentacionCop', p?.precioPresentacionCop),
+    fechaPrecio: p?.fechaPrecio ?? original('fechaPrecio'),
+    esEjemplo: p?.esEjemplo ?? null
   };
+}
+
+/** Kg, precio y fecha dependen entre sí: al cambiar uno, los errores de los otros se recalculan. */
+const CAMPOS_PRECIO: ReadonlyArray<CampoTexto> = ['presentacionKg', 'precioPresentacionCop', 'fechaPrecio'];
+
+/** Resumen de errores: los generales y, si hay campos marcados, el aviso de revisarlos. */
+function resumenErrores(errores: ErroresProducto): string[] {
+  const hayCampos = Object.keys(errores).some(k => k !== 'general');
+  return [...(errores.general ?? []), ...(hayCampos ? ['Revisa los datos marcados en rojo antes de guardar.'] : [])];
 }
 
 /** Cómo se leyeron el precio y los kg, antes de guardar (p. ej. para ver que 150000 son 150.000 COP). */
@@ -66,6 +80,7 @@ export function ProductoForm({ inicial, onGuardar, onCancelar }: Props) {
   const [errores, setErrores] = useState<ErroresProducto>({});
   const [errorGeneral, setErrorGeneral] = useState<string[]>([]);
   const [guardando, setGuardando] = useState(false);
+  const [quitados, setQuitados] = useState(0);
   const problemas = inicial?.problemas ?? [];
 
   /** Al corregir un dato desaparece su error; los demás se conservan hasta volver a guardar. */
@@ -79,13 +94,23 @@ export function ProductoForm({ inicial, onGuardar, onCancelar }: Props) {
     });
   }
   const cambiar = (campo: CampoTexto, valor: string) => {
-    setEntrada(e => ({ ...e, [campo]: valor }));
-    // El precio y la fecha dependen entre sí: corregir uno puede resolver el error del otro.
-    corregido(campo);
-    if (campo === 'precioPresentacionCop' || campo === 'fechaPrecio' || campo === 'presentacionKg') {
-      corregido('fechaPrecio');
-      corregido('presentacionKg');
-    }
+    const siguiente = { ...entrada, [campo]: valor };
+    setEntrada(siguiente);
+    setErrorGeneral([]);
+    setErrores(previos => {
+      const nuevos: ErroresProducto = { ...previos };
+      delete nuevos[campo];
+      if (!CAMPOS_PRECIO.includes(campo)) return nuevos;
+      // Un error de los otros campos de precio se actualiza o desaparece solo si ya no aplica.
+      const revalidado = validarProducto(siguiente);
+      for (const otro of CAMPOS_PRECIO) {
+        if (otro === campo || nuevos[otro] === undefined) continue;
+        const actual = revalidado.ok ? undefined : revalidado.errores[otro];
+        if (actual) nuevos[otro] = actual;
+        else delete nuevos[otro];
+      }
+      return nuevos;
+    });
   };
   const cambiarFila = (indice: number, cambios: Partial<FilaContenido>) => {
     setEntrada(e => ({ ...e, contenido: e.contenido.map((c, i) => (i === indice ? { ...c, ...cambios } : c)) }));
@@ -97,6 +122,8 @@ export function ProductoForm({ inicial, onGuardar, onCancelar }: Props) {
   };
 
   function quitarFila(indice: number) {
+    // Quitar un nutriente guardado es una decisión expresa; se avisa que se eliminará al guardar.
+    if (entrada.contenido[indice]?.existente) setQuitados(n => n + 1);
     setEntrada(e => ({ ...e, contenido: e.contenido.filter((_, i) => i !== indice) }));
     setErrores(({ contenido: _, ...resto }) => resto);
   }
@@ -121,7 +148,7 @@ export function ProductoForm({ inicial, onGuardar, onCancelar }: Props) {
     const resultado = validarProducto(entrada);
     if (!resultado.ok) {
       setErrores(resultado.errores);
-      setErrorGeneral(resultado.errores.general ?? ['Revisa los datos marcados en rojo antes de guardar.']);
+      setErrorGeneral(resumenErrores(resultado.errores));
       return;
     }
     setErrores({});
@@ -219,6 +246,7 @@ export function ProductoForm({ inicial, onGuardar, onCancelar }: Props) {
             </fieldset>
           );
         })}
+        {quitados > 0 && <p className="hint hint-warn">Quitaste {quitados} {quitados === 1 ? 'nutriente guardado' : 'nutrientes guardados'}. Se eliminarán al guardar; si cancelas, no cambia nada.</p>}
         <button type="button" className="btn btn-outline btn-small" onClick={() => setEntrada(e => ({ ...e, contenido: [...e.contenido, filaVacia()] }))}>+ Agregar nutriente</button>
       </fieldset>
 

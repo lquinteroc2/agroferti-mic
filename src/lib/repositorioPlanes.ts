@@ -48,8 +48,8 @@ export function crearRepositorioProductos(almacen: AlmacenProductos) {
     async guardar(datos: unknown, opciones: OpcionesProducto = {}): Promise<string> {
       const { id, descartarDanados = false, ahora = new Date(), generarId = () => crypto.randomUUID() } = opciones;
       return almacen.transaccion(async () => {
-        const previo = id ? await almacen.obtener(id) : undefined;
-        if (id && !esObjeto(previo)) throw new ErrorPersistencia('El producto no existe.');
+        const previo = id !== undefined ? await almacen.obtener(id) : undefined;
+        if (id !== undefined && !esObjeto(previo)) throw new ErrorPersistencia('El producto no existe.');
         const verificado = previo ? verificarProducto(previo) : undefined;
         // Ningún dato dañado se reemplaza sin que el usuario lo haya confirmado.
         if (verificado?.problemas.length && !descartarDanados) {

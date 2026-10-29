@@ -256,3 +256,9 @@ test('los campos de otras versiones del plan se conservan al editar y al cambiar
   await a.planes.cambiarEstado('lote-a', planId, 'revisado', { responsable: 'Agrónomo EJEMPLO' });
   assert.equal((a.tablas.planes.get(planId) as Record<string, unknown>).version, 9);
 });
+
+test('revisión: editar con un id vacío (registro con identificador dañado) no crea un registro nuevo', async () => {
+  const a = crearAlmacenes();
+  await rechaza(a.productos.guardar(DAP, { id: '', ahora: HOY, descartarDanados: true }), /no existe/);
+  assert.equal(a.tablas.productos.size, 0);
+});

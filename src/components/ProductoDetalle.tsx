@@ -18,7 +18,7 @@ export function OrigenBadge({ esEjemplo }: { esEjemplo?: boolean }) {
 }
 
 /** "N 18 % · P₂O₅ 46 %": las formas tal como las declara la etiqueta. */
-export function resumenContenido(p: ProductoFertilizante): string {
+export function resumenContenido(p: Pick<ProductoFertilizante, 'contenido'>): string {
   return p.contenido.map(c => `${c.forma} ${formatearExacto(c.porcentaje)} %`).join(' · ');
 }
 
@@ -44,10 +44,10 @@ export function ProductoDetalle({ producto: v, onEditar, onEliminar }: Props) {
           <h3 id={`titulo-producto-${v.id}`}>{v.nombre || 'Producto sin nombre'}</h3>
           <span className="card-badges"><OrigenBadge esEjemplo={p?.esEjemplo} />{v.problemas.length > 0 && <span className="badge badge-error">Datos por corregir</span>}</span>
         </div>
-        <div className="soil-actions">
+        {v.id && <div className="soil-actions">
           <button className="btn btn-outline btn-small" onClick={onEditar}>Editar</button>
           <button className="btn btn-danger btn-small" onClick={onEliminar}>Eliminar</button>
-        </div>
+        </div>}
       </div>
 
       {v.problemas.length > 0 && <div className="error-box" role="alert">
