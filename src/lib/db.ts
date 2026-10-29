@@ -1,14 +1,15 @@
 import Dexie, { type EntityTable } from 'dexie';
-import type { AnalisisSuelo, Lote, PlanFertilizacion, ProductoFertilizante, RegistroMonitoreo } from '../types';
+import type { AnalisisSuelo, Lote, PlanFertilizacion, ProductoFertilizante, RegistroSeguimiento } from '../types';
 import { crearRepositorioAnalisis } from './repositorioAnalisis';
 import { crearRepositorioPlanes, crearRepositorioProductos } from './repositorioPlanes';
 import { crearRepositorioRespaldo, type IdsExistentes } from './respaldo';
+import { crearRepositorioSeguimiento } from './repositorioSeguimiento';
 
 export const db = new Dexie('AgroFertiMIC') as Dexie & {
   lotes: EntityTable<Lote, 'id'>;
   analisisSuelos: EntityTable<AnalisisSuelo, 'id'>;
   planes: EntityTable<PlanFertilizacion, 'id'>;
-  registros: EntityTable<RegistroMonitoreo, 'id'>;
+  registros: EntityTable<RegistroSeguimiento, 'id'>;
   productos: EntityTable<ProductoFertilizante, 'id'>;
 };
 
@@ -56,6 +57,16 @@ export const repositorioPlanes = crearRepositorioPlanes({
   transaccion: fn => db.transaction('rw', db.lotes, db.analisisSuelos, db.planes, fn)
 });
 
+export const repositorioSeguimiento = crearRepositorioSeguimiento({
+  existeLote: async loteId => (await db.lotes.get(loteId)) !== undefined,
+  obtenerPlan: planId => db.planes.get(planId),
+  obtener: id => db.registros.get(id),
+  listarPorLote: loteId => db.registros.where('loteId').equals(loteId).toArray(),
+  guardar: async registro => { await db.registros.put(registro); },
+  eliminar: id => db.registros.delete(id),
+  transaccion: fn => db.transaction('rw', db.lotes, db.planes, db.registros, fn)
+});
+
 /** Identificadores de texto de una tabla (otros tipos de clave no pueden coincidir con los de una copia). */
 async function idsDe(tabla: { toCollection(): { primaryKeys(): Promise<unknown[]> } }): Promise<Set<string>> {
   return new Set((await tabla.toCollection().primaryKeys()).filter((k): k is string => typeof k === 'string'));
@@ -80,13 +91,13 @@ export const repositorioRespaldo = crearRepositorioRespaldo({
     registros: await idsDe(db.registros)
   })),
   agregar: async datos => {
-    // Análisis, productos y planes se guardan tal cual y la app los verifica al leerlos; los lotes ya se
-    // comprobaron con problemaLote y los registros de seguimiento no se restauran hasta la fase 4.
+    // Análisis, productos, planes y registros se guardan tal cual y la app los verifica al leerlos;
+    // los lotes ya se comprobaron con problemaLote.
     await db.lotes.bulkAdd(datos.lotes as Lote[]);
     await db.analisisSuelos.bulkAdd(datos.analisisSuelos as AnalisisSuelo[]);
     await db.productos.bulkAdd(datos.productos as ProductoFertilizante[]);
     await db.planes.bulkAdd(datos.planes as PlanFertilizacion[]);
-    await db.registros.bulkAdd(datos.registros as RegistroMonitoreo[]);
+    await db.registros.bulkAdd(datos.registros as RegistroSeguimiento[]);
   },
   transaccion: fn => db.transaction('rw', [db.lotes, db.analisisSuelos, db.productos, db.planes, db.registros], fn)
 });

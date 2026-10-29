@@ -19,9 +19,7 @@ const NOMBRE_TABLA: Record<TablaRespaldo, [singular: string, plural: string]> = 
   registros: ['registro de seguimiento', 'registros de seguimiento']
 };
 /** Registros que pertenecen a un lote: sin su lote no se verían en la app. */
-const DEPENDEN_DE_LOTE: ReadonlyArray<TablaRespaldo> = ['analisisSuelos', 'planes'];
-/** Los registros de seguimiento se podrán restaurar cuando la fase 4 defina cómo verificarlos. */
-const SEGUIMIENTO_SIN_VERIFICAR = 'Los registros de seguimiento todavía no se pueden restaurar en esta versión de la app.';
+const DEPENDEN_DE_LOTE: ReadonlyArray<TablaRespaldo> = ['analisisSuelos', 'planes', 'registros'];
 
 export interface Respaldo {
   formato: typeof FORMATO_RESPALDO;
@@ -139,7 +137,7 @@ export interface PlanRestauracion {
  * Decide qué agregar sin escribir nada. Nunca borra ni sobrescribe: un registro cuyo identificador
  * ya existe se deja como está. Se omiten, con su motivo, registros sin identificador o repetidos,
  * lotes que romperían la lista de lotes (y sus registros) y registros cuyo lote no está disponible.
- * Los análisis, productos y planes se guardan tal cual: la app los verifica al leerlos.
+ * Los análisis, productos, planes y registros se guardan tal cual: la app los verifica al leerlos.
  */
 export function planearRestauracion(datos: TablasRespaldo, ids: IdsExistentes): PlanRestauracion {
   const agregar = tablasVacias();
@@ -189,7 +187,6 @@ export function planearRestauracion(datos: TablasRespaldo, ids: IdsExistentes): 
     });
   }
   revisar('productos');
-  revisar('registros', () => SEGUIMIENTO_SIN_VERIFICAR);
   return { agregar, existentes, omitidos };
 }
 

@@ -63,7 +63,7 @@ export type ResultadoValidacion<T> = { ok: true; datos: T } | { ok: false; error
  * Lectores de campos que anotan cada dato inválido en `problemas` con su valor original.
  * `ruta` y `contexto` ubican el dato dentro de listas (p. ej. "metas.0." y "Meta 1").
  */
-function lector(r: Record<string, unknown>, problemas: ProblemaDato[], ruta = '', contexto = '') {
+export function lector(r: Record<string, unknown>, problemas: ProblemaDato[], ruta = '', contexto = '') {
   const nota = (campo: string, etiqueta: string, detalle: string) => {
     const problema: ProblemaDato = {
       campo: ruta + campo,

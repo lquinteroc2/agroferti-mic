@@ -209,14 +209,66 @@ export interface PlanVerificado {
   camposAdicionales: string[];
 }
 
-/** Estructura reservada para la fase 4 (monitoreo). */
-export interface RegistroMonitoreo {
+/**
+ * Fase 4: seguimiento manual por lote. No es un sensor: solo guarda lo que el usuario registra.
+ * Lo aplicado se guarda aparte del plan; un plan aprobado nunca cambia.
+ */
+interface RegistroBase {
   id: string;
   loteId: string;
-  fecha: string;
-  tipo: 'aplicacion' | 'observacion' | 'tarea';
-  descripcion: string;
-  cantidadKg?: number;
-  costoCop?: number;
+  /** Nombre escrito por el usuario; la app no verifica identidades. */
   responsable?: string;
+  /** Dato ficticio: la interfaz debe mostrar "EJEMPLO". */
+  esEjemplo: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Producto aplicado en el lote contra una línea de un plan aprobado. Puede haber varias por línea. */
+export interface RegistroAplicacion extends RegistroBase {
+  tipo: 'aplicacion';
+  planId: string;
+  lineaId: string;
+  /** Nombre del producto de la línea al registrar; se muestra aunque cambie el catálogo. */
+  productoNombre: string;
+  /** AAAA-MM-DD, no futura. */
+  fecha: string;
+  /** Kg de producto aplicados en el lote. */
+  cantidadKg: number;
+  /** Lo que realmente costó, escrito por el usuario (no se calcula). */
+  costoCop?: number;
+  nota?: string;
+}
+
+/** Observación de campo en texto libre. La app no deduce mediciones de ella. */
+export interface RegistroObservacion extends RegistroBase {
+  tipo: 'observacion';
+  fecha: string;
+  descripcion: string;
+}
+
+/** Recordatorio manual (sin notificaciones). */
+export interface RegistroTarea extends RegistroBase {
+  tipo: 'tarea';
+  descripcion: string;
+  /** Puede ser futura. */
+  fechaPrevista: string;
+  estado: 'pendiente' | 'hecha';
+  /** Solo en una tarea hecha; no futura. */
+  fechaRealizada?: string;
+}
+
+export type RegistroSeguimiento = RegistroAplicacion | RegistroObservacion | RegistroTarea;
+export type TipoRegistro = RegistroSeguimiento['tipo'];
+
+/** Registro leído y verificado. `registro` falta si tiene datos dañados. */
+export interface RegistroVerificado {
+  id: string;
+  loteId: string;
+  tipo?: TipoRegistro;
+  registro?: RegistroSeguimiento;
+  /** Fecha para ordenar (fecha o fecha prevista), si es válida. */
+  fechaOrden?: string;
+  problemas: ProblemaDato[];
+  camposAdicionales: string[];
 }

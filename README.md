@@ -2,7 +2,7 @@
 
 Aplicación web progresiva (PWA) **multicultivo** para preparar el cálculo, la explicación y el monitoreo de fertilización, empezando por **papa** como cultivo piloto.
 
-## Estado actual: fases 1 a 3 completas y copia de seguridad (adelantada de la fase 5)
+## Estado actual: fases 1 a 3 completas, copia de seguridad y fase 4 en curso (modelo del seguimiento listo, sin interfaz)
 
 **Fase 1 (lotes)**
 ✅ Registro de lotes: crear, editar, eliminar y consultar.
@@ -66,7 +66,13 @@ Aplicación web progresiva (PWA) **multicultivo** para preparar el cálculo, la 
 ✅ Rechaza archivos que no son una copia de AgroFerti o de una versión de formato desconocida. Omite, explicando el motivo, lotes que romperían la lista (sin nombre, cultivo, área o fechas válidos) junto con sus registros, y registros cuyo lote no está en la copia ni en el dispositivo.
 ✅ Verificado con Dexie real fuera del repositorio (copia restaurada idéntica, sin duplicar, atómica) y en Chrome: descargar, borrar la base del navegador y restaurar. 117 pruebas automáticas; recorrido en Chrome: 81 comprobaciones. Una revisión de código encontró 9 puntos; todos están corregidos.
 
-**No implementado aún:** seguimiento de aplicaciones y plan frente a lo aplicado (fase 4), informe para el productor (fase 5).
+**Fase 4 — 4a: modelo del seguimiento, cálculos y persistencia, todavía sin interfaz**
+✅ Tres tipos de registro por lote en la tabla `registros` (que ya existía vacía; no hubo migración): **aplicación** (contra un producto de un plan **aprobado** del mismo lote; fecha no futura, kg de producto aplicados, costo real opcional escrito por el usuario), **observación** (texto con fecha; la app no deduce mediciones) y **tarea** (fecha prevista, pendiente o hecha). Todos con responsable opcional y marca EJEMPLO obligatoria.
+✅ Plan frente a lo aplicado (`avancePlan` en `calculos.ts`): kg planeados y aplicados, diferencia, porcentaje de avance y lo aplicado expresado en la forma de la meta (kg ÷ ha × % de la etiqueta). Admite aplicaciones parciales; aplicar de más se muestra como número, sin juicio. Registrar aplicaciones no cambia el plan aprobado.
+✅ Registros dañados se muestran con su valor original y solo se reemplazan con confirmación; no se cambia el tipo de un registro al editarlo. La copia de seguridad ya incluye y restaura el seguimiento.
+✅ 128 pruebas automáticas. Verificado con Dexie real fuera del repositorio.
+
+**No implementado aún:** pantallas del seguimiento (4b aplicaciones y avance del plan, 4c observaciones y tareas) e informe para el productor (fase 5).
 
 ## Requisitos
 
@@ -184,6 +190,8 @@ agroferti-mic/
 │  │  ├─ validacionPlan.ts      # Fase 3: validación de productos, planes y cambios de estado
 │  │  ├─ repositorioPlanes.ts   # Fase 3: persistencia del catálogo y de los planes
 │  │  ├─ respaldo.ts            # Copia de seguridad: formato, lectura y restauración sin sobrescribir
+│  │  ├─ validacionSeguimiento.ts # Fase 4: validación y verificación de aplicaciones, observaciones y tareas
+│  │  ├─ repositorioSeguimiento.ts # Fase 4: persistencia del seguimiento (solo planes aprobados)
 │  │  ├─ formato.ts             # Números y fechas en es-CO
 │  │  └─ db.ts                  # IndexedDB mediante Dexie (esquema v2)
 │  ├─ types.ts           # Modelo de lotes, análisis, productos y planes
@@ -198,7 +206,8 @@ agroferti-mic/
 │  ├─ persistencia.test.ts # Crear, leer, editar, eliminar y aislamiento entre lotes
 │  ├─ plan.test.ts         # Fase 3: cálculos del plan, formas químicas, validación y estados
 │  ├─ persistenciaPlan.test.ts # Fase 3: catálogo, planes, estados, copias y trazabilidad
-│  └─ respaldo.test.ts      # Copia de seguridad: exportar, leer, restaurar sin sobrescribir
+│  ├─ respaldo.test.ts      # Copia de seguridad: exportar, leer, restaurar sin sobrescribir
+│  └─ seguimiento.test.ts   # Fase 4: registros, avance del plan y persistencia
 ├─ vite.config.ts        # Configuración de PWA
 ├─ tsconfig.json
 └─ package.json
@@ -325,7 +334,6 @@ No inventar resultados de campo. Etiquetar todos los datos simulados como **EJEM
 - Restaurar solo agrega: no hay una opción para reemplazar los datos del dispositivo por los de la copia ni para fusionar dos versiones distintas de un mismo registro (el del dispositivo se conserva).
 - La copia no se hace sola: hay que descargarla. El archivo no está cifrado; contiene todos los datos del navegador.
 - Un lote de la copia que no cumple las reglas de la lista de lotes se omite con todos sus registros (se explica el motivo); la app no lo repara.
-- Los registros de seguimiento (fase 4) todavía no se restauran: se omiten con aviso hasta que la fase 4 defina cómo verificarlos.
 
 ## Limitaciones conocidas de la fase 3d
 
@@ -333,6 +341,6 @@ No inventar resultados de campo. Etiquetar todos los datos simulados como **EJEM
 - Un plan aprobado solo se elimina junto con su lote (al eliminar el lote se borran todos sus datos, con confirmación).
 - Revisar o aprobar exige un producto con cantidad calculada en cada meta, pero no exige precio: un plan aprobado puede no tener costo total.
 
-## Próximo PR: fase 4
+## Próximo PR: fase 4b
 
-Seguimiento manual por lote: registrar aplicaciones (vinculadas a una línea de un plan aprobado), observaciones y tareas, con fecha y responsable, y mostrar plan frente a lo aplicado. Lee primero `AGENTS.md` y propone el modelo antes de implementarlo.
+Aplicaciones en pantalla: en el detalle de un plan aprobado, el avance por producto (`avancePlan`, explicado paso a paso) y "Registrar aplicación" por producto; editar y eliminar aplicaciones con confirmación. Lee primero `AGENTS.md`. El plan aprobado no cambia; no inferir mediciones de campo.

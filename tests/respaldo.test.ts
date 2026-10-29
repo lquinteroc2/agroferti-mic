@@ -187,15 +187,15 @@ test('revisión: si la primera aparición de un id es inválida, se usa la sigui
   assert.ok(!plan.omitidos.some(o => /repetido/.test(o.motivo)), 'la primera no se usó: no es "repetido"');
 });
 
-test('revisión: lotes con fecha de siembra o fechas de control inválidas se omiten; seguimiento aún no se restaura', () => {
+test('revisión: lotes con fecha de siembra o fechas de control inválidas se omiten; el seguimiento se restaura con su lote', () => {
   const plan = planearRestauracion(tablas({
     lotes: [lote('f1', { fechaSiembra: '2026-13-45' }), lote('f2', { createdAt: 'ayer' }), lote('f3', { fechaSiembra: '2026-10-01' })],
-    registros: [{ id: 'r1', loteId: 'f3', tipo: 'observacion' }]
+    registros: [{ id: 'r1', loteId: 'f3', tipo: 'observacion' }, { id: 'r2', loteId: 'f1', tipo: 'observacion' }]
   }), sinIds());
   const motivos = plan.omitidos.map(o => `${o.tabla}:${o.id}:${o.motivo}`).join('\n');
   assert.match(motivos, /lotes:f1:.*fecha de siembra/);
   assert.match(motivos, /lotes:f2:.*fechas de control/);
-  assert.match(motivos, /registros:r1:.*todavía no se pueden restaurar/);
+  assert.match(motivos, /registros:r2:.*Su lote se omitió: La fecha de siembra/);
   assert.deepEqual(plan.agregar.lotes.map(r => (r as { id: string }).id), ['f3']);
-  assert.deepEqual(plan.agregar.registros, []);
+  assert.deepEqual(plan.agregar.registros.map(r => (r as { id: string }).id), ['r1'], 'la fase 4 verifica los registros al leerlos');
 });

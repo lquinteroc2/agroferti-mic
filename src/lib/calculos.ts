@@ -331,3 +331,63 @@ export function calcularPlan(entrada: EntradaPlan): CalculoPlan {
       : { ok: false, motivo: 'falta-dato', mensaje: 'Hay productos sin costo calculado; no se muestra un total parcial.' };
   return { areaHa, lineas, resumen, costoTotalCop };
 }
+
+// ---- Fase 4: plan frente a lo aplicado (aritmética explicada, sin juicio agronómico) ----
+
+/** Kg por hectárea a partir de kg en el lote: kg × 10.000 / área_m². */
+export function kgLoteAKgHa(kg: number, areaM2: number): number {
+  noNegativoFinito('Kg aplicados', kg);
+  positivoFinito('Área', areaM2);
+  return resultadoSeguro('Kg por hectárea', (kg * 10_000) / areaM2, kg > 0);
+}
+
+export interface AplicacionAvance {
+  lineaId: string;
+  cantidadKg: number;
+}
+
+export interface AvanceLinea {
+  linea: LineaPlan;
+  meta?: MetaNutrimental;
+  /** Número de aplicaciones registradas para esta línea (pueden ser parciales). */
+  aplicaciones: number;
+  /** Kg de producto planeados en el lote (los del plan). */
+  planeadoKg: Calculo<number>;
+  /** Suma de los kg registrados en las aplicaciones. */
+  aplicadoKg: Calculo<number>;
+  /** Aplicado − planeado: negativo es lo que falta por aplicar. */
+  diferenciaKg?: Calculo<number>;
+  /** Aplicado ÷ planeado × 100. */
+  porcentaje?: Calculo<number>;
+  /** Lo aplicado expresado en la forma de la meta: (kg aplicados × 10.000 ÷ área) × % de la etiqueta ÷ 100. */
+  aplicadoFormaKgHa?: Calculo<number>;
+}
+
+/**
+ * Avance de cada línea de un plan frente a las aplicaciones registradas. Usa el área y el producto
+ * guardados con el plan. Si se aplicó más de lo planeado, la diferencia es positiva y no se juzga.
+ */
+export function avancePlan(
+  entrada: EntradaPlan,
+  aplicaciones: ReadonlyArray<AplicacionAvance>,
+  calculo: CalculoPlan = calcularPlan(entrada)
+): AvanceLinea[] {
+  const area = entrada.areaM2AlCrear;
+  return calculo.lineas.map((r): AvanceLinea => {
+    const propias = aplicaciones.filter(a => a.lineaId === r.linea.id);
+    const aplicadoKg = calcular(() => resultadoSeguro('Kg aplicados', propias.reduce((suma, a) => suma + a.cantidadKg, 0)));
+    const base = { linea: r.linea, meta: r.meta, aplicaciones: propias.length, aplicadoKg };
+    if (r.estado !== 'calculada') {
+      return { ...base, planeadoKg: { ok: false, motivo: r.motivo === 'desbordamiento' ? 'desbordamiento' : 'dato-invalido', mensaje: r.mensaje } };
+    }
+    const planeadoKg = r.productoKgLote;
+    if (!planeadoKg.ok || !aplicadoKg.ok) return { ...base, planeadoKg };
+    return {
+      ...base,
+      planeadoKg,
+      diferenciaKg: calcular(() => resultadoSeguro('Diferencia', aplicadoKg.valor - planeadoKg.valor)),
+      porcentaje: calcular(() => resultadoSeguro('Avance', (aplicadoKg.valor / planeadoKg.valor) * 100)),
+      aplicadoFormaKgHa: area === undefined ? undefined : calcular(() => aporteKgHa(kgLoteAKgHa(aplicadoKg.valor, area), r.porcentaje))
+    };
+  });
+}
