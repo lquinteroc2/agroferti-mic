@@ -139,7 +139,7 @@ agroferti-mic/
 | 2. Suelo y conversiones | 4–6 | Registrar fecha, unidades y método de análisis; pruebas de ppm, profundidad y densidad |
 | 3. Fertilizantes y plan | 7–8 | N-P₂O₅-K₂O, meta técnicamente validada, cantidad y costo con trazabilidad |
 | 4. Monitoreo | 9–11 | Registrar aplicación/observación/tarea, responsable, fecha y plan vs. aplicado |
-| 5. Entrega y despliegue | 12–13 | Informe productor, copia/restauración JSON, instalación PWA, Cloudflare Pages |
+| 5. Entrega y despliegue | 12–13 | Informe productor, copia/restauración JSON, instalación PWA, Cloudflare Workers |
 | 6. Validación | 14–15 | Prueba con papa, otro cultivo, comparación manual, correcciones y presentación |
 
 **No incluir en los primeros 15 días:** backend NestJS, autenticación, IA por API, OCR de análisis, sensores, diagnósticos foliares por foto, notificaciones push, publicación en tiendas móviles.
@@ -162,7 +162,17 @@ agroferti-mic/
 
 En esta fase todo queda en **IndexedDB del dispositivo**. No existe sincronización entre navegadores o teléfonos. Limpiar el almacenamiento del sitio puede borrar la información. **No uses este prototipo como registro único de un cultivo real** hasta implementar copia/restauración de seguridad en fase 5.
 
-## Publicar gratis en Cloudflare Pages
+## Publicación en Cloudflare Workers
+
+**App publicada:** https://agroferti-mic.leonardoquintero222.workers.dev/
+
+Está conectada al repositorio de GitHub: **cada push a `main` se compila y se publica sola** (Workers Builds, plan gratuito). El resultado aparece como check "Workers Builds: agroferti-mic" en el commit de GitHub. La configuración del Worker la genera Cloudflare en su entorno de compilación; no hay `wrangler.jsonc` en el repositorio.
+
+- **No agregues `public/_redirects`.** Workers rechaza la regla `/* /index.html 200` por bucle infinito y el deploy falla. La app no tiene rutas propias y el service worker ya usa `index.html` sin conexión.
+- Tras un push, recarga la app una o dos veces para que el navegador tome la versión nueva (actualización automática de la PWA).
+- Para revisar versiones desde la terminal: `npx wrangler versions list --name agroferti-mic` (requiere `npx wrangler login`).
+
+### Cómo se creó (por si hay que repetirlo en otra cuenta)
 
 Solo cuando `npm run build` funcione:
 
@@ -178,12 +188,9 @@ git branch -M main
 
 3. Después de `npm install`, incluye también el archivo `package-lock.json` generado en el primer commit (si hiciste el commit anterior, usa un segundo commit). Crea un repositorio vacío `agroferti-mic` en GitHub y conecta el `remote` usando la dirección HTTPS que **GitHub te muestre**. No copies direcciones de otros proyectos.
 4. Sube la rama `main`.
-5. En Cloudflare > Workers & Pages > Create > Pages > Import a repository.
-6. Selecciona el repositorio y configura:
-   - Framework: **React (Vite)**.
-   - Build command: **`npm run build`**.
-   - Output directory: **`dist`**.
-7. Publica. Verifica el enlace `pages.dev`, crea un lote y recarga.
+5. En Cloudflare > Workers & Pages > Create > Import a repository y da acceso al repositorio (puede ser privado).
+6. Selecciona el repositorio; Cloudflare detecta Vite y usa `npm run build` con la carpeta `dist`. La versión de Node la toma de `.node-version`.
+7. Publica. Verifica el enlace `workers.dev`, crea un lote y recarga.
 8. En Android: abre Chrome > menú > Instalar aplicación cuando esté disponible. En iPhone: Safari > Compartir > Añadir a pantalla de inicio.
 
 **No se necesita servidor** para esta fase, ni pagar una cuenta de Google Play / Apple Developer.
@@ -209,8 +216,9 @@ No inventar resultados de campo. Etiquetar todos los datos simulados como **EJEM
 - Las listas de resultados con más de 500 posiciones no se revisan una por una: se informan como dañadas y solo pueden descartarse con confirmación.
 - Todo se guarda solo en este navegador; no hay respaldo hasta la fase 5.
 
-## Para retomar (estado al 27 de octubre de 2026)
+## Para retomar (estado al 29 de octubre de 2026)
 
+- Fase 3a (modelo, cálculos y persistencia) terminada y publicada; la app publicada muestra las fases 1 y 2. Recorrido en Chrome sobre la URL publicada: 16 comprobaciones correctas, incluido el uso sin conexión.
 - Fase 2 cerrada tras dos auditorías de Codex: 54 pruebas, build correcto y recorrido en navegador (Edge headless, 58 comprobaciones) aprobado.
 - El recorrido en navegador se ejecutó con un script temporal fuera del repositorio; las pruebas manuales equivalentes están en "Pruebas manuales en navegador (fase 2)".
 - Pendiente opcional: probar en un teléfono Android real (teclado y selectores nativos).

@@ -3,7 +3,7 @@
 Contexto: AgroFerti MIC es un prototipo académico SENA del Grupo 1, multicultivo, con papa como piloto. Objetivo en 15 días: registro de lotes, cálculos dimensionales auditables, planificación usando objetivos validados, monitoreo manual y reporte comprensible para el productor.
 
 ## Stack que no debes cambiar sin justificar
-- React + Vite + TypeScript + CSS nativo; Dexie/IndexedDB; PWA; Cloudflare Pages estático.
+- React + Vite + TypeScript + CSS nativo; Dexie/IndexedDB; PWA; Cloudflare Workers con archivos estáticos (cada push a `main` se publica; no usar `public/_redirects`).
 - Sin servidor propio, autenticación, servicios cloud con tarjeta, IA API de pago ni aplicaciones nativas durante la hackatón.
 - Mantén UI en español, prioriza Android de gama media, diseño accesible y sin registro de usuario.
 
