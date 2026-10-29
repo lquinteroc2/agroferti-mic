@@ -75,8 +75,8 @@ Aplicación web progresiva (PWA) **multicultivo** para preparar el cálculo, la 
 **Fase 4 — 4b: aplicaciones (bloque "Lo aplicado frente al plan" en el detalle de un plan aprobado)**
 ✅ "+ Registrar aplicación" en cada producto del plan: fecha (no futura), kg de producto aplicados, costo real opcional, responsable, nota y origen (real o EJEMPLO). Rechaza escrituras ambiguas como `1.500`. Editar y eliminar (con confirmación).
 ✅ Avance de cada producto explicado paso a paso: planeado, aplicado (suma de las aplicaciones parciales), aplicado − planeado, porcentaje y lo aplicado en la forma de la meta frente a la meta. Costo registrado: suma solo de los costos escritos, indicando cuántas aplicaciones no lo tienen.
-✅ Registrar, editar o eliminar aplicaciones no cambia el plan aprobado. Las aplicaciones con datos dañados no se suman al avance y se avisa.
-✅ 131 pruebas automáticas. Recorrido en Chrome: 91 comprobaciones.
+✅ Registrar, editar o eliminar aplicaciones no cambia el plan aprobado. Al editar, una aplicación no cambia de plan ni de producto. Una aplicación con fecha anterior a la aprobación del plan se acepta, pero se marca "Antes de la aprobación". Las aplicaciones con datos dañados no se suman al avance y se avisa en su plan.
+✅ 136 pruebas automáticas. Recorrido en Chrome: 91 comprobaciones. Una revisión de código del 4a y el 4b encontró 10 puntos; todos están corregidos.
 
 **No implementado aún:** pantalla de observaciones y tareas, y lista general del seguimiento del lote (4c); informe para el productor (fase 5).
 

@@ -71,6 +71,11 @@ export function crearRepositorioSeguimiento(almacen: AlmacenSeguimiento) {
         if (previo?.verificado.tipo && previo.verificado.tipo !== datosFinales.tipo) {
           throw new ErrorPersistencia('No se puede cambiar el tipo de un registro: elimínalo y crea uno nuevo.');
         }
+        const anterior = previo?.verificado.registro;
+        if (anterior?.tipo === 'aplicacion' && datosFinales.tipo === 'aplicacion'
+          && (anterior.planId !== datosFinales.planId || anterior.lineaId !== datosFinales.lineaId)) {
+          throw new ErrorPersistencia('No se puede cambiar el plan ni el producto de una aplicación: elimínala y regístrala de nuevo.');
+        }
         if (datosFinales.tipo === 'aplicacion') {
           // El nombre del producto sale del plan, no del formulario.
           const linea = await lineaAprobada(loteId, datosFinales.planId, datosFinales.lineaId);

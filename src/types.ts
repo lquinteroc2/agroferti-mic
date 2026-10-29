@@ -269,6 +269,8 @@ export interface RegistroVerificado {
   registro?: RegistroSeguimiento;
   /** Fecha para ordenar (fecha o fecha prevista), si es válida. */
   fechaOrden?: string;
+  /** Plan de una aplicación, leído aunque el registro tenga otros datos dañados. */
+  planId?: string;
   problemas: ProblemaDato[];
   camposAdicionales: string[];
 }

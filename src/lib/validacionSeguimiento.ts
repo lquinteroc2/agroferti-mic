@@ -8,6 +8,10 @@ import { lector, type ResultadoValidacion } from './validacionPlan.ts';
 
 export const TIPOS_REGISTRO: ReadonlyArray<TipoRegistro> = ['aplicacion', 'observacion', 'tarea'];
 export const ESTADOS_TAREA = ['pendiente', 'hecha'] as const;
+/** Topes de largo de los textos libres (los mismos de los formularios). */
+export const MAX_RESPONSABLE = 80;
+export const MAX_NOTA = 200;
+export const MAX_DESCRIPCION = 500;
 
 const CAMPOS_COMUNES = ['id', 'loteId', 'tipo', 'responsable', 'esEjemplo', 'createdAt', 'updatedAt'];
 const CAMPOS_POR_TIPO: Record<TipoRegistro, ReadonlySet<string>> = {
@@ -30,7 +34,13 @@ function leerCampos(r: Record<string, unknown>, problemas: ProblemaDato[]): Dato
     l.nota('tipo', 'Tipo de registro', 'No es aplicación, observación ni tarea.');
     return undefined;
   }
-  const responsable = l.texto('responsable', 'Responsable');
+  /** Texto con tope de largo (el de los formularios): un texto enorme rompería la lista. */
+  const texto = (campo: string, etiqueta: string, max: number, requerido = false) => {
+    const valor = l.texto(campo, etiqueta, requerido);
+    if (valor && valor.length > max) l.nota(campo, etiqueta, `Tiene más de ${max} caracteres.`);
+    return valor;
+  };
+  const responsable = texto('responsable', 'Responsable', MAX_RESPONSABLE);
   const esEjemplo = l.booleano('esEjemplo', 'Dato de EJEMPLO');
   let datos: Record<string, unknown>;
   if (tipo === 'aplicacion') {
@@ -41,17 +51,17 @@ function leerCampos(r: Record<string, unknown>, problemas: ProblemaDato[]): Dato
       fecha: l.fecha('fecha', 'Fecha de aplicación', true),
       cantidadKg: l.numero('cantidadKg', 'Cantidad aplicada (kg)', { requerido: true, positivo: true }),
       costoCop: l.numero('costoCop', 'Costo (COP)'),
-      nota: l.texto('nota', 'Nota')
+      nota: texto('nota', 'Nota', MAX_NOTA)
     };
   } else if (tipo === 'observacion') {
-    datos = { fecha: l.fecha('fecha', 'Fecha', true), descripcion: l.texto('descripcion', 'Descripción', true) };
+    datos = { fecha: l.fecha('fecha', 'Fecha', true), descripcion: texto('descripcion', 'Descripción', MAX_DESCRIPCION, true) };
   } else {
     const estado = (ESTADOS_TAREA as ReadonlyArray<unknown>).includes(r.estado) ? r.estado : undefined;
     if (!estado) l.nota('estado', 'Estado de la tarea', 'No es pendiente ni hecha.');
     const fechaRealizada = l.fecha('fechaRealizada', 'Fecha en que se hizo', estado === 'hecha');
     if (estado === 'pendiente' && fechaRealizada) l.nota('fechaRealizada', 'Fecha en que se hizo', 'Una tarea pendiente no tiene fecha de realización.');
     datos = {
-      descripcion: l.texto('descripcion', 'Descripción', true),
+      descripcion: texto('descripcion', 'Descripción', MAX_DESCRIPCION, true),
       fechaPrevista: l.fecha('fechaPrevista', 'Fecha prevista', true),
       estado,
       fechaRealizada
@@ -90,6 +100,7 @@ export function verificarRegistro(registro: unknown): RegistroVerificado {
       tipo,
       registro: registroCompleto,
       fechaOrden,
+      planId: tipo === 'aplicacion' && typeof r.planId === 'string' ? r.planId : undefined,
       problemas,
       camposAdicionales: tipo ? Object.keys(r).filter(k => !CAMPOS_POR_TIPO[tipo].has(k)) : []
     };
@@ -165,7 +176,7 @@ export function validarAplicacionFormulario(
   const costo = validarNumeroSinAmbiguedad(entrada.costoCop, { campo: 'Costo (COP)' });
   if (!costo.ok) errores.costoCop = costo.error;
   if (!entrada.origen) errores.origen = 'Indica si es una aplicación real o de EJEMPLO.';
-  if (Object.keys(errores).length || !fecha.ok || !cantidad.ok || !costo.ok) return { ok: false, errores };
+  if (!fecha.ok || !cantidad.ok || !costo.ok || errores.origen) return { ok: false, errores };
   const datos = {
     tipo: 'aplicacion',
     ...destino,

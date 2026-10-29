@@ -96,7 +96,7 @@ export function PlanesSeccion({ lote, onIrAProductos }: { lote: Lote; onIrAProdu
   const registros = lectura?.ok ? lectura.registros : [];
   const aplicacionesDe = (p: PlanVerificado) =>
     registros.flatMap(v => (v.registro?.tipo === 'aplicacion' && v.registro.planId === p.id ? [v.registro] : []));
-  const aplicacionesDanadas = registros.filter(v => v.tipo === 'aplicacion' && !v.registro).length;
+  const danadasDe = (p: PlanVerificado) => registros.filter(v => v.tipo === 'aplicacion' && !v.registro && v.planId === p.id).length;
 
   async function guardarAplicacion(datos: DatosRegistro, id?: string) {
     await repositorioSeguimiento.guardar(lote.id, datos, { id });
@@ -142,7 +142,7 @@ export function PlanesSeccion({ lote, onIrAProductos }: { lote: Lote; onIrAProdu
           onCambiarEstado={(nuevo, datos) => cambiarEstado(seleccionado, nuevo, datos)}
           onCopiar={datos => copiar(seleccionado, datos)}
           aplicaciones={aplicacionesDe(seleccionado)}
-          aplicacionesDanadas={aplicacionesDanadas}
+          aplicacionesDanadas={danadasDe(seleccionado)}
           onGuardarAplicacion={guardarAplicacion}
           onEliminarAplicacion={eliminarAplicacion}
           origen={origenDe(seleccionado)}

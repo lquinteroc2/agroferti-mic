@@ -483,6 +483,13 @@ export function validarCambioEstado(plan: PlanVerificado, nuevo: EstadoPlan, res
   return errores.length ? { ok: false, errores } : { ok: true };
 }
 
+/** Fecha local (AAAA-MM-DD) del último paso a aprobado del historial, si lo hay. */
+export function fechaAprobacion(plan: Pick<PlanVerificado, 'historial'>): string | undefined {
+  const cambio = [...plan.historial].reverse().find(c => c.estado === 'aprobado');
+  const fecha = cambio && new Date(cambio.fecha);
+  return fecha && !Number.isNaN(fecha.getTime()) ? fechaLocalISO(fecha) : undefined;
+}
+
 /** Más reciente primero; desempate por id. */
 export function ordenarPlanes<T extends Pick<PlanVerificado, 'id' | 'createdAt'>>(lista: T[]): T[] {
   return [...lista].sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? '') || a.id.localeCompare(b.id));

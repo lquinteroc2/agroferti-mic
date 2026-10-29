@@ -7,7 +7,8 @@ import assert from 'node:assert/strict';
 import { avancePlan, calcularPlan, costoRegistrado, kgLoteAKgHa } from '../src/lib/calculos.ts';
 import { ErrorPersistencia } from '../src/lib/repositorioAnalisis.ts';
 import { crearRepositorioSeguimiento, type AlmacenSeguimiento } from '../src/lib/repositorioSeguimiento.ts';
-import { copiarProducto } from '../src/lib/validacionPlan.ts';
+import { formatearDiferencia } from '../src/lib/formato.ts';
+import { copiarProducto, fechaAprobacion } from '../src/lib/validacionPlan.ts';
 import {
   ordenarRegistros,
   validarAplicacionFormulario,
@@ -51,7 +52,7 @@ test('kg en el lote a kg/ha', () => {
 
 test('avance: aplicaciones parciales frente a lo planeado, en kg de producto y en la forma de la meta', () => {
   const [a] = avancePlan(planEjemplo(), [{ lineaId: 'l-dap', cantidadKg: 5 }, { lineaId: 'l-dap', cantidadKg: 3 }, { lineaId: 'otra', cantidadKg: 99 }]);
-  assert.equal(a.aplicaciones, 2);
+  assert.equal(a.aplicaciones.length, 2);
   assert.ok(a.planeadoKg.ok && a.aplicadoKg.ok && a.diferenciaKg?.ok && a.porcentaje?.ok && a.aplicadoFormaKgHa?.ok);
   if (!a.planeadoKg.ok || !a.diferenciaKg?.ok || !a.porcentaje?.ok || !a.aplicadoFormaKgHa?.ok || !a.aplicadoKg.ok) return;
   cerca(a.planeadoKg.valor, 10.869565217391303, 'planeado: 100 ÷ 46 % × 0,05 ha');
@@ -261,8 +262,55 @@ test('formulario de aplicación: rechaza escrituras ambiguas, fechas futuras y o
 test('costo registrado: suma solo lo que el usuario escribió e informa cuántas aplicaciones no tienen costo', () => {
   const r = costoRegistrado([{ costoCop: 15_000 }, {}, { costoCop: 10_500 }]);
   assert.ok(r.totalCop.ok && r.totalCop.valor === 25_500);
-  assert.equal(r.conCosto, 2);
   assert.equal(r.sinCosto, 1);
   const vacio = costoRegistrado([]);
-  assert.ok(vacio.totalCop.ok && vacio.totalCop.valor === 0 && vacio.conCosto === 0);
+  assert.ok(vacio.totalCop.ok && vacio.totalCop.valor === 0 && vacio.sinCosto === 0);
+});
+
+// ---- Revisión de 4a y 4b ----
+
+test('revisión 4b: la diferencia se muestra y se describe según lo que se ve redondeado', () => {
+  assert.deepEqual(formatearDiferencia(0), { texto: '0', signo: 0 });
+  assert.deepEqual(formatearDiferencia(0.0004), { texto: '≈ 0', signo: 0 }, '10,87 frente a 10,8696 es "igual" en pantalla');
+  assert.deepEqual(formatearDiferencia(-0.0004), { texto: '≈ 0', signo: 0 }, 'nunca "-0"');
+  assert.deepEqual(formatearDiferencia(1.5), { texto: '+1,5', signo: 1 });
+  assert.equal(formatearDiferencia(-2.869565).signo, -1);
+});
+
+test('revisión 4b: al editar, una aplicación no cambia de plan ni de producto', async () => {
+  const { repo, opciones } = crearAlmacen();
+  const id = await repo.guardar('lote-a', aplicacion(), opciones());
+  await rechaza(repo.guardar('lote-a', aplicacion({ lineaId: 'otra' }), { id }), /No se puede cambiar el plan ni el producto/);
+  await rechaza(repo.guardar('lote-a', aplicacion({ planId: 'plan-propuesta' }), { id }), /No se puede cambiar el plan ni el producto/);
+  await repo.guardar('lote-a', aplicacion({ cantidadKg: 6 }), { id, ahora: LUEGO });
+  const [v] = await repo.listar('lote-a');
+  assert.ok(v.registro?.tipo === 'aplicacion' && v.registro.cantidadKg === 6);
+});
+
+test('revisión 4b: los textos libres tienen tope de largo antes de guardar', () => {
+  const largo = (n: number) => 'x'.repeat(n);
+  for (const [nombre, datos, error] of [
+    ['responsable', aplicacion({ responsable: largo(81) }), /Responsable: Tiene más de 80/],
+    ['nota', aplicacion({ nota: largo(201) }), /Nota: Tiene más de 200/],
+    ['descripción', observacion({ descripcion: largo(501) }), /Descripción: Tiene más de 500/]
+  ] as const) {
+    const r = validarDatosRegistro(datos, { hoy: HOY });
+    assert.ok(!r.ok, nombre);
+    if (!r.ok) assert.match(r.errores.join(' '), error, nombre);
+  }
+  assert.ok(validarDatosRegistro(aplicacion({ responsable: largo(80), nota: largo(200) }), { hoy: HOY }).ok);
+});
+
+test('revisión 4b: fecha de aprobación del plan y motivo real cuando no se puede comparar', () => {
+  assert.equal(fechaAprobacion(planEjemplo()), '2026-10-29');
+  assert.equal(fechaAprobacion(planEjemplo({ historial: [{ estado: 'propuesta', fecha: HOY.toISOString() }] })), undefined);
+  const sinFuente = planEjemplo({ metas: [{ ...planEjemplo().metas[0], fuente: '' }] });
+  const [a] = avancePlan(sinFuente, []);
+  assert.ok(!a.planeadoKg.ok && a.planeadoKg.motivo === 'falta-dato', 'no se convierte en "dato-invalido"');
+});
+
+test('revisión 4b: una aplicación dañada conserva su plan para avisar solo en ese plan', () => {
+  const v = verificarRegistro({ id: 'r', loteId: 'lote-a', ...aplicacion({ cantidadKg: 'x' }), createdAt: 'x', updatedAt: 'x' });
+  assert.equal(v.registro, undefined);
+  assert.equal(v.planId, 'plan-a');
 });

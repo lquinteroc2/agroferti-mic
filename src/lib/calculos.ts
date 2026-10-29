@@ -346,11 +346,11 @@ export interface AplicacionAvance {
   cantidadKg: number;
 }
 
-export interface AvanceLinea {
+export interface AvanceLinea<T extends AplicacionAvance = AplicacionAvance> {
   linea: LineaPlan;
   meta?: MetaNutrimental;
-  /** Número de aplicaciones registradas para esta línea (pueden ser parciales). */
-  aplicaciones: number;
+  /** Aplicaciones de esta línea (pueden ser parciales), en el orden recibido. */
+  aplicaciones: T[];
   /** Kg de producto planeados en el lote (los del plan). */
   planeadoKg: Calculo<number>;
   /** Suma de los kg registrados en las aplicaciones. */
@@ -369,18 +369,19 @@ export interface AvanceLinea {
  * Avance de cada línea de un plan frente a las aplicaciones registradas. Usa el área y el producto
  * guardados con el plan. Si se aplicó más de lo planeado, la diferencia es positiva y no se juzga.
  */
-export function avancePlan(
+export function avancePlan<T extends AplicacionAvance>(
   entrada: EntradaPlan,
-  aplicaciones: ReadonlyArray<AplicacionAvance>,
+  aplicaciones: ReadonlyArray<T>,
   calculo: CalculoPlan = calcularPlan(entrada)
-): AvanceLinea[] {
+): AvanceLinea<T>[] {
   const area = entrada.areaM2AlCrear;
-  return calculo.lineas.map((r): AvanceLinea => {
+  return calculo.lineas.map((r): AvanceLinea<T> => {
     const propias = aplicaciones.filter(a => a.lineaId === r.linea.id);
     const aplicadoKg = calcular(() => resultadoSeguro('Kg aplicados', propias.reduce((suma, a) => suma + a.cantidadKg, 0)));
-    const base = { linea: r.linea, meta: r.meta, aplicaciones: propias.length, aplicadoKg };
+    const base = { linea: r.linea, meta: r.meta, aplicaciones: propias, aplicadoKg };
     if (r.estado !== 'calculada') {
-      return { ...base, planeadoKg: { ok: false, motivo: r.motivo === 'desbordamiento' ? 'desbordamiento' : 'dato-invalido', mensaje: r.mensaje } };
+      // Una forma distinta a la de la etiqueta es un dato que hay que corregir; los demás motivos se conservan.
+      return { ...base, planeadoKg: { ok: false, motivo: r.motivo === 'forma-distinta' ? 'dato-invalido' : r.motivo, mensaje: r.mensaje } };
     }
     const planeadoKg = r.productoKgLote;
     if (!planeadoKg.ok || !aplicadoKg.ok) return { ...base, planeadoKg };
@@ -396,11 +397,10 @@ export function avancePlan(
 }
 
 /** Suma de los costos que el usuario registró (no se calculan); informa cuántas aplicaciones no tienen costo. */
-export function costoRegistrado(aplicaciones: ReadonlyArray<{ costoCop?: number }>): { totalCop: Calculo<number>; conCosto: number; sinCosto: number } {
+export function costoRegistrado(aplicaciones: ReadonlyArray<{ costoCop?: number }>): { totalCop: Calculo<number>; sinCosto: number } {
   const costos = aplicaciones.flatMap(a => (a.costoCop === undefined ? [] : [a.costoCop]));
   return {
     totalCop: calcular(() => resultadoSeguro('Costo registrado', costos.reduce((suma, c) => suma + c, 0))),
-    conCosto: costos.length,
     sinCosto: aplicaciones.length - costos.length
   };
 }

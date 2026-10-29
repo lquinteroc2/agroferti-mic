@@ -19,6 +19,16 @@ export function formatearResultado(n: number, max = 2): string {
   return Number(n.toFixed(max)) === n ? texto : `≈ ${texto}`;
 }
 
+/**
+ * Diferencia con su signo, redondeada a `max` decimales. Lo que el redondeo deja en cero se muestra
+ * como "≈ 0" (nunca "-0") con signo 0, para que el texto que la acompaña coincida con lo que se ve.
+ */
+export function formatearDiferencia(d: number, max = 2): { texto: string; signo: -1 | 0 | 1 } {
+  if (d === 0) return { texto: '0', signo: 0 };
+  if (Math.abs(d) < 0.5 * 10 ** -max) return { texto: '≈ 0', signo: 0 };
+  return { texto: `${d > 0 ? '+' : ''}${formatearResultado(d, max)}`, signo: d > 0 ? 1 : -1 };
+}
+
 /** Dato ingresado: se muestra completo, sin redondear. */
 export function formatearExacto(n: number): string {
   if (!Number.isFinite(n)) return '—';

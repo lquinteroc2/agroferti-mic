@@ -1,9 +1,9 @@
 import { useState, type FormEvent } from 'react';
 import { avancePlan, costoRegistrado, type AvanceLinea, type CalculoPlan } from '../lib/calculos';
-import { fechaLegible, formatearExacto, formatearResultado } from '../lib/formato';
+import { fechaLegible, formatearDiferencia, formatearExacto, formatearResultado } from '../lib/formato';
 import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import { fechaLocalISO, numeroSinAmbiguedad } from '../lib/validacion';
-import { resumenErrores } from '../lib/validacionPlan';
+import { fechaAprobacion, resumenErrores } from '../lib/validacionPlan';
 import {
   validarAplicacionFormulario,
   type DatosRegistro,
@@ -120,7 +120,8 @@ function AplicacionForm({ linea, planId, inicial, onGuardar, onCancelar }: {
 }
 
 /** Pasos del avance de una línea, con los números del plan y de las aplicaciones. */
-function PasosAvance({ a, propias, areaM2 }: { a: AvanceLinea; propias: ReadonlyArray<RegistroAplicacion>; areaM2?: number }) {
+function PasosAvance({ a, areaM2 }: { a: AvanceLinea<RegistroAplicacion>; areaM2?: number }) {
+  const propias = a.aplicaciones;
   if (!a.planeadoKg.ok) return <p className="calc-skip">No se puede comparar: {a.planeadoKg.mensaje}</p>;
   const planeado = a.planeadoKg.valor;
   if (!a.aplicadoKg.ok) return <p className="calc-skip">No calculado: {a.aplicadoKg.mensaje}</p>;
@@ -139,7 +140,10 @@ function PasosAvance({ a, propias, areaM2 }: { a: AvanceLinea; propias: Readonly
   return <>
     <code>Planeado en el lote: <b>{kg(planeado)} kg</b> <em>(del plan aprobado)</em></code>
     <code>Aplicado: {sumandos} = <b>{kg(aplicado)} kg</b> <em>({propias.length} {propias.length === 1 ? 'aplicación' : 'aplicaciones'})</em></code>
-    {a.diferenciaKg?.ok && <code>Aplicado − planeado: {kg(aplicado)} − {kg(planeado)} = <b>{a.diferenciaKg.valor > 0 ? '+' : ''}{kg(a.diferenciaKg.valor)} kg</b> <em>({a.diferenciaKg.valor < 0 ? 'falta por aplicar' : a.diferenciaKg.valor > 0 ? 'se aplicó más de lo planeado' : 'igual a lo planeado'})</em></code>}
+    {a.diferenciaKg?.ok && (() => {
+      const d = formatearDiferencia(a.diferenciaKg.valor);
+      return <code>Aplicado − planeado: {kg(aplicado)} − {kg(planeado)} = <b>{d.texto} kg</b> <em>({d.signo < 0 ? 'falta por aplicar' : d.signo > 0 ? 'se aplicó más de lo planeado' : 'igual a lo planeado'})</em></code>;
+    })()}
     {a.porcentaje?.ok && <code>Avance: {kg(aplicado)} ÷ {kg(planeado)} × 100 = <b>{formatearResultado(a.porcentaje.valor, 1)} %</b></code>}
     {a.aplicadoFormaKgHa?.ok && areaM2 !== undefined && porcentajeEtiqueta !== undefined &&
       <code>En la forma de la meta: {kg(aplicado)} kg × 10.000 ÷ {formatearExacto(areaM2)} m² × {formatearExacto(porcentajeEtiqueta)} % ÷ 100 = <b>{kg(a.aplicadoFormaKgHa.valor)} kg/ha de {forma}</b> <em>(meta: {a.meta ? formatearExacto(a.meta.kgHa) : '—'} kg/ha)</em></code>}
@@ -150,15 +154,27 @@ function PasosAvance({ a, propias, areaM2 }: { a: AvanceLinea; propias: Readonly
 export function AplicacionesPlan({ plan, calculo, aplicaciones, aplicacionesDanadas, onGuardar, onEliminar }: Props) {
   const [abierto, setAbierto] = useState<{ lineaId: string; aplicacionId?: string } | null>(null);
   const [error, setError] = useState('');
-  const avance = avancePlan(plan, aplicaciones, calculo);
-  const costo = costoRegistrado(aplicaciones);
+  /** Mientras se elimina, los botones quedan bloqueados (evita una segunda confirmación por doble toque). */
+  const [eliminando, setEliminando] = useState(false);
+  // Orden cronológico una sola vez; avancePlan reparte las aplicaciones por línea conservando este orden.
+  const ordenadas = [...aplicaciones].sort((x, y) => x.fecha.localeCompare(y.fecha) || x.createdAt.localeCompare(y.createdAt));
+  const avance = avancePlan(plan, ordenadas, calculo);
+  // Solo cuentan las aplicaciones de productos de este plan; las demás se avisan y no se suman.
+  const delPlan = avance.flatMap(a => a.aplicaciones);
+  const ajenas = aplicaciones.length - delPlan.length;
+  const costo = costoRegistrado(delPlan);
+  const aprobado = fechaAprobacion(plan);
+  const ocupado = !!abierto || eliminando;
 
   async function eliminar(a: RegistroAplicacion) {
     setError('');
+    setEliminando(true);
     try {
       await onEliminar(a);
     } catch (e) {
       setError(e instanceof ErrorPersistencia ? e.message : 'No se pudo eliminar la aplicación. Vuelve a intentarlo.');
+    } finally {
+      setEliminando(false);
     }
   }
 
@@ -166,28 +182,29 @@ export function AplicacionesPlan({ plan, calculo, aplicaciones, aplicacionesDana
     <section className="soil-block calculated" aria-labelledby={`aplicado-${plan.id}`}>
       <h4 id={`aplicado-${plan.id}`}><span className="badge badge-calc">Seguimiento</span> Lo aplicado frente al plan</h4>
       <p className="calc-intro">Registra cada aplicación real de un producto; puede hacerse en varias partes. El plan aprobado no cambia: aquí se compara lo planeado con lo que registras. Es un registro manual, no una medición de campo.</p>
-      {aplicacionesDanadas > 0 && <p className="calc-skip">Hay {aplicacionesDanadas} {aplicacionesDanadas === 1 ? 'registro de aplicación' : 'registros de aplicación'} del lote con datos por corregir: no se suman al avance.</p>}
+      {aplicacionesDanadas > 0 && <p className="calc-skip">Hay {aplicacionesDanadas} {aplicacionesDanadas === 1 ? 'aplicación' : 'aplicaciones'} de este plan con datos por corregir: no se suman al avance.</p>}
+      {ajenas > 0 && <p className="calc-skip">Hay {ajenas} {ajenas === 1 ? 'aplicación' : 'aplicaciones'} de productos que no están en este plan: no se suman al avance ni al costo.</p>}
       {error && <div role="alert" className="error"><p>{error}</p></div>}
 
       {avance.map(a => {
-        const propias = aplicaciones.filter(x => x.lineaId === a.linea.id).sort((x, y) => x.fecha.localeCompare(y.fecha) || x.createdAt.localeCompare(y.createdAt));
+        const propias = a.aplicaciones;
         const formaAbierta = abierto?.lineaId === a.linea.id;
         return (
           <div className="calc-step" key={a.linea.id}>
             <strong>{a.linea.producto.nombre} {a.linea.producto.esEjemplo && <span className="badge badge-example">EJEMPLO</span>}</strong>
             <p>Para la meta de {a.meta ? `${a.meta.elemento} (${a.meta.forma})` : 'una meta no disponible'}.</p>
-            <PasosAvance a={a} propias={propias} areaM2={plan.areaM2AlCrear} />
+            <PasosAvance a={a} areaM2={plan.areaM2AlCrear} />
             {propias.length > 0 && <ul className="aplicaciones-lista" aria-label={`Aplicaciones de ${a.linea.producto.nombre}`}>
               {propias.map(p => <li key={p.id}>
                 {abierto?.aplicacionId === p.id
                   ? <AplicacionForm linea={a.linea} planId={plan.id} inicial={p}
                     onGuardar={async datos => { await onGuardar(datos, p.id); setAbierto(null); }} onCancelar={() => setAbierto(null)} />
                   : <>
-                    <span><strong>{fechaLegible(p.fecha)}</strong> · {formatearExacto(p.cantidadKg)} kg{p.costoCop !== undefined ? ` · ${formatearExacto(p.costoCop)} COP` : ''}{p.responsable ? ` · ${p.responsable}` : ''} <OrigenBadge esEjemplo={p.esEjemplo} /></span>
+                    <span><strong>{fechaLegible(p.fecha)}</strong> · {formatearExacto(p.cantidadKg)} kg{p.costoCop !== undefined ? ` · ${formatearExacto(p.costoCop)} COP` : ''}{p.responsable ? ` · ${p.responsable}` : ''} <OrigenBadge esEjemplo={p.esEjemplo} />{aprobado && p.fecha < aprobado && <span className="badge badge-warn" title={`El plan se aprobó el ${fechaLegible(aprobado)}`}>Antes de la aprobación</span>}</span>
                     {p.nota && <small>{p.nota}</small>}
                     <span className="aplicacion-acciones">
-                      <button type="button" className="link-button" disabled={!!abierto} onClick={() => setAbierto({ lineaId: a.linea.id, aplicacionId: p.id })}>Editar</button>
-                      <button type="button" className="link-button peligro" disabled={!!abierto} onClick={() => void eliminar(p)}>Eliminar</button>
+                      <button type="button" className="link-button" disabled={ocupado} onClick={() => setAbierto({ lineaId: a.linea.id, aplicacionId: p.id })}>Editar</button>
+                      <button type="button" className="link-button peligro" disabled={ocupado} onClick={() => void eliminar(p)}>Eliminar</button>
                     </span>
                   </>}
               </li>)}
@@ -195,12 +212,12 @@ export function AplicacionesPlan({ plan, calculo, aplicaciones, aplicacionesDana
             {formaAbierta && !abierto?.aplicacionId
               ? <AplicacionForm linea={a.linea} planId={plan.id}
                 onGuardar={async datos => { await onGuardar(datos); setAbierto(null); }} onCancelar={() => setAbierto(null)} />
-              : <button type="button" className="btn btn-outline btn-small" disabled={!!abierto} onClick={() => { setError(''); setAbierto({ lineaId: a.linea.id }); }}>+ Registrar aplicación</button>}
+              : <button type="button" className="btn btn-outline btn-small" disabled={ocupado} onClick={() => { setError(''); setAbierto({ lineaId: a.linea.id }); }}>+ Registrar aplicación</button>}
           </div>
         );
       })}
 
-      {aplicaciones.length > 0 && <div className="calc-step">
+      {delPlan.length > 0 && <div className="calc-step">
         <strong>Costo registrado</strong>
         <p>Suma de los costos reales que escribiste; la app no los calcula.</p>
         {costo.totalCop.ok && <code>Total registrado: <b>{formatearExacto(costo.totalCop.valor)} COP</b>{costo.sinCosto > 0 && <em> ({costo.sinCosto} {costo.sinCosto === 1 ? 'aplicación' : 'aplicaciones'} sin costo registrado)</em>}</code>}

@@ -1,6 +1,6 @@
 import { calcularPlan, type Calculo, type ResultadoLineaPlan } from '../lib/calculos';
 import { mismaForma } from '../lib/catalogoNutrientes';
-import { fechaDeMarca, fechaLegible, formatearExacto, formatearResultado } from '../lib/formato';
+import { fechaDeMarca, fechaLegible, formatearDiferencia, formatearExacto, formatearResultado } from '../lib/formato';
 import type { DatosRegistro } from '../lib/validacionSeguimiento';
 import type { AnalisisVerificado, EstadoPlan, PlanVerificado, RegistroAplicacion } from '../types';
 import { AplicacionesPlan } from './AplicacionesPlan';
@@ -31,13 +31,6 @@ function Falta({ calculo }: { calculo: Extract<Calculo<number>, { ok: false }> }
   return <p className="calc-skip">No calculado: {calculo.mensaje}</p>;
 }
 
-/** "+39,13", "≈ -10" o "0": la diferencia la calcula calcularPlan; aquí solo se muestra con su signo. */
-function diferencia(d: number): string {
-  if (d === 0) return '0';
-  // Una diferencia que el redondeo a 2 decimales dejaría en cero se muestra como "≈ 0", no como "-0".
-  if (Math.abs(d) < 0.005) return '≈ 0';
-  return `${d > 0 ? '+' : ''}${kg(d)}`;
-}
 
 function Linea({ r, areaM2 }: { r: ResultadoLineaPlan; areaM2?: number }) {
   const p = r.linea.producto;
@@ -163,7 +156,7 @@ export function PlanDetalle({
               <td>{x.forma} <small>({x.elemento})</small></td>
               <td>{x.metaKgHa !== undefined ? formatearExacto(x.metaKgHa) : '—'}</td>
               <td>{x.aportadoKgHa.ok ? kg(x.aportadoKgHa.valor) : x.aportadoKgHa.mensaje}</td>
-              <td>{x.diferenciaKgHa?.ok ? diferencia(x.diferenciaKgHa.valor) : '—'}</td>
+              <td>{x.diferenciaKgHa?.ok ? formatearDiferencia(x.diferenciaKgHa.valor).texto : '—'}</td>
             </tr>)}</tbody>
           </table></div>
           {calculo.resumen.some(x => x.incompleto) && <p className="calc-skip">La suma no está completa: hay productos o aportes sin calcular, o datos por corregir.</p>}
