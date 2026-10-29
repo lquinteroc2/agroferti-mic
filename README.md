@@ -97,7 +97,7 @@ Claude Code lee `CLAUDE.md`; Codex lee `AGENTS.md`. Ambos archivos contienen ins
 
 ```text
 agroferti-mic/
-├─ public/              # Iconos e instrucciones de Cloudflare Pages
+├─ public/              # Iconos de la PWA
 ├─ src/
 │  ├─ components/
 │  │  ├─ LoteForm.tsx              # Formulario del lote
