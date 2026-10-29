@@ -3,7 +3,7 @@
 Lee y cumple íntegramente [`AGENTS.md`](./AGENTS.md) antes de modificar el proyecto. Es la fuente compartida de normas de este repositorio para Claude Code y Codex CLI.
 
 ## Estado y alcance actual
-- MVP de hackatón SENA, multicultivo con papa como piloto. Fases 1 (lotes), 2 (análisis de suelo) y 3 (catálogo de productos, plan y estados del plan) completas; la siguiente es la 4 (seguimiento de aplicaciones). Estado detallado en `README.md`.
+- MVP de hackatón SENA, multicultivo con papa como piloto. Fases 1 (lotes), 2 (análisis de suelo) y 3 (catálogo de productos, plan y estados del plan) completas, más la copia de seguridad JSON (adelantada de la fase 5); la siguiente es la 4 (seguimiento de aplicaciones). Estado detallado en `README.md`.
 - Tecnologías: React 19, Vite 7, TypeScript, Dexie, PWA. Sin backend, API de IA ni cuentas de pago.
 - Priorizar interfaz comprensible para productores y pruebas matemáticas verificables.
 - No inventar resultados de campo, valores de análisis de suelo, fórmulas agronómicas de fertilización ni dosis aplicables.

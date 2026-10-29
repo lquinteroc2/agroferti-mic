@@ -4,6 +4,7 @@ import { AnalisisSueloSeccion } from './components/AnalisisSueloSeccion';
 import { LoteForm, type DatosLote } from './components/LoteForm';
 import { PlanesSeccion } from './components/PlanesSeccion';
 import { ProductosSeccion } from './components/ProductosSeccion';
+import { RespaldoSeccion } from './components/RespaldoSeccion';
 import { db, eliminarLoteYRelacionados } from './lib/db';
 import { areaM2AHa } from './lib/calculos';
 import { fechaLegible, formatearNumero } from './lib/formato';
@@ -116,7 +117,7 @@ export default function App() {
             : <div className="lots-grid">{lotes.map(l => <button key={l.id} className="lot-card" onClick={() => { setLoteId(l.id); ir('detalle'); }}>
               <span className="crop-icon" aria-hidden="true">{l.cultivo === 'papa' ? '●' : '✳'}</span><span className="lot-card-content"><strong>{l.nombre}</strong><span>{nombreCultivo(l.cultivo)} · {formatearNumero(l.areaM2)} m²</span><small>Siembra: {fechaLegible(l.fechaSiembra)}</small></span><span className="arrow" aria-hidden="true">›</span>
             </button>)}</div>}
-          <div className="privacy-banner"><strong>Datos privados en tu navegador</strong><p>Esta fase guarda la información localmente. Todavía no hay sincronización ni copia de seguridad automática. No borres los datos del sitio hasta habilitar los respaldos del MVP.</p></div>
+          <RespaldoSeccion />
         </>}
 
         {vista === 'nuevo' && <div className="page-narrow"><button className="back" onClick={() => ir('inicio')}>← Volver a mis lotes</button><LoteForm onGuardar={guardarLote} onCancelar={() => ir('inicio')} /></div>}
@@ -142,7 +143,7 @@ export default function App() {
           <div className="help-item"><span>1</span><div><h3>Registra el lote</h3><p>Indica cultivo, área, fecha de siembra y ubicación. Eso ya funciona en esta versión.</p></div></div>
           <div className="help-item"><span>2</span><div><h3>Registra el suelo y prepara el plan</h3><p>Ya puedes registrar análisis de suelo en la ficha de cada lote y ver sus equivalencias explicadas. En <strong>Productos</strong> registras los fertilizantes tal como aparecen en su etiqueta, y en la ficha del lote preparas el plan: escribes cada meta nutricional con su fuente técnica y fecha, eliges el producto y la aplicación explica la cantidad y el costo. La app no propone metas ni convierte entre formas químicas.</p></div></div>
           <div className="help-item"><span>3</span><div><h3>Monitorea lo realizado</h3><p>En fases posteriores registrarás aplicaciones, cantidades, responsables, costos y observaciones. No hacen falta sensores para registrar estos datos manualmente.</p></div></div>
-          <div className="info-box"><strong>Nota de privacidad:</strong> el almacenamiento es local. No está conectado a una nube ni permite acceder a los mismos datos desde otro teléfono.</div>
+          <div className="info-box"><strong>Nota de privacidad:</strong> el almacenamiento es local. No está conectado a una nube ni sincroniza entre teléfonos. Para no perder los datos o pasarlos a otro dispositivo, usa <strong>Copia de seguridad</strong> en Mis lotes.</div>
           <button className="btn btn-primary" onClick={() => ir('inicio')}>Ir a mis lotes</button>
         </div>}
         {((vista === 'editar' || vista === 'detalle') && !activo) && <div className="empty"><p>Selecciona un lote para continuar.</p><button className="btn btn-primary" onClick={() => ir('inicio')}>Ver mis lotes</button></div>}

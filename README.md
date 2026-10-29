@@ -2,7 +2,7 @@
 
 Aplicación web progresiva (PWA) **multicultivo** para preparar el cálculo, la explicación y el monitoreo de fertilización, empezando por **papa** como cultivo piloto.
 
-## Estado actual: fases 1 a 3 completas / lotes, suelo, catálogo de productos y plan de fertilización
+## Estado actual: fases 1 a 3 completas y copia de seguridad (adelantada de la fase 5)
 
 **Fase 1 (lotes)**
 ✅ Registro de lotes: crear, editar, eliminar y consultar.
@@ -60,7 +60,13 @@ Aplicación web progresiva (PWA) **multicultivo** para preparar el cálculo, la 
 ✅ Historial visible con estado, fecha y hora, nombre y nota de cada cambio. Lo aplicado en campo no es un estado del plan: se registrará en la fase 4.
 ✅ 107 pruebas automáticas. Recorrido en Chrome: 72 comprobaciones. Una revisión de código encontró 9 puntos en 3d (entre ellos, que "Cancelar" no detenía una aprobación en curso y que se podía aprobar con metas sin producto); todos están corregidos.
 
-**No implementado aún:** seguimiento de aplicaciones y plan frente a lo aplicado (fase 4), reportes PDF y respaldo de información (fase 5).
+**Fase 5 (adelantada) — copia de seguridad (sección "Copia de seguridad" en Mis lotes)**
+✅ **Descargar copia (JSON):** todos los lotes, análisis, productos y planes, tal como están guardados (incluidos los datos dañados y los campos de otras versiones), en `agroferti-respaldo-AAAA-MM-DD.json`.
+✅ **Restaurar desde un archivo:** primero muestra qué se agregará, qué ya existe y qué se omite (con el motivo), y pide confirmación. **Solo agrega lo que no existe: nunca borra ni sobrescribe** datos del dispositivo. Todo se escribe en una sola transacción: o entra todo o no entra nada.
+✅ Rechaza archivos que no son una copia de AgroFerti o de una versión de formato desconocida. Omite lotes que romperían la lista (sin nombre, cultivo o área válidos, o sin fechas de control) y registros cuyo lote no está en la copia ni en el dispositivo.
+✅ Verificado con Dexie real fuera del repositorio (copia restaurada idéntica, sin duplicar, atómica) y en Chrome: descargar, borrar la base del navegador y restaurar. 114 pruebas automáticas; recorrido en Chrome: 81 comprobaciones.
+
+**No implementado aún:** seguimiento de aplicaciones y plan frente a lo aplicado (fase 4), informe para el productor (fase 5).
 
 ## Requisitos
 
@@ -137,6 +143,13 @@ Las pruebas de persistencia (`tests/persistencia.test.ts`) usan un almacén en m
 3. Pulsa **Copiar como nueva propuesta**: se abre una propuesta editable con las mismas cifras, "Copia del plan «…»" en el historial y un enlace al plan original.
 4. Crea una propuesta con una meta sin producto: **Marcar como revisado** queda deshabilitado con el motivo "La meta de … no tiene producto".
 
+### Pruebas manuales en navegador (copia de seguridad)
+
+1. Con datos de EJEMPLO, en **Mis lotes → Copia de seguridad**, pulsa **Descargar copia (JSON)**: se descarga `agroferti-respaldo-AAAA-MM-DD.json` y el aviso resume lo incluido.
+2. Restaura ese mismo archivo: debe decir "Ya están en este dispositivo y no se modifican" y "No hay nada nuevo que agregar".
+3. Elige un archivo JSON que no sea una copia: debe rechazarlo.
+4. En otro navegador o en una ventana privada (o después de borrar los datos del sitio), restaura el archivo: revisa el resumen, pulsa **Agregar estos datos** y comprueba que vuelven los lotes, productos y planes con sus estados e historial.
+
 ## Inicio exclusivo desde terminal
 
 Consulta [INICIO_TERMINAL.md](./INICIO_TERMINAL.md) para instalar Node.js, Git, Claude Code y Codex CLI, y para trabajar desde varias pestañas de terminal sin un editor gráfico.
@@ -159,7 +172,10 @@ agroferti-mic/
 │  │  ├─ ProductoDetalle.tsx       # Fase 3b: datos de la etiqueta y precio por kg
 │  │  ├─ PlanesSeccion.tsx         # Fase 3c: planes dentro de la ficha del lote
 │  │  ├─ PlanForm.tsx              # Fase 3c: metas con su fuente y producto por meta
-│  │  └─ PlanDetalle.tsx           # Fase 3c: cálculo del plan explicado paso a paso
+│  │  ├─ PlanDetalle.tsx           # Fase 3c: cálculo del plan explicado paso a paso
+│  │  ├─ PlanEstado.tsx            # Fase 3d: estados del plan e historial
+│  │  ├─ RespaldoSeccion.tsx       # Copia de seguridad: descargar y restaurar
+│  │  └─ useSeleccionViva.ts       # Registro abierto en una sección sobre una consulta en vivo
 │  ├─ lib/
 │  │  ├─ calculos.ts            # Matemáticas verificables, sin prescribir dosis
 │  │  ├─ validacion.ts          # Validaciones puras y verificación de registros guardados
@@ -167,6 +183,7 @@ agroferti-mic/
 │  │  ├─ repositorioAnalisis.ts # Reglas de persistencia, comprobables sin IndexedDB
 │  │  ├─ validacionPlan.ts      # Fase 3: validación de productos, planes y cambios de estado
 │  │  ├─ repositorioPlanes.ts   # Fase 3: persistencia del catálogo y de los planes
+│  │  ├─ respaldo.ts            # Copia de seguridad: formato, lectura y restauración sin sobrescribir
 │  │  ├─ formato.ts             # Números y fechas en es-CO
 │  │  └─ db.ts                  # IndexedDB mediante Dexie (esquema v2)
 │  ├─ types.ts           # Modelo de lotes, análisis, productos y planes
@@ -180,7 +197,8 @@ agroferti-mic/
 │  ├─ robustez.test.ts     # Precisión al editar, arrays dispersos, estructuras inesperadas
 │  ├─ persistencia.test.ts # Crear, leer, editar, eliminar y aislamiento entre lotes
 │  ├─ plan.test.ts         # Fase 3: cálculos del plan, formas químicas, validación y estados
-│  └─ persistenciaPlan.test.ts # Fase 3: catálogo, planes, estados, copias y trazabilidad
+│  ├─ persistenciaPlan.test.ts # Fase 3: catálogo, planes, estados, copias y trazabilidad
+│  └─ respaldo.test.ts      # Copia de seguridad: exportar, leer, restaurar sin sobrescribir
 ├─ vite.config.ts        # Configuración de PWA
 ├─ tsconfig.json
 └─ package.json
@@ -216,7 +234,7 @@ agroferti-mic/
 
 ## Datos del productor y privacidad
 
-En esta fase todo queda en **IndexedDB del dispositivo**. No existe sincronización entre navegadores o teléfonos. Limpiar el almacenamiento del sitio puede borrar la información. **No uses este prototipo como registro único de un cultivo real** hasta implementar copia/restauración de seguridad en fase 5.
+Todo queda en **IndexedDB del navegador**, que depende de la dirección de la app. No existe sincronización entre navegadores o teléfonos. Limpiar el almacenamiento del sitio o cambiar la dirección deja la app vacía. **Descarga una copia de seguridad con frecuencia** (Mis lotes → Copia de seguridad) y guárdala fuera del dispositivo; con ella se recuperan los datos aquí o en otro dispositivo. Aun así, es un prototipo académico: no lo uses como registro único de un cultivo real.
 
 ## Publicación en Cloudflare Workers
 
@@ -301,6 +319,12 @@ No inventar resultados de campo. Etiquetar todos los datos simulados como **EJEM
 
 - Cada meta se cubre con un solo producto y los aportes acompañantes no reducen otras cantidades (ver limitaciones de 3a).
 - El nombre de quien elabora la propuesta es opcional y lo escribe el usuario; la app no verifica identidades.
+
+## Limitaciones conocidas de la copia de seguridad
+
+- Restaurar solo agrega: no hay una opción para reemplazar los datos del dispositivo por los de la copia ni para fusionar dos versiones distintas de un mismo registro (el del dispositivo se conserva).
+- La copia no se hace sola: hay que descargarla. El archivo no está cifrado; contiene todos los datos del navegador.
+- JSON no representa `NaN` ni `Infinity`: si un registro dañado tenía esos valores, en la copia quedan como `null` (sigue mostrándose como dato dañado).
 
 ## Limitaciones conocidas de la fase 3d
 

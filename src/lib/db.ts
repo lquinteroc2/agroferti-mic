@@ -2,6 +2,7 @@ import Dexie, { type EntityTable } from 'dexie';
 import type { AnalisisSuelo, Lote, PlanFertilizacion, ProductoFertilizante, RegistroMonitoreo } from '../types';
 import { crearRepositorioAnalisis } from './repositorioAnalisis';
 import { crearRepositorioPlanes, crearRepositorioProductos } from './repositorioPlanes';
+import { crearRepositorioRespaldo, type IdsExistentes } from './respaldo';
 
 export const db = new Dexie('AgroFertiMIC') as Dexie & {
   lotes: EntityTable<Lote, 'id'>;
@@ -53,6 +54,40 @@ export const repositorioPlanes = crearRepositorioPlanes({
   guardar: async registro => { await db.planes.put(registro); },
   eliminar: id => db.planes.delete(id),
   transaccion: fn => db.transaction('rw', db.lotes, db.analisisSuelos, db.planes, fn)
+});
+
+/** Identificadores de texto de una tabla (otros tipos de clave no pueden coincidir con los de una copia). */
+async function idsDe(tabla: { toCollection(): { primaryKeys(): Promise<unknown[]> } }): Promise<Set<string>> {
+  return new Set((await tabla.toCollection().primaryKeys()).filter((k): k is string => typeof k === 'string'));
+}
+
+// Copia de seguridad: lee todo en una transacción de lectura y restaura con bulkAdd en una sola
+// transacción. bulkAdd nunca reemplaza: los identificadores existentes se filtran antes.
+export const repositorioRespaldo = crearRepositorioRespaldo({
+  esquema: () => db.verno,
+  leerTodo: () => db.transaction('r', [db.lotes, db.analisisSuelos, db.productos, db.planes, db.registros], async () => ({
+    lotes: await db.lotes.toArray(),
+    analisisSuelos: await db.analisisSuelos.toArray(),
+    productos: await db.productos.toArray(),
+    planes: await db.planes.toArray(),
+    registros: await db.registros.toArray()
+  })),
+  idsExistentes: async (): Promise<IdsExistentes> => ({
+    lotes: await idsDe(db.lotes),
+    analisisSuelos: await idsDe(db.analisisSuelos),
+    productos: await idsDe(db.productos),
+    planes: await idsDe(db.planes),
+    registros: await idsDe(db.registros)
+  }),
+  agregar: async datos => {
+    // Los registros se guardan tal como vienen en la copia; la app los verifica al leerlos.
+    await db.lotes.bulkAdd(datos.lotes as Lote[]);
+    await db.analisisSuelos.bulkAdd(datos.analisisSuelos as AnalisisSuelo[]);
+    await db.productos.bulkAdd(datos.productos as ProductoFertilizante[]);
+    await db.planes.bulkAdd(datos.planes as PlanFertilizacion[]);
+    await db.registros.bulkAdd(datos.registros as RegistroMonitoreo[]);
+  },
+  transaccion: fn => db.transaction('rw', [db.lotes, db.analisisSuelos, db.productos, db.planes, db.registros], fn)
 });
 
 export async function eliminarLoteYRelacionados(id: string): Promise<void> {
