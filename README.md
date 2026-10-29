@@ -220,7 +220,9 @@ En esta fase todo queda en **IndexedDB del dispositivo**. No existe sincronizaci
 
 ## Publicación en Cloudflare Workers
 
-**App publicada:** https://agroferti-mic.leonardoquintero222.workers.dev/
+**App publicada:** https://agroferti-mic.senaedu.workers.dev/
+
+La dirección es `<nombre del Worker>.<subdominio de la cuenta>.workers.dev`. El subdominio de la cuenta (`senaedu`) se cambia en el panel de Cloudflare (Workers & Pages); al cambiarlo, la dirección anterior deja de funcionar y los datos guardados en el navegador no pasan a la nueva, porque dependen de la dirección.
 
 Está conectada al repositorio de GitHub: **cada push a `main` se compila y se publica sola** (Workers Builds, plan gratuito). El resultado aparece como check "Workers Builds: agroferti-mic" en el commit de GitHub. La configuración del Worker la genera Cloudflare en su entorno de compilación; no hay `wrangler.jsonc` en el repositorio.
 
