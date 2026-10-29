@@ -1,6 +1,8 @@
 # AgroFerti MIC — instalación y desarrollo SOLO con terminal
 
-No es necesario instalar VS Code ni contratar servidores. **El MVP todavía no está terminado**: la Fase 1 incluye registro de lotes y funciones base. La compilación React completa debe verificarse en tu equipo.
+No es necesario instalar VS Code ni contratar servidores. **El MVP todavía no está terminado**: están implementadas la fase 1 (registro de lotes) y la fase 2 (análisis de suelo). El estado de cada fase está en `README.md` («Estado actual»).
+
+Si el repositorio ya existe en GitHub y tienes acceso, no uses el ZIP: clónalo con `gh repo clone lquinteroc2/agroferti-mic`, entra en la carpeta y continúa con `npm install`. En ese caso omite también la sección D, que solo aplica a la primera vez.
 
 ## A. Si utilizas Windows 10/11: PowerShell
 
@@ -56,7 +58,7 @@ npm run dev
 
 Abre en el navegador la dirección indicada por Vite, normalmente `http://localhost:5173`. Deja esa pestaña de PowerShell abierta.
 
-7. En **otra** pestaña de PowerShell, entra en la misma carpeta y ejecuta `claude`. Inicia sesión con tu suscripción Claude, **no con una clave de API**. Empieza preguntando: “Lee CLAUDE.md y AGENTS.md y describe el alcance de la fase 1; no modifiques archivos todavía.”
+7. En **otra** pestaña de PowerShell, entra en la misma carpeta y ejecuta `claude`. Inicia sesión con tu suscripción Claude, **no con una clave de API**. Empieza preguntando: “Lee CLAUDE.md y AGENTS.md y describe el estado actual y el alcance de la siguiente fase; no modifiques archivos todavía.”
 8. En **otra** pestaña de PowerShell, entra en la misma carpeta y ejecuta `codex`. Elige **Sign in with ChatGPT** con tu cuenta personal. Primero úsalo para **revisar**, no para editar lo mismo que Claude está cambiando.
 
 ## B. Si utilizas macOS (Mac mini): Terminal
@@ -132,11 +134,11 @@ Si ya existe el repositorio, no vuelvas a crearlo; conecta el remoto existente s
 
 ## E. Primer prompt seguro para Claude Code
 
-> Lee `CLAUDE.md` y `AGENTS.md`. Verifica la instalación, ejecuta `npm run test` y `npm run build` y corrige exclusivamente errores de compilación o compatibilidad que bloqueen ejecutar la Fase 1. No agregues funciones nuevas ni introduzcas servicios externos. Resume los cambios y pide aprobación antes de continuar con la Fase 2.
+> Lee `CLAUDE.md` y `AGENTS.md`. Verifica la instalación, ejecuta `npm run test` y `npm run build` y corrige exclusivamente errores de compilación o compatibilidad que bloqueen ejecutar la versión actual. No agregues funciones nuevas ni introduzcas servicios externos. Resume los cambios y pide aprobación antes de empezar la siguiente fase.
 
 ## F. Primer prompt de revisión para Codex CLI
 
-> Lee `AGENTS.md`. Revisa sin modificar los archivos la Fase 1 de AgroFerti MIC: React, TypeScript, Dexie, validaciones y riesgos de pérdida de datos. Ejecuta las pruebas y la compilación si es posible. Reporta fallos reproducibles y prioridades, pero no reestructures ni implementes la Fase 2 todavía.
+> Lee `AGENTS.md`. Revisa sin modificar los archivos la fase actual de AgroFerti MIC (ver «Estado actual» en `README.md`): React, TypeScript, Dexie, validaciones y riesgos de pérdida de datos. Ejecuta las pruebas y la compilación si es posible. Reporta fallos reproducibles y prioridades, pero no reestructures ni implementes la siguiente fase todavía.
 
 ## G. Seguridad y privacidad
 

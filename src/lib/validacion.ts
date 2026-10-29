@@ -1,5 +1,5 @@
 /**
- * Validaciones PURAS para el registro de análisis de suelo (fase 2).
+ * Validaciones PURAS para el registro de lotes (área) y de análisis de suelo (fase 2).
  * No interpretan resultados ni sugieren dosis: solo verifican formato, unidades y rangos físicos/numéricos.
  * Las importaciones entre módulos de `lib` llevan extensión .ts para que las pruebas de Node las resuelvan.
  */
@@ -95,6 +95,20 @@ export function validarNumero(texto: string, opciones: OpcionesNumero & { campo:
   }
   const error = comprobarNumero(lectura.valor, opciones);
   return error ? { ok: false, error: `${campo}: ${error}.` } : { ok: true, valor: lectura.valor };
+}
+
+/** Límites de la app para el área del lote (no agronómicos): los mismos que tenía el campo de la fase 1. */
+export const AREA_LOTE_MIN_M2 = 0.01;
+export const AREA_LOTE_MAX_M2 = 10_000_000_000;
+
+/** Área del lote en m², escrita con coma o punto decimal como el resto de formularios. */
+export function validarAreaLote(texto: string): Resultado<number> {
+  const lectura = validarNumero(texto, { campo: 'Área', requerido: true, positivo: true });
+  if (!lectura.ok) return lectura;
+  const valor = lectura.valor as number; // requerido: nunca es undefined
+  if (valor < AREA_LOTE_MIN_M2) return { ok: false, error: 'Área: debe ser de al menos 0,01 m².' };
+  if (valor > AREA_LOTE_MAX_M2) return { ok: false, error: 'Área: supera un valor razonable para esta aplicación; revisa el dato.' };
+  return { ok: true, valor };
 }
 
 /** Fecha local del dispositivo en formato AAAA-MM-DD. */

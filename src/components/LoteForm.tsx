@@ -1,4 +1,7 @@
 import { useState, type FormEvent } from 'react';
+import { areaM2AHa } from '../lib/calculos';
+import { formatearExacto, formatearNumero, numeroATexto } from '../lib/formato';
+import { validarAreaLote } from '../lib/validacion';
 import { CULTIVOS, type Cultivo, type Lote } from '../types';
 
 export interface DatosLote {
@@ -18,27 +21,25 @@ interface Props {
 export function LoteForm({ inicial, onGuardar, onCancelar }: Props) {
   const [nombre, setNombre] = useState(inicial?.nombre ?? '');
   const [cultivo, setCultivo] = useState<Cultivo>(inicial?.cultivo ?? 'papa');
-  const [area, setArea] = useState(inicial ? String(inicial.areaM2) : '');
+  const [area, setArea] = useState(inicial ? numeroATexto(inicial.areaM2) : '');
   const [fecha, setFecha] = useState(inicial?.fechaSiembra ?? '');
   const [ubicacion, setUbicacion] = useState(inicial?.ubicacion ?? '');
   const [error, setError] = useState('');
   const [guardando, setGuardando] = useState(false);
+  // Muestra cómo se interpretó el número (p. ej. "1.500" se lee como 1,5) antes de guardarlo.
+  const lecturaArea = validarAreaLote(area);
 
   async function enviar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError('');
-    const areaNumerica = Number(area);
     if (!nombre.trim()) return setError('Escribe el nombre del lote.');
-    if (!area.trim() || !Number.isFinite(areaNumerica) || areaNumerica <= 0) {
-      return setError('El área debe ser un número mayor que cero.');
-    }
-    if (areaNumerica > 10_000_000_000) return setError('Revisa el área: supera un valor razonable para esta aplicación.');
+    if (!lecturaArea.ok) return setError(lecturaArea.error);
     setGuardando(true);
     try {
       await onGuardar({
         nombre: nombre.trim(),
         cultivo,
-        areaM2: areaNumerica,
+        areaM2: lecturaArea.valor,
         fechaSiembra: fecha || undefined,
         ubicacion: ubicacion.trim() || undefined
       });
@@ -64,8 +65,10 @@ export function LoteForm({ inicial, onGuardar, onCancelar }: Props) {
           </select>
         </label>
         <label>Área del lote en m² <span className="required">*</span>
-          <input type="number" inputMode="decimal" min="0.01" max="10000000000" step="any" value={area} onChange={e => setArea(e.target.value)} placeholder="Ej. 500" required />
-          <small>1 hectárea = 10.000 m².</small>
+          <input inputMode="decimal" value={area} onChange={e => setArea(e.target.value)} placeholder="Ej. 500 o 1500,5" required />
+          <small>{lecturaArea.ok
+            ? `Se guardará como ${formatearExacto(lecturaArea.valor)} m² (${formatearNumero(areaM2AHa(lecturaArea.valor), 4)} ha).`
+            : 'Usa coma o punto solo para decimales, sin puntos de miles. 1 hectárea = 10.000 m².'}</small>
         </label>
         <label>Fecha de siembra (opcional)
           <input type="date" value={fecha} onChange={e => setFecha(e.target.value)} />
