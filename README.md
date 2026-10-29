@@ -2,7 +2,7 @@
 
 Aplicación web progresiva (PWA) **multicultivo** para preparar el cálculo, la explicación y el monitoreo de fertilización, empezando por **papa** como cultivo piloto.
 
-## Estado actual: fases 1 a 4 completas y copia de seguridad (falta el informe para el productor y la validación)
+## Estado actual: fases 1 a 5 completas (falta la validación de la fase 6)
 
 **Fase 1 (lotes)**
 ✅ Registro de lotes: crear, editar, eliminar y consultar.
@@ -84,7 +84,13 @@ Aplicación web progresiva (PWA) **multicultivo** para preparar el cálculo, la 
 ✅ Los registros con datos dañados se muestran con su valor original. Las observaciones y tareas se corrigen precargando los datos válidos y el texto original de los dañados, con confirmación expresa; una aplicación dañada se elimina y se registra de nuevo desde su plan.
 ✅ 142 pruebas automáticas. Recorrido en Chrome: 102 comprobaciones. Una revisión de código del 4c encontró 10 puntos; todos están corregidos.
 
-**No implementado aún:** informe para el productor (fase 5) y validación con datos reales (fase 6).
+**Fase 5 — informe para el productor (botón "Informe para el productor" en la ficha del lote)**
+✅ Vista imprimible del lote; "Imprimir o guardar como PDF" usa la impresión del navegador (sin librerías ni servicios externos; funciona sin conexión). Al imprimir solo sale el informe.
+✅ Contenido: el lote; el análisis de suelo más reciente con sus equivalencias (con la nota de que no son dosis); **la recomendación de fertilización del plan aprobado más reciente** (fertilizante, para qué nutriente, dosis por hectárea, cantidad para el lote, bultos y costo estimado; aportes por nutriente; de dónde salen las metas; quién aprobó y cuándo); lo aplicado frente a lo recomendado; tareas y observaciones recientes; y advertencias en lenguaje claro.
+✅ La recomendación es la del plan aprobado: sus metas vienen de la fuente técnica escrita por el usuario. La app no calcula dosis por su cuenta ni a partir del análisis de suelo. Sin plan aprobado, el informe lo dice y no incluye recomendación. Avisa si hay datos de EJEMPLO.
+✅ 146 pruebas automáticas. Recorrido en Chrome: 117 comprobaciones, incluida la impresión a PDF.
+
+**No implementado aún:** validación con datos reales y comparación con cálculos manuales (fase 6).
 
 ## Requisitos
 
@@ -168,6 +174,12 @@ Las pruebas de persistencia (`tests/persistencia.test.ts`) usan un almacén en m
 3. Crea una tarea con fecha prevista pasada: debe decir "Pendiente · fecha pasada". Pulsa **Marcar como hecha hoy**: queda "Hecha el …".
 4. Usa **Mostrar** para ver solo un tipo de registro.
 
+### Pruebas manuales en navegador (fase 5, informe)
+
+1. En la ficha de un lote con un plan **aprobado**, pulsa **Informe para el productor**: debe mostrar el lote, el análisis más reciente, la recomendación (fertilizante, dosis por hectárea, cantidad para el lote, bultos y costo), lo aplicado, el seguimiento y las advertencias. Si hay datos de EJEMPLO, el aviso aparece arriba.
+2. Pulsa **Imprimir o guardar como PDF** y elige "Guardar como PDF": solo debe salir el informe, sin la barra superior ni los botones.
+3. En un lote sin plan aprobado, el informe debe decir que no incluye recomendación.
+
 ### Pruebas manuales en navegador (copia de seguridad)
 
 1. Con datos de EJEMPLO, en **Mis lotes → Copia de seguridad**, pulsa **Descargar copia (JSON)**: se descarga `agroferti-respaldo-AAAA-MM-DD.json` y el aviso resume lo incluido.
@@ -202,6 +214,7 @@ agroferti-mic/
 │  │  ├─ RespaldoSeccion.tsx       # Copia de seguridad: descargar y restaurar
 │  │  ├─ AplicacionesPlan.tsx      # Fase 4b: lo aplicado frente a un plan aprobado
 │  │  ├─ SeguimientoSeccion.tsx    # Fase 4c: observaciones, tareas y lista del seguimiento
+│  │  ├─ InformeLote.tsx           # Fase 5: informe imprimible para el productor
 │  │  └─ useSeleccionViva.ts       # Registro abierto en una sección sobre una consulta en vivo
 │  ├─ lib/
 │  │  ├─ calculos.ts            # Matemáticas verificables, sin prescribir dosis
@@ -211,6 +224,7 @@ agroferti-mic/
 │  │  ├─ validacionPlan.ts      # Fase 3: validación de productos, planes y cambios de estado
 │  │  ├─ repositorioPlanes.ts   # Fase 3: persistencia del catálogo y de los planes
 │  │  ├─ respaldo.ts            # Copia de seguridad: formato, lectura y restauración sin sobrescribir
+│  │  ├─ informe.ts             # Fase 5: datos del informe (plan aprobado más reciente, análisis, seguimiento)
 │  │  ├─ validacionSeguimiento.ts # Fase 4: validación y verificación de aplicaciones, observaciones y tareas
 │  │  ├─ repositorioSeguimiento.ts # Fase 4: persistencia del seguimiento (solo planes aprobados)
 │  │  ├─ formato.ts             # Números y fechas en es-CO
@@ -228,7 +242,8 @@ agroferti-mic/
 │  ├─ plan.test.ts         # Fase 3: cálculos del plan, formas químicas, validación y estados
 │  ├─ persistenciaPlan.test.ts # Fase 3: catálogo, planes, estados, copias y trazabilidad
 │  ├─ respaldo.test.ts      # Copia de seguridad: exportar, leer, restaurar sin sobrescribir
-│  └─ seguimiento.test.ts   # Fase 4: registros, avance del plan y persistencia
+│  ├─ seguimiento.test.ts   # Fase 4: registros, avance del plan y persistencia
+│  └─ informe.test.ts       # Fase 5: qué plan, análisis y seguimiento muestra el informe
 ├─ vite.config.ts        # Configuración de PWA
 ├─ tsconfig.json
 └─ package.json
@@ -362,6 +377,12 @@ No inventar resultados de campo. Etiquetar todos los datos simulados como **EJEM
 - Un plan aprobado solo se elimina junto con su lote (al eliminar el lote se borran todos sus datos, con confirmación).
 - Revisar o aprobar exige un producto con cantidad calculada en cada meta, pero no exige precio: un plan aprobado puede no tener costo total.
 
-## Próximo PR: fase 5 (informe para el productor)
+## Limitaciones conocidas del informe
 
-Informe del lote para el productor: una vista imprimible (y que se pueda guardar como PDF desde el navegador) con el lote, sus análisis, el plan aprobado con sus cálculos explicados, el avance de lo aplicado y el seguimiento, con las marcas EJEMPLO. Sin servicios externos. Lee primero `AGENTS.md` y propone el contenido antes de implementarlo.
+- Muestra solo el análisis de suelo más reciente y el plan aprobado más recientemente (si hay varios, lo indica).
+- El PDF lo genera el navegador: el aspecto puede variar un poco entre navegadores; se probó con Chrome.
+- La recomendación es la del plan aprobado; para que la app propusiera metas a partir del análisis harían falta tablas agronómicas validadas con su fuente (decisión pendiente, fuera del alcance actual).
+
+## Próximo trabajo: fase 6 (validación)
+
+Probar con datos reales de papa y de otro cultivo, comparar los cálculos de la app con cálculos manuales y corregir solo los errores encontrados. Lee primero `AGENTS.md`.

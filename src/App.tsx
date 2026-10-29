@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { AnalisisSueloSeccion } from './components/AnalisisSueloSeccion';
+import { InformeLote } from './components/InformeLote';
 import { LoteForm, type DatosLote } from './components/LoteForm';
 import { PlanesSeccion } from './components/PlanesSeccion';
 import { ProductosSeccion } from './components/ProductosSeccion';
@@ -8,14 +9,10 @@ import { RespaldoSeccion } from './components/RespaldoSeccion';
 import { SeguimientoSeccion } from './components/SeguimientoSeccion';
 import { db, eliminarLoteYRelacionados } from './lib/db';
 import { areaM2AHa } from './lib/calculos';
-import { fechaLegible, formatearNumero } from './lib/formato';
-import { CULTIVOS, type Lote } from './types';
+import { fechaLegible, formatearNumero, nombreCultivo } from './lib/formato';
+import type { Lote } from './types';
 
-type Vista = 'inicio' | 'nuevo' | 'editar' | 'detalle' | 'productos' | 'ayuda';
-
-function nombreCultivo(codigo: string) {
-  return CULTIVOS.find(c => c.value === codigo)?.label.replace(' (piloto)', '') ?? codigo;
-}
+type Vista = 'inicio' | 'nuevo' | 'editar' | 'detalle' | 'informe' | 'productos' | 'ayuda';
 
 function Logo() {
   return <span className="brand-symbol" aria-hidden="true">
@@ -125,7 +122,7 @@ export default function App() {
         {vista === 'editar' && activo && <div className="page-narrow"><button className="back" onClick={() => ir('detalle')}>← Volver al lote</button><LoteForm inicial={activo} onGuardar={guardarLote} onCancelar={() => ir('detalle')} /></div>}
         {vista === 'detalle' && activo && <>
           <button className="back" onClick={() => ir('inicio')}>← Volver a mis lotes</button>
-          <section className="detail-header"><div><div className="section-kicker">FICHA DEL LOTE</div><h1>{activo.nombre}</h1><p>{nombreCultivo(activo.cultivo)} · {activo.ubicacion || 'Ubicación no registrada'}</p></div><button className="btn btn-outline" onClick={() => ir('editar')}>Editar información</button></section>
+          <section className="detail-header"><div><div className="section-kicker">FICHA DEL LOTE</div><h1>{activo.nombre}</h1><p>{nombreCultivo(activo.cultivo)} · {activo.ubicacion || 'Ubicación no registrada'}</p></div><div className="detalle-botones"><button className="btn btn-primary" onClick={() => ir('informe')}>Informe para el productor</button><button className="btn btn-outline" onClick={() => ir('editar')}>Editar información</button></div></section>
           <div className="detail-grid"><div className="detail-panel"><span>Superficie</span><strong>{formatearNumero(activo.areaM2)} m²</strong><small>{formatearNumero(areaM2AHa(activo.areaM2), 4)} hectáreas</small></div><div className="detail-panel"><span>Cultivo</span><strong>{nombreCultivo(activo.cultivo)}</strong><small>Sin dosis precargadas</small></div><div className="detail-panel"><span>Fecha de siembra</span><strong className="detail-date">{fechaLegible(activo.fechaSiembra)}</strong><small>Registrada por productor</small></div></div>
           <section className="workflow"><div className="section-kicker">CÓMO SE USA</div><h2>Tres pasos para manejar tu cultivo</h2><div className="workflow-grid">
             <div className="workflow-step ready"><div className="step-number">01</div><h3>Crear el lote</h3><p>Datos del área, ubicación y cultivo.</p><span className="tag ready-tag">Disponible</span></div>
@@ -139,6 +136,7 @@ export default function App() {
           <button className="danger-link" onClick={() => void borrarLote()}>Eliminar este lote</button>
         </>}
 
+        {vista === 'informe' && activo && <InformeLote lote={activo} onVolver={() => ir('detalle')} />}
         {vista === 'productos' && <ProductosSeccion key={visita} />}
 
         {vista === 'ayuda' && <div className="page-narrow help"><div className="section-kicker">GUÍA PARA EL PRODUCTOR</div><h1>Cómo funciona AgroFerti MIC</h1><p className="muted">El objetivo es que productores de distintos cultivos comprendan sus datos de fertilización y puedan registrar lo que realmente ocurre en el lote.</p>
@@ -148,7 +146,7 @@ export default function App() {
           <div className="info-box"><strong>Nota de privacidad:</strong> el almacenamiento es local. No está conectado a una nube ni sincroniza entre teléfonos. Para no perder los datos o pasarlos a otro dispositivo, usa <strong>Copia de seguridad</strong> en Mis lotes.</div>
           <button className="btn btn-primary" onClick={() => ir('inicio')}>Ir a mis lotes</button>
         </div>}
-        {((vista === 'editar' || vista === 'detalle') && !activo) && <div className="empty"><p>Selecciona un lote para continuar.</p><button className="btn btn-primary" onClick={() => ir('inicio')}>Ver mis lotes</button></div>}
+        {((vista === 'editar' || vista === 'detalle' || vista === 'informe') && !activo) && <div className="empty"><p>Selecciona un lote para continuar.</p><button className="btn btn-primary" onClick={() => ir('inicio')}>Ver mis lotes</button></div>}
       </main>
       <footer className="footer"><div className="container footer-inner"><span>AgroFerti MIC · Grupo 1 · SENA</span><span>Prototipo educativo · Fases 1 a 3</span></div></footer>
     </div>

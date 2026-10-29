@@ -220,7 +220,9 @@ export function AplicacionesPlan({ plan, calculo, aplicaciones, aplicacionesDana
       {delPlan.length > 0 && <div className="calc-step">
         <strong>Costo registrado</strong>
         <p>Suma de los costos reales que escribiste; la app no los calcula.</p>
-        {costo.totalCop.ok && <code>Total registrado: <b>{formatearExacto(costo.totalCop.valor)} COP</b>{costo.sinCosto > 0 && <em> ({costo.sinCosto} {costo.sinCosto === 1 ? 'aplicación' : 'aplicaciones'} sin costo registrado)</em>}</code>}
+        {costo.sinCosto === delPlan.length
+          ? <p className="calc-skip">Ninguna aplicación tiene costo registrado.</p>
+          : costo.totalCop.ok && <code>Total registrado: <b>{formatearExacto(costo.totalCop.valor)} COP</b>{costo.sinCosto > 0 && <em> ({costo.sinCosto} {costo.sinCosto === 1 ? 'aplicación' : 'aplicaciones'} sin costo registrado)</em>}</code>}
       </div>}
     </section>
   );

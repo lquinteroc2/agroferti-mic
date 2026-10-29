@@ -1,3 +1,10 @@
+import { CULTIVOS } from '../types.ts';
+
+/** Nombre del cultivo para mostrar ("Papa", sin "(piloto)"); un código desconocido se muestra tal cual. */
+export function nombreCultivo(codigo: string): string {
+  return CULTIVOS.find(c => c.value === codigo)?.label.replace(' (piloto)', '') ?? codigo;
+}
+
 /**
  * Dos formatos distintos:
  * - PRESENTACIÓN (formatearNumero, formatearResultado, formatearExacto): para leer, en es-CO.

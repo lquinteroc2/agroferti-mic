@@ -27,6 +27,6 @@ Contexto: AgroFerti MIC es un prototipo académico SENA del Grupo 1, multicultiv
 - Primero ejecutar `npm run test`, después `npm run build`, corregir fallos antes de hacer commit.
 
 ## Prompt de siguiente tarea
-Fases 1 (lotes), 2 (análisis de suelo), 3 (productos, plan y estados) y 4 (seguimiento: aplicaciones, observaciones y tareas) cerradas; copia de seguridad JSON lista. Estado detallado en `README.md`.
+Fases 1 a 5 cerradas: lotes, análisis de suelo, productos, plan y estados, seguimiento, copia de seguridad e informe para el productor. Estado detallado en `README.md`.
 
-"Implementa únicamente el informe para el productor de la fase 5 AgroFerti MIC. Primero propone el contenido y espera aprobación. Una vista imprimible por lote (que se pueda guardar como PDF con la función de imprimir del navegador, sin servicios ni librerías externas) con: datos del lote, análisis de suelo con sus equivalencias, plan aprobado con sus cálculos explicados, avance de lo aplicado y seguimiento. Muestra las marcas «EJEMPLO», la fecha del informe y las advertencias (no es una prescripción; las metas vienen de la fuente técnica del usuario). Lenguaje claro para el productor. No inventes datos ni conclusiones agronómicas. Añade tests de lo que sea lógica pura y preserva la UI actual. Al finalizar, resume archivos, pruebas y limitaciones."
+"Apoya la fase 6 AgroFerti MIC (validación): corrige únicamente los errores que el equipo reporte al probar con datos reales y al comparar los cálculos de la app con cálculos manuales. Reproduce cada error con una prueba antes de corregirlo. No agregues funciones nuevas ni metas o dosis sin una decisión explícita y una fuente técnica citada. Al finalizar, resume archivos, pruebas y limitaciones."
