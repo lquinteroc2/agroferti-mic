@@ -3,7 +3,7 @@
  * No infieren mediciones de campo ni proponen dosis: revisan estructura, números y fechas.
  */
 import type { ProblemaDato, RegistroSeguimiento, RegistroVerificado, TipoRegistro } from '../types';
-import { describirValor, esObjeto, fechaLocalISO } from './validacion.ts';
+import { describirValor, esObjeto, fechaLocalISO, validarFecha, validarNumeroSinAmbiguedad } from './validacion.ts';
 import { lector, type ResultadoValidacion } from './validacionPlan.ts';
 
 export const TIPOS_REGISTRO: ReadonlyArray<TipoRegistro> = ['aplicacion', 'observacion', 'tarea'];
@@ -130,4 +130,53 @@ export function ordenarRegistros(lista: RegistroVerificado[]): RegistroVerificad
     || (b.fechaOrden ?? '').localeCompare(a.fechaOrden ?? '')
     || creado(b).localeCompare(creado(a))
     || a.id.localeCompare(b.id));
+}
+
+// ---- Formulario de aplicación (fase 4b): texto tal como lo escribe el usuario ----
+
+export interface EntradaAplicacion {
+  fecha: string;
+  cantidadKg: string;
+  costoCop: string;
+  responsable: string;
+  nota: string;
+  /** '' mientras el usuario no indique si es una aplicación real o de EJEMPLO. */
+  origen: '' | 'real' | 'ejemplo';
+}
+
+export type ErroresAplicacion = Partial<Record<keyof EntradaAplicacion, string>> & { general?: string[] };
+
+/**
+ * Valida el formulario de una aplicación de un producto del plan. Los kg y el costo rechazan
+ * escrituras ambiguas ("1.500", "150.000"). El plan, la línea y el producto los pone la pantalla.
+ */
+export function validarAplicacionFormulario(
+  entrada: EntradaAplicacion,
+  destino: { planId: string; lineaId: string; productoNombre: string },
+  hoy: Date = new Date()
+): { ok: true; datos: DatosRegistro } | { ok: false; errores: ErroresAplicacion } {
+  const errores: ErroresAplicacion = {};
+  const fecha = entrada.fecha.trim()
+    ? validarFecha(entrada.fecha, 'Fecha de aplicación', hoy)
+    : { ok: false as const, error: 'Fecha de aplicación: es obligatoria.' };
+  if (!fecha.ok) errores.fecha = fecha.error;
+  const cantidad = validarNumeroSinAmbiguedad(entrada.cantidadKg, { campo: 'Cantidad aplicada (kg)', requerido: true, positivo: true });
+  if (!cantidad.ok) errores.cantidadKg = cantidad.error;
+  const costo = validarNumeroSinAmbiguedad(entrada.costoCop, { campo: 'Costo (COP)' });
+  if (!costo.ok) errores.costoCop = costo.error;
+  if (!entrada.origen) errores.origen = 'Indica si es una aplicación real o de EJEMPLO.';
+  if (Object.keys(errores).length || !fecha.ok || !cantidad.ok || !costo.ok) return { ok: false, errores };
+  const datos = {
+    tipo: 'aplicacion',
+    ...destino,
+    fecha: fecha.valor,
+    cantidadKg: cantidad.valor as number,
+    costoCop: costo.valor,
+    nota: entrada.nota.trim() || undefined,
+    responsable: entrada.responsable.trim() || undefined,
+    esEjemplo: entrada.origen === 'ejemplo'
+  };
+  // Misma comprobación que se hace antes de persistir.
+  const final = validarDatosRegistro(datos, { hoy });
+  return final.ok ? final : { ok: false, errores: { general: final.errores } };
 }

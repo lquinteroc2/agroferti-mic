@@ -120,3 +120,11 @@
 .respaldo .notice{margin:12px 0 0}
 .respaldo-previa{background:white;border:1px solid #dce6ce;border-radius:12px;padding:16px;margin-top:12px;font-size:.88rem;color:#344d3e}
 .respaldo-previa ul{margin:8px 0;padding-left:20px}
+.aplicaciones-lista{list-style:none;padding:0;margin:10px 0}
+.aplicaciones-lista li{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;background:white;border:1px solid #dbe6ef;border-radius:8px;padding:9px 11px;margin-bottom:6px;font-size:.86rem;color:#2c4558}
+.aplicaciones-lista li small{flex-basis:100%;color:#5b7083}
+.aplicaciones-lista li .estado-form{flex-basis:100%;margin:0}
+.aplicacion-acciones{margin-left:auto;display:flex;gap:12px}
+.link-button.peligro{color:#b6544d}
+.link-button:disabled{opacity:.5;cursor:not-allowed}
+.calc-step>.btn-small{margin-top:8px}

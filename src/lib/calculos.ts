@@ -361,6 +361,8 @@ export interface AvanceLinea {
   porcentaje?: Calculo<number>;
   /** Lo aplicado expresado en la forma de la meta: (kg aplicados × 10.000 ÷ área) × % de la etiqueta ÷ 100. */
   aplicadoFormaKgHa?: Calculo<number>;
+  /** % de la forma de la meta en la etiqueta, el que usa `aplicadoFormaKgHa`. */
+  porcentajeEtiqueta?: number;
 }
 
 /**
@@ -387,7 +389,18 @@ export function avancePlan(
       planeadoKg,
       diferenciaKg: calcular(() => resultadoSeguro('Diferencia', aplicadoKg.valor - planeadoKg.valor)),
       porcentaje: calcular(() => resultadoSeguro('Avance', (aplicadoKg.valor / planeadoKg.valor) * 100)),
+      porcentajeEtiqueta: r.porcentaje,
       aplicadoFormaKgHa: area === undefined ? undefined : calcular(() => aporteKgHa(kgLoteAKgHa(aplicadoKg.valor, area), r.porcentaje))
     };
   });
+}
+
+/** Suma de los costos que el usuario registró (no se calculan); informa cuántas aplicaciones no tienen costo. */
+export function costoRegistrado(aplicaciones: ReadonlyArray<{ costoCop?: number }>): { totalCop: Calculo<number>; conCosto: number; sinCosto: number } {
+  const costos = aplicaciones.flatMap(a => (a.costoCop === undefined ? [] : [a.costoCop]));
+  return {
+    totalCop: calcular(() => resultadoSeguro('Costo registrado', costos.reduce((suma, c) => suma + c, 0))),
+    conCosto: costos.length,
+    sinCosto: aplicaciones.length - costos.length
+  };
 }

@@ -1,7 +1,9 @@
 import { calcularPlan, type Calculo, type ResultadoLineaPlan } from '../lib/calculos';
 import { mismaForma } from '../lib/catalogoNutrientes';
 import { fechaDeMarca, fechaLegible, formatearExacto, formatearResultado } from '../lib/formato';
-import type { AnalisisVerificado, EstadoPlan, PlanVerificado } from '../types';
+import type { DatosRegistro } from '../lib/validacionSeguimiento';
+import type { AnalisisVerificado, EstadoPlan, PlanVerificado, RegistroAplicacion } from '../types';
+import { AplicacionesPlan } from './AplicacionesPlan';
 import { EstadoPlanBadge, NOMBRE_ESTADO, PlanEstado, type DatosCambio } from './PlanEstado';
 import { OrigenBadge } from './ProductoDetalle';
 
@@ -14,6 +16,11 @@ interface Props {
   onCopiar: (datos: DatosCambio) => Promise<void>;
   /** Plan del que se copió este, si sigue existiendo. */
   origen?: { nombre: string; estado?: EstadoPlan; abrir: () => void };
+  /** Aplicaciones válidas registradas para este plan. */
+  aplicaciones: ReadonlyArray<RegistroAplicacion>;
+  aplicacionesDanadas: number;
+  onGuardarAplicacion: (datos: DatosRegistro, id?: string) => Promise<void>;
+  onEliminarAplicacion: (aplicacion: RegistroAplicacion) => Promise<void>;
 }
 
 const sinDato = <span className="missing">No registrado</span>;
@@ -65,7 +72,9 @@ function Linea({ r, areaM2 }: { r: ResultadoLineaPlan; areaM2?: number }) {
   );
 }
 
-export function PlanDetalle({ plan, analisis, onEditar, onEliminar, onCambiarEstado, onCopiar, origen }: Props) {
+export function PlanDetalle({
+  plan, analisis, onEditar, onEliminar, onCambiarEstado, onCopiar, origen, aplicaciones, aplicacionesDanadas, onGuardarAplicacion, onEliminarAplicacion
+}: Props) {
   const calculo = calcularPlan(plan);
   const area = plan.areaM2AlCrear;
   const referencia = plan.analisisReferenciaId ? analisis.find(a => a.id === plan.analisisReferenciaId) : undefined;
@@ -167,6 +176,11 @@ export function PlanDetalle({ plan, analisis, onEditar, onEliminar, onCambiarEst
             : <Falta calculo={calculo.costoTotalCop} />}
         </div>
       </section>
+
+      {/* Lo aplicado solo se registra contra un plan aprobado y sin datos dañados. */}
+      {plan.estado === 'aprobado' && plan.problemas.length === 0 &&
+        <AplicacionesPlan plan={plan} calculo={calculo} aplicaciones={aplicaciones} aplicacionesDanadas={aplicacionesDanadas}
+          onGuardar={onGuardarAplicacion} onEliminar={onEliminarAplicacion} />}
 
       <div className="warning-box" role="note">
         <span className="badge badge-warn">Importante</span>

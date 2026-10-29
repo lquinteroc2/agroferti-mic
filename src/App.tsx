@@ -129,7 +129,7 @@ export default function App() {
           <section className="workflow"><div className="section-kicker">CÓMO SE USA</div><h2>Tres pasos para manejar tu cultivo</h2><div className="workflow-grid">
             <div className="workflow-step ready"><div className="step-number">01</div><h3>Crear el lote</h3><p>Datos del área, ubicación y cultivo.</p><span className="tag ready-tag">Disponible</span></div>
             <div className="workflow-step ready"><div className="step-number">02</div><h3>Suelo y plan</h3><p>Análisis de laboratorio con equivalencias explicadas y plan de fertilización con metas de tu fuente técnica.</p><span className="tag ready-tag">Disponible</span></div>
-            <div className="workflow-step"><div className="step-number">03</div><h3>Hacer seguimiento</h3><p>Registrar aplicaciones, costos y observaciones.</p><span className="tag">Fase siguiente</span></div>
+            <div className="workflow-step ready"><div className="step-number">03</div><h3>Hacer seguimiento</h3><p>Registrar lo aplicado frente a un plan aprobado, con su costo. Observaciones y tareas llegan después.</p><span className="tag ready-tag">Aplicaciones disponibles</span></div>
           </div></section>
           <AnalisisSueloSeccion key={activo.id} lote={activo} />
           <PlanesSeccion key={`plan-${activo.id}`} lote={activo} onIrAProductos={() => ir('productos')} />

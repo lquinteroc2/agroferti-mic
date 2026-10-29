@@ -5,15 +5,16 @@ import { EstadoPlanBadge, type DatosCambio } from './PlanEstado';
 import { PlanForm, type OpcionesPlanFormulario } from './PlanForm';
 import { useSeleccionViva, type ModoSeccion } from './useSeleccionViva';
 import { calcularPlan } from '../lib/calculos';
-import { repositorioAnalisis, repositorioPlanes, repositorioProductos } from '../lib/db';
-import { fechaDeMarca, formatearResultado } from '../lib/formato';
+import { repositorioAnalisis, repositorioPlanes, repositorioProductos, repositorioSeguimiento } from '../lib/db';
+import { fechaDeMarca, fechaLegible, formatearExacto, formatearResultado } from '../lib/formato';
 import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import type { DatosPlan } from '../lib/validacionPlan';
-import type { AnalisisVerificado, EstadoPlan, Lote, PlanVerificado, ProductoFertilizante } from '../types';
+import type { DatosRegistro } from '../lib/validacionSeguimiento';
+import type { AnalisisVerificado, EstadoPlan, Lote, PlanVerificado, ProductoFertilizante, RegistroAplicacion, RegistroVerificado } from '../types';
 
 type Aviso = { tipo: 'ok' | 'error'; texto: string } | null;
 type Lectura =
-  | { ok: true; planes: PlanVerificado[]; productos: ProductoFertilizante[]; analisis: AnalisisVerificado[] }
+  | { ok: true; planes: PlanVerificado[]; productos: ProductoFertilizante[]; analisis: AnalisisVerificado[]; registros: RegistroVerificado[] }
   | { ok: false };
 
 function costoResumido(p: PlanVerificado): string {
@@ -27,11 +28,11 @@ export function PlanesSeccion({ lote, onIrAProductos }: { lote: Lote; onIrAProdu
   // El error de lectura se captura aquí para mostrar un mensaje en lugar de romper la pantalla.
   const lectura = useLiveQuery<Lectura>(async () => {
     try {
-      const [planes, catalogo, analisis] = await Promise.all([
-        repositorioPlanes.listar(lote.id), repositorioProductos.listar(), repositorioAnalisis.listar(lote.id)
+      const [planes, catalogo, analisis, registros] = await Promise.all([
+        repositorioPlanes.listar(lote.id), repositorioProductos.listar(), repositorioAnalisis.listar(lote.id), repositorioSeguimiento.listar(lote.id)
       ]);
       // Solo los productos sin datos dañados se pueden elegir para un plan.
-      return { ok: true, planes, productos: catalogo.flatMap(v => (v.producto ? [v.producto] : [])), analisis };
+      return { ok: true, planes, productos: catalogo.flatMap(v => (v.producto ? [v.producto] : [])), analisis, registros };
     } catch {
       return { ok: false };
     }
@@ -92,6 +93,20 @@ export function PlanesSeccion({ lote, onIrAProductos }: { lote: Lote; onIrAProdu
 
   const productos = lectura?.ok ? lectura.productos : [];
   const analisis = lectura?.ok ? lectura.analisis : [];
+  const registros = lectura?.ok ? lectura.registros : [];
+  const aplicacionesDe = (p: PlanVerificado) =>
+    registros.flatMap(v => (v.registro?.tipo === 'aplicacion' && v.registro.planId === p.id ? [v.registro] : []));
+  const aplicacionesDanadas = registros.filter(v => v.tipo === 'aplicacion' && !v.registro).length;
+
+  async function guardarAplicacion(datos: DatosRegistro, id?: string) {
+    await repositorioSeguimiento.guardar(lote.id, datos, { id });
+  }
+
+  // Los errores se muestran junto a la aplicación, en el detalle del plan.
+  async function eliminarAplicacion(a: RegistroAplicacion) {
+    if (!window.confirm(`¿Eliminar la aplicación de ${a.productoNombre} del ${fechaLegible(a.fecha)} (${formatearExacto(a.cantidadKg)} kg)? El plan no cambia. Esta acción no se puede deshacer.`)) return;
+    await repositorioSeguimiento.eliminar(lote.id, a.id);
+  }
 
   return (
     <section className="soil-section" aria-labelledby="titulo-planes">
@@ -126,6 +141,10 @@ export function PlanesSeccion({ lote, onIrAProductos }: { lote: Lote; onIrAProdu
           onEliminar={() => void borrar(seleccionado)}
           onCambiarEstado={(nuevo, datos) => cambiarEstado(seleccionado, nuevo, datos)}
           onCopiar={datos => copiar(seleccionado, datos)}
+          aplicaciones={aplicacionesDe(seleccionado)}
+          aplicacionesDanadas={aplicacionesDanadas}
+          onGuardarAplicacion={guardarAplicacion}
+          onEliminarAplicacion={eliminarAplicacion}
           origen={origenDe(seleccionado)}
         />
       </>}

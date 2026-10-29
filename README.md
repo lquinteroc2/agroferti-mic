@@ -2,7 +2,7 @@
 
 Aplicación web progresiva (PWA) **multicultivo** para preparar el cálculo, la explicación y el monitoreo de fertilización, empezando por **papa** como cultivo piloto.
 
-## Estado actual: fases 1 a 3 completas, copia de seguridad y fase 4 en curso (modelo del seguimiento listo, sin interfaz)
+## Estado actual: fases 1 a 3 completas, copia de seguridad y fase 4 en curso (aplicaciones listas; faltan observaciones y tareas)
 
 **Fase 1 (lotes)**
 ✅ Registro de lotes: crear, editar, eliminar y consultar.
@@ -72,7 +72,13 @@ Aplicación web progresiva (PWA) **multicultivo** para preparar el cálculo, la 
 ✅ Registros dañados se muestran con su valor original y solo se reemplazan con confirmación; no se cambia el tipo de un registro al editarlo. La copia de seguridad ya incluye y restaura el seguimiento.
 ✅ 128 pruebas automáticas. Verificado con Dexie real fuera del repositorio.
 
-**No implementado aún:** pantallas del seguimiento (4b aplicaciones y avance del plan, 4c observaciones y tareas) e informe para el productor (fase 5).
+**Fase 4 — 4b: aplicaciones (bloque "Lo aplicado frente al plan" en el detalle de un plan aprobado)**
+✅ "+ Registrar aplicación" en cada producto del plan: fecha (no futura), kg de producto aplicados, costo real opcional, responsable, nota y origen (real o EJEMPLO). Rechaza escrituras ambiguas como `1.500`. Editar y eliminar (con confirmación).
+✅ Avance de cada producto explicado paso a paso: planeado, aplicado (suma de las aplicaciones parciales), aplicado − planeado, porcentaje y lo aplicado en la forma de la meta frente a la meta. Costo registrado: suma solo de los costos escritos, indicando cuántas aplicaciones no lo tienen.
+✅ Registrar, editar o eliminar aplicaciones no cambia el plan aprobado. Las aplicaciones con datos dañados no se suman al avance y se avisa.
+✅ 131 pruebas automáticas. Recorrido en Chrome: 91 comprobaciones.
+
+**No implementado aún:** pantalla de observaciones y tareas, y lista general del seguimiento del lote (4c); informe para el productor (fase 5).
 
 ## Requisitos
 
@@ -181,6 +187,7 @@ agroferti-mic/
 │  │  ├─ PlanDetalle.tsx           # Fase 3c: cálculo del plan explicado paso a paso
 │  │  ├─ PlanEstado.tsx            # Fase 3d: estados del plan e historial
 │  │  ├─ RespaldoSeccion.tsx       # Copia de seguridad: descargar y restaurar
+│  │  ├─ AplicacionesPlan.tsx      # Fase 4b: lo aplicado frente a un plan aprobado
 │  │  └─ useSeleccionViva.ts       # Registro abierto en una sección sobre una consulta en vivo
 │  ├─ lib/
 │  │  ├─ calculos.ts            # Matemáticas verificables, sin prescribir dosis
@@ -341,6 +348,6 @@ No inventar resultados de campo. Etiquetar todos los datos simulados como **EJEM
 - Un plan aprobado solo se elimina junto con su lote (al eliminar el lote se borran todos sus datos, con confirmación).
 - Revisar o aprobar exige un producto con cantidad calculada en cada meta, pero no exige precio: un plan aprobado puede no tener costo total.
 
-## Próximo PR: fase 4b
+## Próximo PR: fase 4c
 
-Aplicaciones en pantalla: en el detalle de un plan aprobado, el avance por producto (`avancePlan`, explicado paso a paso) y "Registrar aplicación" por producto; editar y eliminar aplicaciones con confirmación. Lee primero `AGENTS.md`. El plan aprobado no cambia; no inferir mediciones de campo.
+Sección "Seguimiento" en la ficha del lote: lista de todos los registros (aplicaciones, observaciones y tareas) del más reciente al más antiguo, con registros dañados visibles; crear, editar y eliminar observaciones y tareas, y marcar una tarea como hecha. Lee primero `AGENTS.md`. Sin notificaciones; las observaciones no son mediciones.

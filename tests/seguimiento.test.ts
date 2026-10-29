@@ -4,11 +4,17 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { avancePlan, calcularPlan, kgLoteAKgHa } from '../src/lib/calculos.ts';
+import { avancePlan, calcularPlan, costoRegistrado, kgLoteAKgHa } from '../src/lib/calculos.ts';
 import { ErrorPersistencia } from '../src/lib/repositorioAnalisis.ts';
 import { crearRepositorioSeguimiento, type AlmacenSeguimiento } from '../src/lib/repositorioSeguimiento.ts';
 import { copiarProducto } from '../src/lib/validacionPlan.ts';
-import { ordenarRegistros, validarDatosRegistro, verificarRegistro } from '../src/lib/validacionSeguimiento.ts';
+import {
+  ordenarRegistros,
+  validarAplicacionFormulario,
+  validarDatosRegistro,
+  verificarRegistro,
+  type EntradaAplicacion
+} from '../src/lib/validacionSeguimiento.ts';
 import type { PlanFertilizacion, ProductoFertilizante, RegistroAplicacion } from '../src/types.ts';
 
 const HOY = new Date(2026, 9, 29, 10);
@@ -53,6 +59,7 @@ test('avance: aplicaciones parciales frente a lo planeado, en kg de producto y e
   cerca(a.diferenciaKg.valor, 8 - 10.869565217391303, 'falta por aplicar');
   cerca(a.porcentaje.valor, 73.6, 'avance');
   cerca(a.aplicadoFormaKgHa.valor, 73.6, '8 kg ÷ 0,05 ha = 160 kg/ha × 46 % = 73,6 kg/ha de P₂O₅');
+  assert.equal(a.porcentajeEtiqueta, 46, 'el % de la etiqueta que usa la explicación');
 });
 
 test('avance: sin aplicaciones es cero; aplicar de más da una diferencia positiva, sin juicio', () => {
@@ -214,4 +221,48 @@ test('un registro dañado solo se reemplaza con confirmación; eliminar exige el
   await repo.eliminar('lote-a', id);
   assert.equal(registros().size, 0);
   await rechaza(repo.eliminar('lote-a', id), /no existe/);
+});
+
+// ---- Fase 4b: formulario de aplicación y costo registrado ----
+
+const formAplicacion = (cambios: Partial<EntradaAplicacion> = {}): EntradaAplicacion => ({
+  fecha: '2026-10-20', cantidadKg: '5', costoCop: '', responsable: ' Productor EJEMPLO ', nota: '', origen: 'ejemplo', ...cambios
+});
+const destino = { planId: 'plan-a', lineaId: 'l-dap', productoNombre: 'DAP EJEMPLO' };
+
+test('formulario de aplicación: datos válidos con coma decimal; costo opcional', () => {
+  const r = validarAplicacionFormulario(formAplicacion({ cantidadKg: '3,5', costoCop: '15000' }), destino, HOY);
+  assert.ok(r.ok);
+  if (!r.ok) return;
+  assert.deepEqual(r.datos, {
+    tipo: 'aplicacion', planId: 'plan-a', lineaId: 'l-dap', productoNombre: 'DAP EJEMPLO', fecha: '2026-10-20',
+    cantidadKg: 3.5, costoCop: 15_000, responsable: 'Productor EJEMPLO', nota: undefined, esEjemplo: true
+  });
+  const sinCosto = validarAplicacionFormulario(formAplicacion({ origen: 'real' }), destino, HOY);
+  assert.ok(sinCosto.ok && sinCosto.datos.tipo === 'aplicacion' && sinCosto.datos.costoCop === undefined && sinCosto.datos.esEjemplo === false);
+});
+
+test('formulario de aplicación: rechaza escrituras ambiguas, fechas futuras y origen sin elegir', () => {
+  const errores = (cambios: Partial<EntradaAplicacion>) => {
+    const r = validarAplicacionFormulario(formAplicacion(cambios), destino, HOY);
+    assert.ok(!r.ok);
+    return r.ok ? {} : r.errores;
+  };
+  assert.match(errores({ cantidadKg: '1.500' }).cantidadKg ?? '', /se puede leer de dos formas/);
+  assert.match(errores({ cantidadKg: '0' }).cantidadKg ?? '', /mayor que cero/);
+  assert.match(errores({ cantidadKg: '' }).cantidadKg ?? '', /obligatorio/);
+  assert.match(errores({ costoCop: '150.000' }).costoCop ?? '', /Escribe 150000/);
+  assert.match(errores({ costoCop: '-1' }).costoCop ?? '', /negativo/);
+  assert.match(errores({ fecha: '2026-10-30' }).fecha ?? '', /futura/);
+  assert.match(errores({ fecha: '' }).fecha ?? '', /obligatoria/);
+  assert.match(errores({ origen: '' }).origen ?? '', /real o de EJEMPLO/);
+});
+
+test('costo registrado: suma solo lo que el usuario escribió e informa cuántas aplicaciones no tienen costo', () => {
+  const r = costoRegistrado([{ costoCop: 15_000 }, {}, { costoCop: 10_500 }]);
+  assert.ok(r.totalCop.ok && r.totalCop.valor === 25_500);
+  assert.equal(r.conCosto, 2);
+  assert.equal(r.sinCosto, 1);
+  const vacio = costoRegistrado([]);
+  assert.ok(vacio.totalCop.ok && vacio.totalCop.valor === 0 && vacio.conCosto === 0);
 });

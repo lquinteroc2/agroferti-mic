@@ -27,6 +27,6 @@ Contexto: AgroFerti MIC es un prototipo académico SENA del Grupo 1, multicultiv
 - Primero ejecutar `npm run test`, después `npm run build`, corregir fallos antes de hacer commit.
 
 ## Prompt de siguiente tarea
-Fases 1 (lotes), 2 (análisis de suelo) y 3 (catálogo de productos, plan y estados del plan) cerradas; copia de seguridad lista. Fase 4: modelo aprobado e implementado (4a); faltan las pantallas (4b, 4c). Estado detallado en `README.md`.
+Fases 1 (lotes), 2 (análisis de suelo) y 3 (catálogo de productos, plan y estados del plan) cerradas; copia de seguridad lista. Fase 4: modelo (4a) y aplicaciones (4b) listos; faltan observaciones y tareas (4c). Estado detallado en `README.md`.
 
 "Implementa únicamente la fase 4 AgroFerti MIC: seguimiento manual por lote. Primero propone el modelo y espera aprobación. Registra aplicaciones vinculadas a una línea de un plan aprobado (fecha, cantidad aplicada en kg, responsable escrito por el usuario, costo opcional), observaciones y tareas, y muestra plan frente a lo aplicado como aritmética explicada, incluidas aplicaciones parciales. Lo aplicado no cambia el plan aprobado. El seguimiento manual no es un sensor y no se infieren mediciones de campo. Valores ficticios con la marca «EJEMPLO». Si el esquema cambia, añade `db.version(3)` sin romper registros anteriores. Valida entradas en el formulario y antes de persistir, añade tests y preserva la UI actual. Al finalizar, resume archivos, pruebas y limitaciones."
