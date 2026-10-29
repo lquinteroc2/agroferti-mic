@@ -16,7 +16,7 @@ import type {
   ProductoFertilizante,
   ProductoVerificado
 } from '../types';
-import { calcularPlan } from './calculos.ts';
+import { calcularPlan, type ResultadoLineaPlan } from './calculos.ts';
 import { coherenciaNutriente, mismaForma } from './catalogoNutrientes.ts';
 import {
   ausente,
@@ -428,20 +428,26 @@ export function validarDatosPlan(
       if (x.producto.fechaPrecio && x.producto.fechaPrecio > limite) errores.push(`Línea ${i + 1} · Fecha del precio: no puede ser una fecha futura.`);
     });
     if (errores.length === 0) {
-      calcularPlan(v).lineas.forEach((x, i) => {
-        if (x.estado === 'sin-calculo' && x.motivo === 'desbordamiento') errores.push(`Línea ${i + 1}: ${x.mensaje}`);
-        if (x.estado === 'calculada') {
-          for (const c of [x.productoKgLote, x.costoCop, x.bultos, ...x.aportes.map(a => a.kgHa)]) {
-            if (!c.ok && c.motivo === 'desbordamiento') errores.push(`Línea ${i + 1}: ${c.mensaje}`);
-          }
-        }
-      });
+      calcularPlan(v).lineas.forEach((x, i) => desbordamientos(x).forEach(m => errores.push(`Línea ${i + 1}: ${m}`)));
     }
     if (errores.length) return { ok: false, errores };
     return { ok: true, datos: { nombre: v.nombre as string, analisisReferenciaId: v.analisisReferenciaId, metas: v.metas, lineas: v.lineas } };
   } catch {
     return { ok: false, errores: ['Los datos del plan no tienen la estructura esperada.'] };
   }
+}
+
+/** Cantidades de una línea demasiado grandes para calcular con precisión. */
+function desbordamientos(r: ResultadoLineaPlan): string[] {
+  if (r.estado === 'sin-calculo') return r.motivo === 'desbordamiento' ? [r.mensaje] : [];
+  return [r.productoKgLote, r.costoCop, r.bultos, ...r.aportes.map(a => a.kgHa)]
+    .flatMap(c => (!c.ok && c.motivo === 'desbordamiento' ? [c.mensaje] : []));
+}
+
+/** Resumen para un formulario: errores generales y, si hay campos marcados, el aviso de revisarlos. */
+export function resumenErrores(errores: { general?: string[] }): string[] {
+  const hayCampos = Object.entries(errores).some(([k, v]) => k !== 'general' && v !== undefined);
+  return [...(errores.general ?? []), ...(hayCampos ? ['Revisa los datos marcados en rojo antes de guardar.'] : [])];
 }
 
 /**
@@ -582,13 +588,28 @@ export interface EntradaMeta extends FilaElementoForma {
   fechaFuente: string;
   /** '' mientras el usuario no indique si la meta viene de una fuente real o es de EJEMPLO. */
   origen: '' | 'real' | 'ejemplo';
-  /** Producto del catálogo elegido para cubrir la meta ('' = todavía sin producto). */
+  /**
+   * '' = todavía sin producto; COPIA_GUARDADA = conservar la copia de `lineaGuardada`;
+   * otro valor = id de un producto del catálogo (se copian sus datos actuales).
+   */
   productoId: string;
   /** Línea ya guardada: si no se cambia de producto, se conservan su id y su copia del producto. */
   lineaGuardada?: LineaPlan;
   /** Meta cargada del plan guardado: si queda vacía no se omite en silencio. */
   existente?: boolean;
 }
+
+/** true si el producto del catálogo cambió después de copiarlo al plan (nombre, etiqueta, bulto o precio). */
+export function copiaDesactualizada(copia: CopiaProducto, producto: ProductoFertilizante): boolean {
+  const actual = copiarProducto(producto);
+  const contenido = (c: CopiaProducto) => c.contenido.map(x => `${x.elemento}|${x.forma}|${x.porcentaje}`).join(';');
+  return copia.nombre !== actual.nombre || contenido(copia) !== contenido(actual)
+    || copia.presentacionKg !== actual.presentacionKg || copia.precioPresentacionCop !== actual.precioPresentacionCop
+    || copia.fechaPrecio !== actual.fechaPrecio || copia.esEjemplo !== actual.esEjemplo;
+}
+
+/** Opción del selector de producto que conserva la copia guardada en el plan, sin actualizarla. */
+export const COPIA_GUARDADA = '__copia-guardada';
 
 export interface EntradaPlan {
   nombre: string;
@@ -621,9 +642,9 @@ export function validarMetaFormulario(fila: EntradaMeta, hoy: Date = new Date())
 }
 
 /**
- * Valida el formulario del plan y arma metas y líneas. Una línea conserva su copia del producto
- * mientras no se cambie de producto; si se elige otro, se copia el producto actual del catálogo.
- * Solo los productos sin datos dañados (`productos`) se pueden elegir.
+ * Valida el formulario del plan y arma metas y líneas. Con COPIA_GUARDADA la línea conserva su copia
+ * del producto; con un producto del catálogo se copian sus datos actuales (el mismo producto conserva
+ * el id de la línea). Solo los productos sin datos dañados (`productos`) se pueden elegir.
  */
 export function validarPlanFormulario(
   entrada: EntradaPlan,
@@ -637,6 +658,8 @@ export function validarPlanFormulario(
 
   const metas: MetaNutrimental[] = [];
   const lineas: LineaPlan[] = [];
+  /** Fila del formulario de cada meta, para ubicar ahí los errores de cálculo. */
+  const filaDeMeta = new Map<string, number>();
   entrada.metas.forEach((fila, i) => {
     if (filaMetaVacia(fila)) {
       // Una fila nueva vacía se ignora; una meta que ya estaba guardada no se borra en silencio.
@@ -648,15 +671,24 @@ export function validarPlanFormulario(
     const meta = r.valor;
     if (metas.some(m => mismaForma(m, meta))) return errorFila(i, `Ya hay otra meta para ${meta.elemento} (${meta.forma}).`);
     metas.push(meta);
+    filaDeMeta.set(meta.id, i);
     if (!fila.productoId) return;
     const guardada = fila.lineaGuardada;
-    if (guardada?.producto.productoId === fila.productoId) {
+    if (fila.productoId === COPIA_GUARDADA) {
+      if (!guardada) return errorFila(i, 'Elige un producto del catálogo.');
       lineas.push({ ...guardada, metaId: meta.id });
       return;
     }
     const producto = productos.find(p => p.id === fila.productoId);
     if (!producto) return errorFila(i, 'El producto elegido ya no está en el catálogo o tiene datos por corregir. Elige otro.');
-    lineas.push({ id: generarId(), metaId: meta.id, producto: copiarProducto(producto) });
+    const id = guardada?.producto.productoId === producto.id ? guardada.id : generarId();
+    lineas.push({ id, metaId: meta.id, producto: copiarProducto(producto) });
+  });
+  // Cantidades que se desbordan con el área que se guardará: el error va en la fila de su meta.
+  calcularPlan({ areaM2AlCrear: areaM2, metas, lineas }).lineas.forEach(r => {
+    const [mensaje] = desbordamientos(r);
+    const fila = filaDeMeta.get(r.linea.metaId);
+    if (mensaje && fila !== undefined && !errores.metas?.[fila]) errorFila(fila, mensaje);
   });
 
   if (Object.keys(errores).length) return { ok: false, errores };

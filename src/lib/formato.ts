@@ -26,19 +26,28 @@ export function formatearExacto(n: number): string {
   return Number(texto.replace(/\./g, '').replace(',', '.')) === n ? texto : numeroATexto(n);
 }
 
-export function fechaLegible(fecha?: string) {
-  if (!fecha) return 'Sin registrar';
-  const valor = new Date(`${fecha}T12:00:00`);
+const FORMATO_FECHA: Intl.DateTimeFormatOptions = { day: '2-digit', month: 'short', year: 'numeric' };
+
+function fechaLocal(valor: Date, conHora = false): string {
   if (Number.isNaN(valor.getTime())) return 'Fecha no válida';
-  return valor.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
+  return conHora
+    ? valor.toLocaleString('es-CO', { ...FORMATO_FECHA, hour: '2-digit', minute: '2-digit' })
+    : valor.toLocaleDateString('es-CO', FORMATO_FECHA);
+}
+
+/** Fecha AAAA-MM-DD escrita por el usuario (se lee a mediodía local para no cambiar de día). */
+export function fechaLegible(fecha?: string) {
+  return fecha ? fechaLocal(new Date(`${fecha}T12:00:00`)) : 'Sin registrar';
 }
 
 /** Fecha local de una marca de tiempo ISO (p. ej. la del historial de un plan). */
 export function fechaDeMarca(iso?: string) {
-  if (!iso) return 'Sin registrar';
-  const valor = new Date(iso);
-  if (Number.isNaN(valor.getTime())) return 'Fecha no válida';
-  return valor.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
+  return iso ? fechaLocal(new Date(iso)) : 'Sin registrar';
+}
+
+/** Fecha y hora local de una marca de tiempo ISO (historial de cambios). */
+export function fechaHoraDeMarca(iso?: string) {
+  return iso ? fechaLocal(new Date(iso), true) : 'Sin registrar';
 }
 
 /**

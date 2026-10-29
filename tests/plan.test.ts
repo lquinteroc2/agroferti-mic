@@ -19,6 +19,9 @@ import {
   validarCambioEstado,
   validarPlanFormulario,
   validarProducto,
+  resumenErrores,
+  COPIA_GUARDADA,
+  copiaDesactualizada,
   type EntradaMeta,
   type EntradaPlan,
   type EntradaContenido,
@@ -402,11 +405,17 @@ test('formulario del plan: arma metas y líneas con copia del producto; filas va
   assert.ok(sinProducto.ok && sinProducto.datos.lineas.length === 0 && sinProducto.datos.metas[0].esEjemplo === false, 'meta sin producto todavía');
 });
 
-test('formulario del plan: conserva la copia guardada si no cambia el producto; si cambia, copia el actual', () => {
+test('formulario del plan: conservar la copia guardada, actualizarla con el catálogo o cambiar de producto', () => {
   const guardada: LineaPlan = { id: 'l-vieja', metaId: 'm-p', producto: { ...copiarProducto(DAP), precioPresentacionCop: 100_000 } };
-  const igual = validarPlanEjemplo(planForm({ metas: [filaMeta({ lineaGuardada: guardada })] }));
-  assert.ok(igual.ok);
-  if (igual.ok) assert.deepEqual(igual.datos.lineas[0], guardada, 'misma línea y misma copia, aunque el catálogo cambió');
+  const conservar = validarPlanEjemplo(planForm({ metas: [filaMeta({ lineaGuardada: guardada, productoId: COPIA_GUARDADA })] }));
+  assert.ok(conservar.ok);
+  if (conservar.ok) assert.deepEqual(conservar.datos.lineas[0], guardada, 'misma línea y misma copia, aunque el catálogo cambió');
+  const actualizar = validarPlanEjemplo(planForm({ metas: [filaMeta({ lineaGuardada: guardada, productoId: 'dap' })] }));
+  assert.ok(actualizar.ok);
+  if (actualizar.ok) {
+    assert.equal(actualizar.datos.lineas[0].id, 'l-vieja', 'el mismo producto conserva la línea');
+    assert.equal(actualizar.datos.lineas[0].producto.precioPresentacionCop, 150_000, 'con el precio actual del catálogo');
+  }
   const otro = { ...DAP, id: 'map', nombre: 'MAP EJEMPLO', contenido: [{ elemento: 'Fósforo', forma: 'P₂O₅', porcentaje: 52 }] };
   const cambiado = validarPlanEjemplo(planForm({ metas: [filaMeta({ lineaGuardada: guardada, productoId: 'map' })] }), [DAP, otro]);
   assert.ok(cambiado.ok);
@@ -414,8 +423,9 @@ test('formulario del plan: conserva la copia guardada si no cambia el producto; 
     assert.notEqual(cambiado.datos.lineas[0].id, 'l-vieja');
     assert.equal(cambiado.datos.lineas[0].producto.nombre, 'MAP EJEMPLO');
   }
-  const borrado = validarPlanEjemplo(planForm({ metas: [filaMeta({ lineaGuardada: guardada })] }), []);
+  const borrado = validarPlanEjemplo(planForm({ metas: [filaMeta({ lineaGuardada: guardada, productoId: COPIA_GUARDADA })] }), []);
   assert.ok(borrado.ok, 'la copia guardada sigue valiendo aunque el producto se haya borrado del catálogo');
+  assert.match(erroresPlan(planForm({ metas: [filaMeta({ productoId: COPIA_GUARDADA })] })).metas?.[0] ?? '', /Elige un producto/);
 });
 
 test('formulario del plan: la meta exige fuente, fecha, origen y un número claro', () => {
@@ -439,7 +449,12 @@ test('formulario del plan: una forma distinta a la etiqueta se guarda en propues
   if (!r.ok) return;
   const [linea] = calcularPlan({ ...r.datos, areaM2AlCrear: 500 }).lineas;
   assert.ok(linea.estado === 'sin-calculo' && linea.motivo === 'forma-distinta');
-  assert.match(erroresPlan(planForm({ metas: [filaMeta({ kgHa: '1000000000000000' })] })).general?.join(' ') ?? '', /demasiado grande/);
+  // El desbordamiento se marca en la fila de su meta, aunque haya filas vacías o metas sin producto antes.
+  const vacia = filaMeta({ id: 'v', elemento: '', forma: '', kgHa: '', fuente: '', fechaFuente: '', origen: '', productoId: '' });
+  const sinProducto = filaMeta({ id: 'm-k', elemento: 'Potasio', forma: 'K₂O', kgHa: '90', productoId: '' });
+  const enorme = erroresPlan(planForm({ metas: [vacia, sinProducto, filaMeta({ kgHa: '1000000000000000' })] }));
+  assert.match(enorme.metas?.[2] ?? '', /Costo: el resultado es demasiado grande/);
+  assert.equal(enorme.general, undefined);
 });
 
 // ---- Revisión de 3b ----
@@ -465,4 +480,31 @@ test('revisión: un producto con un dato dañado conserva los demás para precar
   assert.equal(v.problemas.find(p => p.campo === 'presentacionKg')?.textoEditable, 'cincuenta');
   const { id: _, ...sinId } = DAP;
   assert.deepEqual(verificarProducto(DAP).parcial, sinId, 'en un producto válido, parcial tiene todos los datos');
+});
+
+// ---- Revisión de 3c ----
+
+test('revisión 3c: la diferencia aportado − meta se calcula en calculos.ts', () => {
+  const c = calcularPlan(plan());
+  const n = c.resumen.find(x => x.forma === 'N');
+  const p = c.resumen.find(x => x.forma === 'P₂O₅');
+  assert.ok(n?.diferenciaKgHa?.ok && p?.diferenciaKgHa?.ok);
+  if (n?.diferenciaKgHa?.ok) cerca(n.diferenciaKgHa.valor, 39.130434782608695, 'N: aportado 159,13 − meta 120');
+  if (p?.diferenciaKgHa?.ok) assert.equal(p.diferenciaKgHa.valor, 0);
+  const soloAporte = calcularPlan(plan({ metas: [meta()], lineas: [linea('l', 'm-p', DAP)] })).resumen.find(x => x.forma === 'N');
+  assert.equal(soloAporte?.diferenciaKgHa, undefined, 'sin meta no hay diferencia');
+});
+
+test('revisión 3c: el resumen de errores conserva el aviso de revisar campos', () => {
+  assert.deepEqual(resumenErrores({ general: ['A'] }), ['A']);
+  assert.deepEqual(resumenErrores({ general: ['A'], nombre: 'x' } as { general?: string[] }), ['A', 'Revisa los datos marcados en rojo antes de guardar.']);
+  assert.deepEqual(resumenErrores({}), []);
+});
+
+test('revisión 3c: detecta cuándo el producto del catálogo cambió después de copiarlo', () => {
+  const copia = copiarProducto(DAP);
+  assert.equal(copiaDesactualizada(copia, DAP), false);
+  assert.equal(copiaDesactualizada(copia, { ...DAP, precioPresentacionCop: 160_000 }), true);
+  assert.equal(copiaDesactualizada(copia, { ...DAP, contenido: [{ elemento: 'Fósforo', forma: 'P₂O₅', porcentaje: 46 }] }), true);
+  assert.equal(copiaDesactualizada(copia, { ...DAP, createdAt: 'otra', updatedAt: 'otra' }), false, 'las fechas de control no cuentan');
 });

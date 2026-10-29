@@ -50,7 +50,8 @@ Aplicación web progresiva (PWA) **multicultivo** para preparar el cálculo, la 
 ✅ Detalle con cada operación explicada: kg/ha de producto, kg en el lote, bultos exactos, precio por kg, costo y aportes acompañantes; resumen por forma química (meta, aportado y diferencia aritmética) y costo total solo si todos los productos tienen costo.
 ✅ Análisis de suelo de referencia opcional, mostrado solo como contexto.
 ✅ El plan guarda el área del lote al crearse; al editar solo se actualiza si el usuario lo marca.
-✅ 101 pruebas automáticas en total. Recorrido en Chrome: 54 comprobaciones.
+✅ Si el producto cambia en el catálogo, el plan conserva su copia y al editar avisa del cambio; para usar los datos nuevos se elige "datos actuales del catálogo". Si se elimina el análisis de referencia, el plan se sigue editando y copiando (queda sin referencia, con aviso).
+✅ 105 pruebas automáticas en total. Recorrido en Chrome: 59 comprobaciones. Una revisión de código encontró 10 puntos en 3c; todos están corregidos.
 
 **No implementado aún:** cambios de estado del plan (revisado, aprobado) y su historial (3d); historial de aplicaciones, reportes PDF y respaldo de información.
 
@@ -119,7 +120,7 @@ Las pruebas de persistencia (`tests/persistencia.test.ts`) usan un almacén en m
 2. En un lote de **1500,5 m²**, en **Plan de fertilización**, crea una propuesta. Meta 1: Fósforo / **P** / 100 kg/ha con fuente, fecha y origen EJEMPLO, producto DAP: debe avisar "Esta meta no se calculará". Cambia la forma a P₂O₅: el aviso desaparece y se ve "declara: N 18 % · P₂O₅ 46 %".
 3. Meta 2: Potasio / K₂O / `1.200` con producto KCl: al guardar debe rechazar "1.200". Escribe `90` y guarda.
 4. El detalle debe mostrar ≈ 217,39 kg/ha de DAP, ≈ 32,62 kg en el lote, ≈ 0,65 bultos, 3.200 COP por kg, ≈ 104.383 COP y ≈ 39,13 kg/ha de N acompañante; KCl: 150 kg/ha y ≈ 22,51 kg en el lote, sin costo por falta de precio; y "no se muestra un total parcial".
-5. Edita la propuesta: la meta 2 se precarga con `90` y el producto como "(copia guardada en el plan)".
+5. Edita la propuesta: la meta 2 se precarga con `90` y el producto como "copia guardada en el plan". Cambia el precio del DAP en el catálogo a `200000`: el plan sigue mostrando ≈ 104.383 COP; al editarlo avisa del cambio y, si eliges "datos actuales del catálogo", pasa a ≈ 130.478 COP.
 6. Elimina DAP del catálogo y vuelve al plan: debe seguir mostrando DAP EJEMPLO con las mismas cifras.
 
 ## Inicio exclusivo desde terminal
@@ -282,7 +283,6 @@ No inventar resultados de campo. Etiquetar todos los datos simulados como **EJEM
 ## Limitaciones conocidas de la fase 3c
 
 - Desde la interfaz solo se crean y editan propuestas; los cambios de estado (revisado, aprobado), la copia de un plan aprobado y el historial completo llegan en 3d.
-- La copia del producto se conserva mientras no se cambie de producto. Si el precio cambia en el catálogo, la propuesta mantiene el precio copiado; todavía no hay un botón para actualizar la copia. Para usar los datos nuevos hay que quitar la meta y volver a crearla con el mismo producto.
 - Cada meta se cubre con un solo producto y los aportes acompañantes no reducen otras cantidades (ver limitaciones de 3a).
 - El nombre de quien elabora la propuesta es opcional y lo escribe el usuario; la app no verifica identidades.
 

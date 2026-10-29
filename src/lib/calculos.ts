@@ -219,6 +219,8 @@ export interface ResumenForma {
   forma: string;
   metaKgHa?: number;
   aportadoKgHa: Calculo<number>;
+  /** Aportado − meta: solo aritmética, sin juicio agronómico. Falta si no hay meta o aporte calculado. */
+  diferenciaKgHa?: Calculo<number>;
   /** Hay líneas o aportes sin calcular, o datos dañados: la suma no está completa. */
   incompleto: boolean;
 }
@@ -313,10 +315,13 @@ export function calcularPlan(entrada: EntradaPlan): CalculoPlan {
       else g.incompleto = true;
     }
   }
-  const resumen = grupos.map(({ elemento, forma, metaKgHa, valores, incompleto }): ResumenForma => ({
-    elemento, forma, metaKgHa, incompleto,
-    aportadoKgHa: calcular(() => resultadoSeguro('Aporte total', valores.reduce((a, b) => a + b, 0)))
-  }));
+  const resumen = grupos.map(({ elemento, forma, metaKgHa, valores, incompleto }): ResumenForma => {
+    const aportadoKgHa = calcular(() => resultadoSeguro('Aporte total', valores.reduce((a, b) => a + b, 0)));
+    const diferenciaKgHa = metaKgHa !== undefined && aportadoKgHa.ok
+      ? calcular(() => resultadoSeguro('Diferencia', aportadoKgHa.valor - metaKgHa))
+      : undefined;
+    return { elemento, forma, metaKgHa, incompleto, aportadoKgHa, diferenciaKgHa };
+  });
 
   const costos = lineas.map(l => (l.estado === 'calculada' ? l.costoCop : null));
   const costoTotalCop: Calculo<number> = lineas.length === 0

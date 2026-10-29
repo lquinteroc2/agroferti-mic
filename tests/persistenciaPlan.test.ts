@@ -46,7 +46,7 @@ function crearAlmacenes() {
   });
   let contador = 0;
   const opciones = (extra = {}) => ({ ahora: HOY, generarId: () => `id-${++contador}`, ...extra });
-  return { productos, planes, lotes, tablas, opciones };
+  return { productos, planes, lotes, analisis, tablas, opciones };
 }
 
 const DAP = {
@@ -261,4 +261,18 @@ test('revisión: editar con un id vacío (registro con identificador dañado) no
   const a = crearAlmacenes();
   await rechaza(a.productos.guardar(DAP, { id: '', ahora: HOY, descartarDanados: true }), /no existe/);
   assert.equal(a.tablas.productos.size, 0);
+});
+
+test('revisión 3c: copiar un plan cuyo análisis de referencia se eliminó no falla; la copia queda sin referencia', async () => {
+  const a = crearAlmacenes();
+  const productoId = await a.productos.guardar(DAP, a.opciones());
+  const producto = (await a.productos.listar()).find(p => p.id === productoId)?.producto as ProductoFertilizante;
+  const planId = await a.planes.crear('lote-a', datosPlan(producto, { analisisReferenciaId: 'an-a' }), a.opciones());
+  await a.planes.cambiarEstado('lote-a', planId, 'revisado', { responsable: 'Agrónomo EJEMPLO' });
+  await a.planes.cambiarEstado('lote-a', planId, 'aprobado', { responsable: 'Agrónomo EJEMPLO' });
+  a.analisis.delete('an-a');
+  const copiaId = await a.planes.copiar('lote-a', planId, a.opciones());
+  const planes = await a.planes.listar('lote-a');
+  assert.equal(planes.find(p => p.id === copiaId)?.analisisReferenciaId, undefined);
+  assert.equal(planes.find(p => p.id === planId)?.analisisReferenciaId, 'an-a', 'el plan aprobado no cambia');
 });

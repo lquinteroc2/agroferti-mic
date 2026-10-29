@@ -1,10 +1,11 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { precioPorKgCop } from '../lib/calculos';
 import { CATALOGO_NUTRIENTES, OPCION_OTRO, buscarElemento } from '../lib/catalogoNutrientes';
 import { formatearExacto, formatearResultado, numeroATexto } from '../lib/formato';
 import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import { fechaLocalISO, numeroSinAmbiguedad, validarNumeroSinAmbiguedad } from '../lib/validacion';
 import {
+  resumenErrores,
   validarProducto,
   type DatosProducto,
   type EntradaContenido,
@@ -56,11 +57,6 @@ function entradaInicial(inicial?: ProductoVerificado): EntradaFormulario {
 /** Kg, precio y fecha dependen entre sí: al cambiar uno, los errores de los otros se recalculan. */
 const CAMPOS_PRECIO: ReadonlyArray<CampoTexto> = ['presentacionKg', 'precioPresentacionCop', 'fechaPrecio'];
 
-/** Resumen de errores: los generales y, si hay campos marcados, el aviso de revisarlos. */
-function resumenErrores(errores: ErroresProducto): string[] {
-  const hayCampos = Object.keys(errores).some(k => k !== 'general');
-  return [...(errores.general ?? []), ...(hayCampos ? ['Revisa los datos marcados en rojo antes de guardar.'] : [])];
-}
 
 /** Cómo se leyeron el precio y los kg, antes de guardar (p. ej. para ver que 150000 son 150.000 COP). */
 function vistaPrevia(precioTexto: string, kgTexto: string): string | null {
@@ -81,7 +77,28 @@ export function ProductoForm({ inicial, onGuardar, onCancelar }: Props) {
   const [errorGeneral, setErrorGeneral] = useState<string[]>([]);
   const [guardando, setGuardando] = useState(false);
   const [quitados, setQuitados] = useState(0);
+  /** Último campo de precio editado: su error se borra; los de los otros dos se recalculan. */
+  const [campoPrecio, setCampoPrecio] = useState<CampoTexto | null>(null);
   const problemas = inicial?.problemas ?? [];
+
+  useEffect(() => {
+    if (!campoPrecio) return;
+    const revalidado = validarProducto(entrada);
+    setErrores(previos => {
+      let cambio = false;
+      const nuevos: ErroresProducto = { ...previos };
+      for (const otro of CAMPOS_PRECIO) {
+        if (otro === campoPrecio || previos[otro] === undefined) continue;
+        // Un error que sigue siendo válido se conserva (actualizado); solo desaparece si ya no aplica.
+        const actual = revalidado.ok ? undefined : revalidado.errores[otro];
+        if (actual === previos[otro]) continue;
+        cambio = true;
+        if (actual) nuevos[otro] = actual;
+        else delete nuevos[otro];
+      }
+      return cambio ? nuevos : previos;
+    });
+  }, [entrada, campoPrecio]);
 
   /** Al corregir un dato desaparece su error; los demás se conservan hasta volver a guardar. */
   function corregido(campo: keyof ErroresProducto, indice?: number) {
@@ -94,23 +111,9 @@ export function ProductoForm({ inicial, onGuardar, onCancelar }: Props) {
     });
   }
   const cambiar = (campo: CampoTexto, valor: string) => {
-    const siguiente = { ...entrada, [campo]: valor };
-    setEntrada(siguiente);
-    setErrorGeneral([]);
-    setErrores(previos => {
-      const nuevos: ErroresProducto = { ...previos };
-      delete nuevos[campo];
-      if (!CAMPOS_PRECIO.includes(campo)) return nuevos;
-      // Un error de los otros campos de precio se actualiza o desaparece solo si ya no aplica.
-      const revalidado = validarProducto(siguiente);
-      for (const otro of CAMPOS_PRECIO) {
-        if (otro === campo || nuevos[otro] === undefined) continue;
-        const actual = revalidado.ok ? undefined : revalidado.errores[otro];
-        if (actual) nuevos[otro] = actual;
-        else delete nuevos[otro];
-      }
-      return nuevos;
-    });
+    setEntrada(e => ({ ...e, [campo]: valor }));
+    corregido(campo);
+    if (CAMPOS_PRECIO.includes(campo)) setCampoPrecio(campo);
   };
   const cambiarFila = (indice: number, cambios: Partial<FilaContenido>) => {
     setEntrada(e => ({ ...e, contenido: e.contenido.map((c, i) => (i === indice ? { ...c, ...cambios } : c)) }));

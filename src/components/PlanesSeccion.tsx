@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { EstadoPlanBadge, PlanDetalle } from './PlanDetalle';
 import { PlanForm, type OpcionesPlanFormulario } from './PlanForm';
+import { useSeleccionViva, type ModoSeccion } from './useSeleccionViva';
 import { calcularPlan } from '../lib/calculos';
 import { repositorioAnalisis, repositorioPlanes, repositorioProductos } from '../lib/db';
 import { fechaDeMarca, formatearResultado } from '../lib/formato';
@@ -9,7 +10,6 @@ import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import type { DatosPlan } from '../lib/validacionPlan';
 import type { AnalisisVerificado, Lote, PlanVerificado, ProductoFertilizante } from '../types';
 
-type Modo = 'lista' | 'nuevo' | 'editar' | 'ver';
 type Aviso = { tipo: 'ok' | 'error'; texto: string } | null;
 type Lectura =
   | { ok: true; planes: PlanVerificado[]; productos: ProductoFertilizante[]; analisis: AnalisisVerificado[] }
@@ -22,17 +22,13 @@ function costoResumido(p: PlanVerificado): string {
 
 /** Planes de fertilización dentro de la ficha de un lote. Montar con key={lote.id}. */
 export function PlanesSeccion({ lote, onIrAProductos }: { lote: Lote; onIrAProductos: () => void }) {
-  const [modo, setModo] = useState<Modo>('lista');
-  const [seleccionId, setSeleccionId] = useState<string | null>(null);
   const [aviso, setAviso] = useState<Aviso>(null);
-  /** Recién guardado: mientras la consulta no lo traiga, se espera en lugar de mostrar la lista. */
-  const [pendienteId, setPendienteId] = useState<string | null>(null);
   // El error de lectura se captura aquí para mostrar un mensaje en lugar de romper la pantalla.
   const lectura = useLiveQuery<Lectura>(async () => {
     try {
-      const planes = await repositorioPlanes.listar(lote.id);
-      const catalogo = await repositorioProductos.listar();
-      const analisis = await repositorioAnalisis.listar(lote.id);
+      const [planes, catalogo, analisis] = await Promise.all([
+        repositorioPlanes.listar(lote.id), repositorioProductos.listar(), repositorioAnalisis.listar(lote.id)
+      ]);
       // Solo los productos sin datos dañados se pueden elegir para un plan.
       return { ok: true, planes, productos: catalogo.flatMap(v => (v.producto ? [v.producto] : [])), analisis };
     } catch {
@@ -40,20 +36,12 @@ export function PlanesSeccion({ lote, onIrAProductos }: { lote: Lote; onIrAProdu
     }
   }, [lote.id]);
   const planes = lectura?.ok ? lectura.planes : undefined;
-  const seleccionado = planes?.find(p => p.id === seleccionId);
-  // Si el plan abierto ya no existe (p. ej. se eliminó en otra pestaña), se vuelve a la lista.
-  const perdido = (modo === 'ver' || modo === 'editar') && planes !== undefined && !seleccionado;
-  const esperando = perdido && pendienteId !== null && pendienteId === seleccionId;
-  const modoVisible: Modo = perdido && !esperando ? 'lista' : modo;
-  useEffect(() => {
-    if (seleccionado && seleccionado.id === pendienteId) setPendienteId(null);
-  }, [seleccionado, pendienteId]);
+  const seleccion = useSeleccionViva(planes);
+  const { modo, modoVisible, seleccionado, esperando } = seleccion;
 
-  function abrir(m: Modo, id: string | null = seleccionId) {
+  function abrir(m: ModoSeccion, id?: string | null) {
     setAviso(null);
-    setPendienteId(null);
-    setSeleccionId(id);
-    setModo(m);
+    seleccion.abrir(m, id);
   }
 
   async function guardar(datos: DatosPlan, { actualizarArea, responsable }: OpcionesPlanFormulario) {
@@ -65,9 +53,7 @@ export function PlanesSeccion({ lote, onIrAProductos }: { lote: Lote; onIrAProdu
     } else {
       id = await repositorioPlanes.crear(lote.id, datos, { responsable });
     }
-    setSeleccionId(id);
-    setPendienteId(id);
-    setModo('ver');
+    seleccion.verGuardado(id);
     setAviso({ tipo: 'ok', texto: editando ? 'Los cambios de la propuesta se guardaron.' : 'La propuesta de plan se guardó en este dispositivo.' });
   }
 

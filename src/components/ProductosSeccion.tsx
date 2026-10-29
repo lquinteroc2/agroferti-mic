@@ -1,14 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { OrigenBadge, ProductoDetalle, resumenContenido } from './ProductoDetalle';
 import { ProductoForm } from './ProductoForm';
+import { useSeleccionViva, type ModoSeccion } from './useSeleccionViva';
 import { repositorioProductos } from '../lib/db';
 import { fechaLegible, formatearExacto } from '../lib/formato';
 import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import type { DatosProducto } from '../lib/validacionPlan';
 import type { ProductoVerificado } from '../types';
 
-type Modo = 'lista' | 'nuevo' | 'editar' | 'ver';
 type Aviso = { tipo: 'ok' | 'error'; texto: string } | null;
 type Lectura = { ok: true; productos: ProductoVerificado[] } | { ok: false };
 
@@ -23,11 +23,7 @@ function precioResumido(v: ProductoVerificado): string {
 
 /** Catálogo de fertilizantes según su etiqueta, común a todos los lotes. */
 export function ProductosSeccion() {
-  const [modo, setModo] = useState<Modo>('lista');
-  const [seleccionId, setSeleccionId] = useState<string | null>(null);
   const [aviso, setAviso] = useState<Aviso>(null);
-  /** Recién guardado: mientras la consulta no lo traiga, se espera en lugar de mostrar la lista. */
-  const [pendienteId, setPendienteId] = useState<string | null>(null);
   // El error de lectura se captura aquí para mostrar un mensaje en lugar de romper la pantalla.
   const lectura = useLiveQuery<Lectura>(async () => {
     try {
@@ -37,28 +33,18 @@ export function ProductosSeccion() {
     }
   }, []);
   const productos = lectura?.ok ? lectura.productos : undefined;
-  const seleccionado = productos?.find(p => p.id === seleccionId);
-  // Si el producto abierto ya no existe (p. ej. se eliminó en otra pestaña), se vuelve a la lista.
-  const perdido = (modo === 'ver' || modo === 'editar') && productos !== undefined && !seleccionado;
-  const esperando = perdido && pendienteId !== null && pendienteId === seleccionId;
-  const modoVisible: Modo = perdido && !esperando ? 'lista' : modo;
-  useEffect(() => {
-    if (seleccionado && seleccionado.id === pendienteId) setPendienteId(null);
-  }, [seleccionado, pendienteId]);
+  const seleccion = useSeleccionViva(productos);
+  const { modo, modoVisible, seleccionado, esperando } = seleccion;
 
-  function abrir(m: Modo, id: string | null = seleccionId) {
+  function abrir(m: ModoSeccion, id?: string | null) {
     setAviso(null);
-    setPendienteId(null);
-    setSeleccionId(id);
-    setModo(m);
+    seleccion.abrir(m, id);
   }
 
   async function guardar(datos: DatosProducto, { descartarDanados }: { descartarDanados: boolean }) {
     const editando = modo === 'editar' && seleccionado;
     const id = await repositorioProductos.guardar(datos, { id: editando ? seleccionado.id : undefined, descartarDanados });
-    setSeleccionId(id);
-    setPendienteId(id);
-    setModo('ver');
+    seleccion.verGuardado(id);
     setAviso({ tipo: 'ok', texto: editando ? 'Los cambios del producto se guardaron.' : 'El producto se guardó en el catálogo de este dispositivo.' });
   }
 

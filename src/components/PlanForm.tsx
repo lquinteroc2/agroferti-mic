@@ -3,7 +3,16 @@ import { CATALOGO_NUTRIENTES, OPCION_OTRO, buscarElemento, mismaForma } from '..
 import { fechaLegible, formatearExacto, formatearNumero } from '../lib/formato';
 import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import { fechaLocalISO, numeroSinAmbiguedad } from '../lib/validacion';
-import { validarPlanFormulario, type DatosPlan, type EntradaMeta, type EntradaPlan, type ErroresPlan } from '../lib/validacionPlan';
+import {
+  COPIA_GUARDADA,
+  copiaDesactualizada,
+  resumenErrores,
+  validarPlanFormulario,
+  type DatosPlan,
+  type EntradaMeta,
+  type EntradaPlan,
+  type ErroresPlan
+} from '../lib/validacionPlan';
 import type { AnalisisVerificado, CopiaProducto, Lote, MetaNutrimental, PlanVerificado, ProductoFertilizante } from '../types';
 import { resumenContenido } from './ProductoDetalle';
 
@@ -41,7 +50,7 @@ function filaDesdeGuardado(m: MetaNutrimental, plan: PlanVerificado): FilaMeta {
     clave: siguienteClave++, id: m.id, elemento: m.elemento, forma: m.forma, kgHa: numeroSinAmbiguedad(m.kgHa),
     fuente: m.fuente, fechaFuente: m.fechaFuente, origen: m.esEjemplo ? 'ejemplo' : 'real',
     elementoLibre: !el, formaLibre: !el || !el.formas.includes(m.forma),
-    productoId: linea?.producto.productoId ?? '', lineaGuardada: linea, existente: true
+    productoId: linea ? COPIA_GUARDADA : '', lineaGuardada: linea, existente: true
   };
 }
 
@@ -55,16 +64,13 @@ function avisoProducto(fila: FilaMeta, producto?: Pick<CopiaProducto, 'nombre' |
   return <p className="hint hint-warn">{declara} <strong>Esta meta no se calculará:</strong> la meta está en {forma} y la etiqueta no declara esa forma. La app no convierte entre formas químicas (P y P₂O₅, K y K₂O).</p>;
 }
 
-/** Resumen de errores: los generales y, si hay campos marcados, el aviso de revisarlos. */
-function resumenErrores(errores: ErroresPlan): string[] {
-  const hayCampos = errores.nombre !== undefined || errores.metas !== undefined;
-  return [...(errores.general ?? []), ...(hayCampos ? ['Revisa los datos marcados en rojo antes de guardar.'] : [])];
-}
-
 export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCancelar }: Props) {
+  // Si el análisis de referencia se eliminó, la referencia se quita al guardar (con aviso), en lugar de impedir guardar.
+  const [referenciaPerdida] = useState(() =>
+    !!inicial?.analisisReferenciaId && !analisis.some(a => a.id === inicial.analisisReferenciaId));
   const [entrada, setEntrada] = useState<Omit<EntradaPlan, 'metas'> & { metas: FilaMeta[] }>(() => ({
     nombre: inicial?.nombre ?? '',
-    analisisReferenciaId: inicial?.analisisReferenciaId ?? '',
+    analisisReferenciaId: referenciaPerdida ? '' : inicial?.analisisReferenciaId ?? '',
     metas: inicial?.metas.length ? inicial.metas.map(m => filaDesdeGuardado(m, inicial)) : [filaVacia()]
   }));
   const [actualizarArea, setActualizarArea] = useState(false);
@@ -74,7 +80,8 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
   const [guardando, setGuardando] = useState(false);
   const [quitadas, setQuitadas] = useState(0);
 
-  const areaHistorica = inicial?.areaM2AlCrear;
+  // Solo se editan planes sin datos dañados: su área guardada siempre es válida.
+  const areaHistorica = inicial?.areaM2AlCrear as number;
   const areaUsada = !inicial || actualizarArea ? lote.areaM2 : areaHistorica;
 
   /** Al corregir un dato desaparece su error; los demás se conservan hasta volver a guardar. */
@@ -113,10 +120,6 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
   async function enviar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setErrorGeneral([]);
-    if (areaUsada === undefined) {
-      setErrorGeneral(['El plan no tiene un área válida guardada. Marca "Usar el área actual del lote" para continuar.']);
-      return;
-    }
     const resultado = validarPlanFormulario(entrada, { productos, areaM2: areaUsada });
     if (!resultado.ok) {
       setErrores(resultado.errores);
@@ -156,6 +159,7 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
                 <option key={a.id} value={a.id}>Análisis del {fechaLegible(a.fechaAnalisis)}{a.laboratorio ? ` · ${a.laboratorio}` : ''}</option>)}
             </select>
             <small>Solo como contexto: el análisis no entra en ningún cálculo del plan.</small>
+            {referenciaPerdida && <span className="field-warning">El análisis que este plan tenía como referencia ya no existe. Al guardar, el plan quedará sin referencia.</span>}
           </label>
           {!inicial && <label>Elaborado por, opcional
             <input value={responsable} onChange={e => setResponsable(e.target.value)} maxLength={80} placeholder="Nombre de quien prepara la propuesta" />
@@ -171,10 +175,10 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
           const el = m.elementoLibre ? undefined : buscarElemento(m.elemento);
           const error = errores.metas?.[i];
           const idError = `err-meta-${m.clave}`;
+          // La copia guardada es una opción propia; el mismo producto del catálogo copia sus datos actuales.
           const guardada = m.lineaGuardada?.producto;
-          // La copia guardada se muestra como opción propia: elegirla conserva los datos del producto del plan.
-          const opciones = productos.filter(p => p.id !== guardada?.productoId);
-          const elegido = guardada && guardada.productoId === m.productoId ? guardada : productos.find(p => p.id === m.productoId);
+          const enCatalogo = guardada && productos.find(p => p.id === guardada.productoId);
+          const elegido = m.productoId === COPIA_GUARDADA ? guardada : productos.find(p => p.id === m.productoId);
           return (
             <fieldset className="nutrient-row" key={m.clave} aria-describedby={error ? idError : undefined}>
               <legend className="nutrient-legend">Meta {i + 1}</legend>
@@ -218,13 +222,17 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
                 <label className="full">Producto para esta meta
                   <select value={m.productoId} onChange={e => cambiarCampo(i, 'productoId', e.target.value)} aria-invalid={!!error}>
                     <option value="">Sin producto todavía</option>
-                    {guardada && <option value={guardada.productoId}>{guardada.nombre} (copia guardada en el plan)</option>}
-                    {opciones.map(p => <option key={p.id} value={p.id}>{p.nombre}{p.esEjemplo ? ' (EJEMPLO)' : ''}</option>)}
+                    {guardada && <option value={COPIA_GUARDADA}>{guardada.nombre}{guardada.esEjemplo ? ' (EJEMPLO)' : ''} — copia guardada en el plan{guardada.fechaPrecio ? `, precio del ${fechaLegible(guardada.fechaPrecio)}` : ''}</option>}
+                    {productos.map(p => <option key={p.id} value={p.id}>{p.nombre}{p.esEjemplo ? ' (EJEMPLO)' : ''}{p.id === guardada?.productoId ? ' — datos actuales del catálogo' : ''}</option>)}
                   </select>
                 </label>
               </div>
               <button type="button" className="row-remove" onClick={() => quitarFila(i)}>Quitar meta {i + 1}</button>
-              <div className="full-row">{avisoProducto(m, elegido)}</div>
+              <div className="full-row">
+                {avisoProducto(m, elegido)}
+                {m.productoId === COPIA_GUARDADA && guardada && enCatalogo && copiaDesactualizada(guardada, enCatalogo) &&
+                  <p className="hint hint-warn">Este producto cambió en el catálogo después de copiarlo al plan. Para usar los datos nuevos, elige “{enCatalogo.nombre} — datos actuales del catálogo”.</p>}
+              </div>
               {error && <span id={idError} className="field-error full-row">{error}</span>}
             </fieldset>
           );
@@ -238,9 +246,7 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
         {!inicial
           ? <p className="hint">Con este plan se guardará el área actual del lote: <strong>{formatearNumero(lote.areaM2)} m²</strong>. Si después cambias el área del lote, el plan conservará este valor.</p>
           : <>
-            <p className="hint">{areaHistorica !== undefined
-              ? <>Área guardada con este plan: <strong>{formatearExacto(areaHistorica)} m²</strong>. Se conserva al editar.</>
-              : <><strong>El área guardada no es válida.</strong> Usa el área actual del lote para poder guardar.</>}</p>
+            <p className="hint">Área guardada con este plan: <strong>{formatearExacto(areaHistorica)} m²</strong>. Se conserva al editar.</p>
             {areaHistorica !== lote.areaM2 && <label className="check">
               <input type="checkbox" checked={actualizarArea} onChange={e => setActualizarArea(e.target.checked)} />
               Usar el área actual del lote ({formatearNumero(lote.areaM2)} m²) para este plan

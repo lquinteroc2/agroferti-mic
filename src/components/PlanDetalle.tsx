@@ -26,9 +26,11 @@ function Falta({ calculo }: { calculo: Extract<Calculo<number>, { ok: false }> }
   return <p className="calc-skip">No calculado: {calculo.mensaje}</p>;
 }
 
-/** "+39,13", "−10" o "0": diferencia aritmética entre lo aportado y la meta, sin juicio agronómico. */
+/** "+39,13", "≈ -10" o "0": la diferencia la calcula calcularPlan; aquí solo se muestra con su signo. */
 function diferencia(d: number): string {
-  if (Math.abs(d) < 1e-9) return '0';
+  if (d === 0) return '0';
+  // Una diferencia que el redondeo a 2 decimales dejaría en cero se muestra como "≈ 0", no como "-0".
+  if (Math.abs(d) < 0.005) return '≈ 0';
   return `${d > 0 ? '+' : ''}${kg(d)}`;
 }
 
@@ -147,7 +149,7 @@ export function PlanDetalle({ plan, analisis, onEditar, onEliminar }: Props) {
               <td>{x.forma} <small>({x.elemento})</small></td>
               <td>{x.metaKgHa !== undefined ? formatearExacto(x.metaKgHa) : '—'}</td>
               <td>{x.aportadoKgHa.ok ? kg(x.aportadoKgHa.valor) : x.aportadoKgHa.mensaje}</td>
-              <td>{x.metaKgHa !== undefined && x.aportadoKgHa.ok ? diferencia(x.aportadoKgHa.valor - x.metaKgHa) : '—'}</td>
+              <td>{x.diferenciaKgHa?.ok ? diferencia(x.diferenciaKgHa.valor) : '—'}</td>
             </tr>)}</tbody>
           </table></div>
           {calculo.resumen.some(x => x.incompleto) && <p className="calc-skip">La suma no está completa: hay productos o aportes sin calcular, o datos por corregir.</p>}
