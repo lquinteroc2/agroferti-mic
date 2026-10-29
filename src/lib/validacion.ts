@@ -10,6 +10,7 @@ import type {
   ProblemaDato,
   UnidadNutriente
 } from '../types';
+import { CULTIVOS } from '../types.ts';
 import { buscarElemento, coherenciaNutriente } from './catalogoNutrientes.ts';
 import { equivalenciasAnalisis } from './calculos.ts';
 import { numeroATexto } from './formato.ts';
@@ -148,6 +149,29 @@ export function validarAreaLote(texto: string): Resultado<number> {
 }
 
 export const areaLoteATexto = numeroSinAmbiguedad;
+
+/**
+ * Lote leído (p. ej. de una copia de seguridad): lo que la lista de lotes necesita para mostrarse
+ * sin romperse, con las mismas reglas de área y fecha que el formulario. Devuelve el motivo o null.
+ */
+export function problemaLote(r: Record<string, unknown>): string | null {
+  if (typeof r.nombre !== 'string' || !r.nombre.trim()) return 'El lote no tiene nombre.';
+  if (!CULTIVOS.some(c => c.value === r.cultivo)) return 'El cultivo del lote no es válido.';
+  const area = r.areaM2;
+  if (typeof area !== 'number' || !Number.isFinite(area) || area < AREA_LOTE_MIN_M2 || area > AREA_LOTE_MAX_M2) {
+    return 'El área del lote no es válida.';
+  }
+  if (r.fechaSiembra !== undefined && (typeof r.fechaSiembra !== 'string' || !validarFecha(r.fechaSiembra, 'Fecha de siembra').ok)) {
+    return 'La fecha de siembra del lote no es válida.';
+  }
+  if (r.ubicacion !== undefined && typeof r.ubicacion !== 'string') return 'La ubicación del lote no es válida.';
+  // La lista de lotes se ordena por createdAt: sin fechas válidas el lote no aparecería.
+  for (const campo of ['createdAt', 'updatedAt']) {
+    const valor = r[campo];
+    if (typeof valor !== 'string' || Number.isNaN(Date.parse(valor))) return 'Faltan las fechas de control del lote o no son válidas.';
+  }
+  return null;
+}
 
 /** Fecha local del dispositivo en formato AAAA-MM-DD. */
 export function fechaLocalISO(fecha: Date = new Date()): string {

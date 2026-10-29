@@ -72,15 +72,16 @@ export const repositorioRespaldo = crearRepositorioRespaldo({
     planes: await db.planes.toArray(),
     registros: await db.registros.toArray()
   })),
-  idsExistentes: async (): Promise<IdsExistentes> => ({
+  idsExistentes: (): Promise<IdsExistentes> => db.transaction('r', [db.lotes, db.analisisSuelos, db.productos, db.planes, db.registros], async () => ({
     lotes: await idsDe(db.lotes),
     analisisSuelos: await idsDe(db.analisisSuelos),
     productos: await idsDe(db.productos),
     planes: await idsDe(db.planes),
     registros: await idsDe(db.registros)
-  }),
+  })),
   agregar: async datos => {
-    // Los registros se guardan tal como vienen en la copia; la app los verifica al leerlos.
+    // Análisis, productos y planes se guardan tal cual y la app los verifica al leerlos; los lotes ya se
+    // comprobaron con problemaLote y los registros de seguimiento no se restauran hasta la fase 4.
     await db.lotes.bulkAdd(datos.lotes as Lote[]);
     await db.analisisSuelos.bulkAdd(datos.analisisSuelos as AnalisisSuelo[]);
     await db.productos.bulkAdd(datos.productos as ProductoFertilizante[]);

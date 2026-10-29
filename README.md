@@ -61,10 +61,10 @@ Aplicación web progresiva (PWA) **multicultivo** para preparar el cálculo, la 
 ✅ 107 pruebas automáticas. Recorrido en Chrome: 72 comprobaciones. Una revisión de código encontró 9 puntos en 3d (entre ellos, que "Cancelar" no detenía una aprobación en curso y que se podía aprobar con metas sin producto); todos están corregidos.
 
 **Fase 5 (adelantada) — copia de seguridad (sección "Copia de seguridad" en Mis lotes)**
-✅ **Descargar copia (JSON):** todos los lotes, análisis, productos y planes, tal como están guardados (incluidos los datos dañados y los campos de otras versiones), en `agroferti-respaldo-AAAA-MM-DD.json`.
+✅ **Descargar copia (JSON):** todos los lotes, análisis, productos y planes, tal como están guardados (incluidos los datos dañados, los campos de otras versiones y valores como `NaN`, que se guardan con una marca y se restauran igual), en `agroferti-respaldo-AAAA-MM-DD.json`.
 ✅ **Restaurar desde un archivo:** primero muestra qué se agregará, qué ya existe y qué se omite (con el motivo), y pide confirmación. **Solo agrega lo que no existe: nunca borra ni sobrescribe** datos del dispositivo. Todo se escribe en una sola transacción: o entra todo o no entra nada.
-✅ Rechaza archivos que no son una copia de AgroFerti o de una versión de formato desconocida. Omite lotes que romperían la lista (sin nombre, cultivo o área válidos, o sin fechas de control) y registros cuyo lote no está en la copia ni en el dispositivo.
-✅ Verificado con Dexie real fuera del repositorio (copia restaurada idéntica, sin duplicar, atómica) y en Chrome: descargar, borrar la base del navegador y restaurar. 114 pruebas automáticas; recorrido en Chrome: 81 comprobaciones.
+✅ Rechaza archivos que no son una copia de AgroFerti o de una versión de formato desconocida. Omite, explicando el motivo, lotes que romperían la lista (sin nombre, cultivo, área o fechas válidos) junto con sus registros, y registros cuyo lote no está en la copia ni en el dispositivo.
+✅ Verificado con Dexie real fuera del repositorio (copia restaurada idéntica, sin duplicar, atómica) y en Chrome: descargar, borrar la base del navegador y restaurar. 117 pruebas automáticas; recorrido en Chrome: 81 comprobaciones. Una revisión de código encontró 9 puntos; todos están corregidos.
 
 **No implementado aún:** seguimiento de aplicaciones y plan frente a lo aplicado (fase 4), informe para el productor (fase 5).
 
@@ -324,7 +324,8 @@ No inventar resultados de campo. Etiquetar todos los datos simulados como **EJEM
 
 - Restaurar solo agrega: no hay una opción para reemplazar los datos del dispositivo por los de la copia ni para fusionar dos versiones distintas de un mismo registro (el del dispositivo se conserva).
 - La copia no se hace sola: hay que descargarla. El archivo no está cifrado; contiene todos los datos del navegador.
-- JSON no representa `NaN` ni `Infinity`: si un registro dañado tenía esos valores, en la copia quedan como `null` (sigue mostrándose como dato dañado).
+- Un lote de la copia que no cumple las reglas de la lista de lotes se omite con todos sus registros (se explica el motivo); la app no lo repara.
+- Los registros de seguimiento (fase 4) todavía no se restauran: se omiten con aviso hasta que la fase 4 defina cómo verificarlos.
 
 ## Limitaciones conocidas de la fase 3d
 

@@ -14,6 +14,7 @@ import {
   nombreArchivoRespaldo,
   planearRestauracion,
   resumenCantidades,
+  serializarRespaldo,
   type AlmacenRespaldo,
   type IdsExistentes,
   type TablasRespaldo
@@ -128,15 +129,16 @@ test('planear: omite lotes que romperían la lista, registros sin lote, sin id o
   assert.deepEqual(plan_.agregar.productos.map(r => (r as { id: string }).id), ['p1']);
   const motivos = plan_.omitidos.map(o => `${o.tabla}:${o.id ?? '-'}:${o.motivo}`).join('\n');
   for (const esperado of [/lotes:sin-nombre:.*no tiene nombre/, /lotes:cultivo:.*cultivo/, /lotes:area:.*área/, /lotes:fechas:.*fechas de control/,
-    /lotes:ubicacion:.*ubicacion/, /lotes:-:.*identificador/, /lotes:ok:.*repetido/, /analisisSuelos:a2:.*Su lote no está/,
-    /analisisSuelos:a3:.*Su lote no está/, /analisisSuelos:a4:.*Su lote no está/, /planes:pl1:.*Su lote no está/, /productos:p1:.*repetido/, /productos:-:.*identificador/]) {
+    /lotes:ubicacion:.*ubicación/, /lotes:-:.*identificador/, /lotes:ok:.*repetido/,
+    /analisisSuelos:a2:.*Su lote se omitió: El cultivo del lote no es válido/, /planes:pl1:.*Su lote se omitió: El área del lote no es válida/,
+    /analisisSuelos:a3:.*Su lote no está/, /analisisSuelos:a4:.*Su lote no está/, /productos:p1:.*repetido/, /productos:-:.*identificador/]) {
     assert.match(motivos, esperado);
   }
 });
 
 test('restaurar en un dispositivo vacío reproduce la copia; repetirla no duplica nada', async () => {
   const origen = crearAlmacen(tablas());
-  const copia = leerRespaldo(JSON.stringify(await origen.repo.exportar(HOY)));
+  const copia = leerRespaldo(serializarRespaldo(await origen.repo.exportar(HOY)));
   assert.ok(copia.ok);
   if (!copia.ok) return;
   const destino = crearAlmacen();
@@ -162,4 +164,38 @@ test('restaurar nunca borra ni sobrescribe, y un error a mitad no deja cambios',
   conFallo.fallar();
   await assert.rejects(conFallo.repo.restaurar(tablas()), /Almacenamiento lleno/);
   assert.deepEqual(conFallo.datos(), { lotes: [], analisisSuelos: [], productos: [], planes: [], registros: [] }, 'o entra todo o no entra nada');
+});
+
+// ---- Revisión de la copia de seguridad ----
+
+test('revisión: la copia conserva NaN, ±Infinity y fechas en lugar de convertirlos en null', () => {
+  const danado = { id: 'a1', loteId: 'l1', ph: Number.NaN, densidadGcm3: Number.POSITIVE_INFINITY, profundidadCm: Number.NEGATIVE_INFINITY, marca: new Date('2026-10-01T00:00:00.000Z') };
+  const r = leerRespaldo(serializarRespaldo({ formato: FORMATO_RESPALDO, version: 1, app: 'AgroFerti MIC', esquema: 2, creado: HOY.toISOString(), datos: tablas({ analisisSuelos: [danado] }) }));
+  assert.ok(r.ok);
+  if (!r.ok) return;
+  const leido = r.respaldo.datos.analisisSuelos[0] as typeof danado;
+  assert.ok(Number.isNaN(leido.ph));
+  assert.equal(leido.densidadGcm3, Number.POSITIVE_INFINITY);
+  assert.equal(leido.profundidadCm, Number.NEGATIVE_INFINITY);
+  assert.ok(leido.marca instanceof Date && leido.marca.toISOString() === '2026-10-01T00:00:00.000Z');
+});
+
+test('revisión: si la primera aparición de un id es inválida, se usa la siguiente válida', () => {
+  const plan = planearRestauracion(tablas({ lotes: [lote('A', { nombre: '' }), lote('A', { nombre: 'Lote bueno EJEMPLO' })], analisisSuelos: [analisis('a1', 'A')] }), sinIds());
+  assert.deepEqual(plan.agregar.lotes.map(r => (r as { nombre: string }).nombre), ['Lote bueno EJEMPLO']);
+  assert.deepEqual(plan.agregar.analisisSuelos.map(r => (r as { id: string }).id), ['a1']);
+  assert.ok(!plan.omitidos.some(o => /repetido/.test(o.motivo)), 'la primera no se usó: no es "repetido"');
+});
+
+test('revisión: lotes con fecha de siembra o fechas de control inválidas se omiten; seguimiento aún no se restaura', () => {
+  const plan = planearRestauracion(tablas({
+    lotes: [lote('f1', { fechaSiembra: '2026-13-45' }), lote('f2', { createdAt: 'ayer' }), lote('f3', { fechaSiembra: '2026-10-01' })],
+    registros: [{ id: 'r1', loteId: 'f3', tipo: 'observacion' }]
+  }), sinIds());
+  const motivos = plan.omitidos.map(o => `${o.tabla}:${o.id}:${o.motivo}`).join('\n');
+  assert.match(motivos, /lotes:f1:.*fecha de siembra/);
+  assert.match(motivos, /lotes:f2:.*fechas de control/);
+  assert.match(motivos, /registros:r1:.*todavía no se pueden restaurar/);
+  assert.deepEqual(plan.agregar.lotes.map(r => (r as { id: string }).id), ['f3']);
+  assert.deepEqual(plan.agregar.registros, []);
 });

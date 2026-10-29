@@ -3,8 +3,7 @@
  * los restaura SIN borrar ni sobrescribir nada. Las reglas son puras y se prueban en Node con un
  * almacén en memoria; `db.ts` aporta el almacén real sobre IndexedDB.
  */
-import { CULTIVOS } from '../types.ts';
-import { AREA_LOTE_MAX_M2, AREA_LOTE_MIN_M2, describirValor, esObjeto, fechaLocalISO } from './validacion.ts';
+import { describirValor, esObjeto, fechaLocalISO, problemaLote } from './validacion.ts';
 
 export const FORMATO_RESPALDO = 'agroferti-mic-respaldo';
 export const VERSION_RESPALDO = 1;
@@ -20,7 +19,9 @@ const NOMBRE_TABLA: Record<TablaRespaldo, [singular: string, plural: string]> = 
   registros: ['registro de seguimiento', 'registros de seguimiento']
 };
 /** Registros que pertenecen a un lote: sin su lote no se verían en la app. */
-const DEPENDEN_DE_LOTE: ReadonlyArray<TablaRespaldo> = ['analisisSuelos', 'planes', 'registros'];
+const DEPENDEN_DE_LOTE: ReadonlyArray<TablaRespaldo> = ['analisisSuelos', 'planes'];
+/** Los registros de seguimiento se podrán restaurar cuando la fase 4 defina cómo verificarlos. */
+const SEGUIMIENTO_SIN_VERIFICAR = 'Los registros de seguimiento todavía no se pueden restaurar en esta versión de la app.';
 
 export interface Respaldo {
   formato: typeof FORMATO_RESPALDO;
@@ -37,6 +38,29 @@ const tablasVacias = (): TablasRespaldo => ({ lotes: [], analisisSuelos: [], pro
 /** Los registros se copian tal como están guardados, incluidos los dañados y los campos de otras versiones. */
 export function crearRespaldo(datos: TablasRespaldo, { ahora = new Date(), esquema }: { ahora?: Date; esquema: number }): Respaldo {
   return { formato: FORMATO_RESPALDO, version: VERSION_RESPALDO, app: 'AgroFerti MIC', esquema, creado: ahora.toISOString(), datos };
+}
+
+const ETIQUETA = '$agroferti';
+
+/**
+ * JSON no representa NaN, ±Infinity ni fechas: se guardan etiquetados y `leerRespaldo` los restaura,
+ * para que la copia sea exactamente lo guardado (incluidos los datos dañados).
+ */
+export function serializarRespaldo(respaldo: Respaldo): string {
+  return JSON.stringify(respaldo, function (this: Record<string, unknown>, clave: string, valor: unknown) {
+    const original = this[clave];
+    if (typeof original === 'number' && !Number.isFinite(original)) return { [ETIQUETA]: 'numero', valor: String(original) };
+    if (original instanceof Date) return { [ETIQUETA]: 'fecha', valor: Number.isNaN(original.getTime()) ? 'Invalid Date' : original.toISOString() };
+    return valor;
+  }, 2);
+}
+
+function revivir(_clave: string, valor: unknown): unknown {
+  if (esObjeto(valor) && Object.keys(valor).length === 2 && typeof valor.valor === 'string') {
+    if (valor[ETIQUETA] === 'numero') return Number(valor.valor);
+    if (valor[ETIQUETA] === 'fecha') return new Date(valor.valor);
+  }
+  return valor;
 }
 
 export function nombreArchivoRespaldo(ahora: Date = new Date()): string {
@@ -60,7 +84,7 @@ export type LecturaRespaldo = { ok: true; respaldo: Respaldo; avisos: string[] }
 export function leerRespaldo(texto: string): LecturaRespaldo {
   let crudo: unknown;
   try {
-    crudo = JSON.parse(texto);
+    crudo = JSON.parse(texto, revivir);
   } catch {
     return { ok: false, error: 'El archivo no es una copia de seguridad válida: no se pudo leer como JSON.' };
   }
@@ -95,21 +119,6 @@ export function leerRespaldo(texto: string): LecturaRespaldo {
   };
 }
 
-/** Lo que exige la lista de lotes para mostrarse sin romperse (los demás registros se verifican al leerlos). */
-function problemaLote(r: Record<string, unknown>): string | null {
-  if (typeof r.nombre !== 'string' || !r.nombre.trim()) return 'El lote no tiene nombre.';
-  if (!CULTIVOS.some(c => c.value === r.cultivo)) return 'El cultivo del lote no es válido.';
-  const area = r.areaM2;
-  if (typeof area !== 'number' || !Number.isFinite(area) || area < AREA_LOTE_MIN_M2 || area > AREA_LOTE_MAX_M2) {
-    return 'El área del lote no es válida.';
-  }
-  if (typeof r.createdAt !== 'string' || typeof r.updatedAt !== 'string') return 'Faltan las fechas de control del lote.';
-  for (const campo of ['fechaSiembra', 'ubicacion']) {
-    if (r[campo] !== undefined && typeof r[campo] !== 'string') return `El dato "${campo}" del lote no es válido.`;
-  }
-  return null;
-}
-
 export type IdsExistentes = Record<TablaRespaldo, ReadonlySet<string>>;
 
 export interface Omitido {
@@ -128,14 +137,17 @@ export interface PlanRestauracion {
 
 /**
  * Decide qué agregar sin escribir nada. Nunca borra ni sobrescribe: un registro cuyo identificador
- * ya existe se deja como está. Se omiten registros sin identificador, repetidos en la copia, lotes
- * que romperían la lista de lotes y registros cuyo lote no está en la copia ni en el dispositivo.
+ * ya existe se deja como está. Se omiten, con su motivo, registros sin identificador o repetidos,
+ * lotes que romperían la lista de lotes (y sus registros) y registros cuyo lote no está disponible.
+ * Los análisis, productos y planes se guardan tal cual: la app los verifica al leerlos.
  */
 export function planearRestauracion(datos: TablasRespaldo, ids: IdsExistentes): PlanRestauracion {
   const agregar = tablasVacias();
   const existentes = Object.fromEntries(TABLAS_RESPALDO.map(t => [t, 0])) as Record<TablaRespaldo, number>;
   const omitidos: Omitido[] = [];
   const lotesDisponibles = new Set(ids.lotes);
+  /** Lotes de la copia que se omitieron, con su motivo, para explicarlo en sus registros. */
+  const lotesOmitidos = new Map<string, string>();
 
   const revisar = (tabla: TablaRespaldo, condicion?: (r: Record<string, unknown>) => string | null) => {
     const vistos = new Set<string>();
@@ -145,20 +157,23 @@ export function planearRestauracion(datos: TablasRespaldo, ids: IdsExistentes): 
         omitidos.push({ tabla, motivo: `Un registro de ${NOMBRE_TABLA[tabla][1]} no tiene identificador válido.` });
         continue;
       }
+      // Solo cuenta como "vista" una aparición usada: si la primera era inválida, la siguiente se evalúa.
       if (vistos.has(id)) {
-        omitidos.push({ tabla, id, motivo: 'Aparece repetido en la copia; se usa la primera aparición.' });
+        omitidos.push({ tabla, id, motivo: 'Aparece repetido en la copia; se usa la primera aparición válida.' });
         continue;
       }
-      vistos.add(id);
       if (ids[tabla].has(id)) {
+        vistos.add(id);
         existentes[tabla]++;
         continue;
       }
       const problema = condicion?.(r);
       if (problema) {
         omitidos.push({ tabla, id, motivo: problema });
+        if (tabla === 'lotes') lotesOmitidos.set(id, problema);
         continue;
       }
+      vistos.add(id);
       agregar[tabla].push(r);
       if (tabla === 'lotes') lotesDisponibles.add(id);
     }
@@ -167,11 +182,14 @@ export function planearRestauracion(datos: TablasRespaldo, ids: IdsExistentes): 
   // Primero los lotes: los demás registros solo se agregan si su lote existe o se agrega.
   revisar('lotes', problemaLote);
   for (const tabla of DEPENDEN_DE_LOTE) {
-    revisar(tabla, r => (typeof r.loteId === 'string' && lotesDisponibles.has(r.loteId)
-      ? null
-      : 'Su lote no está en la copia ni en este dispositivo.'));
+    revisar(tabla, r => {
+      if (typeof r.loteId === 'string' && lotesDisponibles.has(r.loteId)) return null;
+      const motivoLote = typeof r.loteId === 'string' ? lotesOmitidos.get(r.loteId) : undefined;
+      return motivoLote ? `Su lote se omitió: ${motivoLote}` : 'Su lote no está en la copia ni en este dispositivo.';
+    });
   }
   revisar('productos');
+  revisar('registros', () => SEGUIMIENTO_SIN_VERIFICAR);
   return { agregar, existentes, omitidos };
 }
 
