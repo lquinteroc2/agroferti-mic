@@ -2,7 +2,7 @@
 
 Aplicación web progresiva (PWA) **multicultivo** para preparar el cálculo, la explicación y el monitoreo de fertilización, empezando por **papa** como cultivo piloto.
 
-## Estado actual: fase 3 en curso / fertilizantes y plan (modelo listo, sin interfaz)
+## Estado actual: fase 3 en curso / fertilizantes y plan (modelo y catálogo de productos listos)
 
 **Fase 1 (lotes)**
 ✅ Registro de lotes: crear, editar, eliminar y consultar.
@@ -33,9 +33,17 @@ Aplicación web progresiva (PWA) **multicultivo** para preparar el cálculo, la 
 ✅ Estados propuesta → revisado → aprobado, con historial (fecha, nombre escrito por el usuario y nota). Un plan aprobado es de solo lectura y no se elimina; para cambiarlo se copia como nueva propuesta. Lo aplicado se registrará en la fase 4.
 ✅ Trazabilidad: el plan guarda el área del lote al crearse y una copia de cada producto; editar o borrar el producto del catálogo no altera los planes.
 ✅ Base de datos versión 2 (`db.version(2)`): solo agrega la tabla `productos`. Verificado con Dexie real que una base de la versión 1 se abre sin cambiar lotes ni análisis.
-✅ 89 pruebas automáticas en total.
+✅ 89 pruebas automáticas al cerrar 3a.
 
-**No implementado aún:** interfaz del catálogo de productos (3b), del plan con explicación paso a paso (3c) y de los cambios de estado (3d); historial de aplicaciones, reportes PDF y respaldo de información.
+**Fase 3 — 3b: catálogo de productos (pantalla "Productos" en la barra superior)**
+✅ Crear, consultar, editar y eliminar (con confirmación) productos según su etiqueta. El catálogo es común a todos los lotes.
+✅ Contenido declarado con elemento, forma química (lista del catálogo u "Otra forma" escrita tal cual) y porcentaje. Rechaza combinaciones incoherentes (Fósforo / K₂O), formas repetidas, 0 % y más de 100 %.
+✅ Es obligatorio indicar si los datos vienen de una etiqueta real o son de **EJEMPLO**; los de ejemplo se marcan en la lista y en el detalle.
+✅ Kg y precio del bulto rechazan escrituras ambiguas como `150.000` (en COP se leería como 150) y piden `150000`. El precio exige los kg del bulto y la fecha del precio. Vista previa: "Bulto de 50 kg a 150.000 COP: equivale a 3.000 COP por kg".
+✅ Detalle con datos ingresados y el precio por kg explicado. Un producto con datos dañados se muestra con su valor original y solo se reemplaza con confirmación expresa.
+✅ 93 pruebas automáticas en total.
+
+**No implementado aún:** interfaz del plan con explicación paso a paso (3c) y de los cambios de estado (3d); historial de aplicaciones, reportes PDF y respaldo de información.
 
 ## Requisitos
 
@@ -87,6 +95,15 @@ Las pruebas de persistencia (`tests/persistencia.test.ts`) usan un almacén en m
 12. Edita el registro dañado del paso 10 y pulsa **Guardar** sin marcar nada: debe pedir confirmación y no cambiar el registro. Corrige la densidad, marca las casillas y guarda: solo se descarta lo que confirmaste.
 13. Escribe pH `1e-21`, guarda, vuelve a editar: debe precargarse `1e-21` (no `0`).
 
+### Pruebas manuales en navegador (fase 3b, catálogo)
+
+1. Pulsa **Productos** en la barra superior: debe aparecer "Aún no hay productos en el catálogo".
+2. Registra "DAP EJEMPLO" con Nitrógeno / N / `18` y Fósforo / P₂O₅ / `46`, bulto de `50` kg, precio `150.000` y fecha del precio. Al guardar debe rechazar el precio ("Escribe 150000") y pedir que indiques si es etiqueta real o EJEMPLO. Al corregir cada dato, su mensaje rojo desaparece.
+3. Escribe `150000` y elige **Son datos de EJEMPLO**: la vista previa debe decir "equivale a 3.000 COP por kg". Guarda: el detalle muestra la marca EJEMPLO, P₂O₅ 46 % tal cual y "150.000 COP ÷ 50 kg = 3.000 COP por kg".
+4. Prueba Fósforo con la forma "Otra forma" escribiendo `K2O`: debe rechazarse porque corresponde a Potasio.
+5. Edita el precio a `160000`: debe mostrar 3.200 COP por kg. Recarga la página: el producto sigue en el catálogo.
+6. Elimina el producto: debe pedir confirmación.
+
 ## Inicio exclusivo desde terminal
 
 Consulta [INICIO_TERMINAL.md](./INICIO_TERMINAL.md) para instalar Node.js, Git, Claude Code y Codex CLI, y para trabajar desde varias pestañas de terminal sin un editor gráfico.
@@ -103,7 +120,10 @@ agroferti-mic/
 │  │  ├─ LoteForm.tsx              # Formulario del lote
 │  │  ├─ AnalisisSueloSeccion.tsx  # Historial y flujo de análisis dentro del lote
 │  │  ├─ AnalisisSueloForm.tsx     # Formulario de análisis de suelo
-│  │  └─ AnalisisSueloDetalle.tsx  # Datos ingresados, cálculos explicados y advertencias
+│  │  ├─ AnalisisSueloDetalle.tsx  # Datos ingresados, cálculos explicados y advertencias
+│  │  ├─ ProductosSeccion.tsx      # Fase 3b: catálogo de productos (lista y flujo)
+│  │  ├─ ProductoForm.tsx          # Fase 3b: formulario según la etiqueta
+│  │  └─ ProductoDetalle.tsx       # Fase 3b: datos de la etiqueta y precio por kg
 │  ├─ lib/
 │  │  ├─ calculos.ts            # Matemáticas verificables, sin prescribir dosis
 │  │  ├─ validacion.ts          # Validaciones puras y verificación de registros guardados
@@ -232,6 +252,12 @@ No inventar resultados de campo. Etiquetar todos los datos simulados como **EJEM
 - Un plan guardado con datos dañados solo se consulta o se elimina (si no está aprobado); no se edita, no cambia de estado ni se copia.
 - Los campos de otras versiones se conservan en el primer nivel del plan y del producto; dentro de metas, líneas y contenido se descartan al editar.
 
-## Próximo PR: fase 3b
+## Limitaciones conocidas de la fase 3b
 
-Interfaz del catálogo de productos (crear, editar, eliminar con confirmación y marca EJEMPLO), con las validaciones de `validacionPlan.ts`. Lee primero `AGENTS.md`. No precargar productos reales ni dosis.
+- Al editar un producto con datos dañados, solo se precarga el nombre: el resto se vuelve a escribir desde la etiqueta y se reemplaza con confirmación expresa.
+- El catálogo de formas químicas es el mismo de la fase 2; las formas fuera de la lista (p. ej. SO₃) se guardan como texto, sin validación química adicional.
+- Los componentes React no tienen pruebas automáticas; la interfaz se verificó con un recorrido en Chrome (29 comprobaciones) hecho con un script fuera del repositorio. Las pruebas manuales equivalentes están arriba.
+
+## Próximo PR: fase 3c
+
+Plan de fertilización dentro de la ficha del lote: metas con fuente y fecha, una línea de producto del catálogo por meta y la explicación paso a paso de `calcularPlan` (cantidad, costo, bultos, aportes y resumen). Lee primero `AGENTS.md`. No proponer metas ni dosis; no convertir P/P₂O₅ ni K/K₂O.

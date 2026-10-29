@@ -17,6 +17,9 @@ import { mismaForma } from '../src/lib/catalogoNutrientes.ts';
 import {
   copiarProducto,
   validarCambioEstado,
+  validarProducto,
+  type EntradaContenido,
+  type EntradaProducto,
   validarDatosPlan,
   validarDatosProducto,
   verificarPlan,
@@ -300,4 +303,66 @@ test('ningún cálculo usa el análisis de suelo ni propone metas', () => {
   const sinMetas = calcularPlan(plan({ metas: [], lineas: [], analisisReferenciaId: 'an-1' }));
   assert.deepEqual(sinMetas.lineas, []);
   assert.deepEqual(sinMetas.resumen, []);
+});
+
+// ---- Formulario del catálogo (fase 3b) ----
+
+const filaForm = (cambios: Partial<EntradaContenido> = {}): EntradaContenido => ({
+  elemento: 'Fósforo', forma: 'P₂O₅', porcentaje: '46', elementoLibre: false, formaLibre: false, ...cambios
+});
+const formulario = (cambios: Partial<EntradaProducto> = {}): EntradaProducto => ({
+  nombre: ' DAP EJEMPLO ',
+  contenido: [filaForm({ elemento: 'Nitrógeno', forma: 'N', porcentaje: '18' }), filaForm(), filaForm({ elemento: '', forma: '', porcentaje: '' })],
+  presentacionKg: '50', precioPresentacionCop: '150000', fechaPrecio: '2026-10-01', esEjemplo: true, ...cambios
+});
+const erroresForm = (cambios: Partial<EntradaProducto>) => {
+  const r = validarProducto(formulario(cambios), HOY);
+  assert.ok(!r.ok, 'debía rechazarse');
+  return r.ok ? {} : r.errores;
+};
+
+test('formulario de producto: datos válidos, filas vacías ignoradas y coma decimal', () => {
+  const r = validarProducto(formulario({ contenido: [filaForm({ porcentaje: '46,5' }), filaForm({ elemento: '', forma: '', porcentaje: '' })] }), HOY);
+  assert.ok(r.ok);
+  if (!r.ok) return;
+  assert.deepEqual(r.datos, {
+    nombre: 'DAP EJEMPLO', contenido: [{ elemento: 'Fósforo', forma: 'P₂O₅', porcentaje: 46.5 }],
+    presentacionKg: 50, precioPresentacionCop: 150_000, fechaPrecio: '2026-10-01', esEjemplo: true
+  });
+  const sinPrecio = validarProducto(formulario({ presentacionKg: '', precioPresentacionCop: '', fechaPrecio: '', esEjemplo: false }), HOY);
+  assert.ok(sinPrecio.ok && sinPrecio.datos.precioPresentacionCop === undefined && sinPrecio.datos.esEjemplo === false);
+  const libre = validarProducto(formulario({ contenido: [filaForm({ elemento: 'Azufre', forma: 'SO₃', formaLibre: true, porcentaje: '20' })] }), HOY);
+  assert.ok(libre.ok, 'forma fuera de la lista, escrita tal cual');
+});
+
+test('formulario de producto: rechaza "150.000" y "1.000" en precio y kg (punto de miles en COP)', () => {
+  assert.match(erroresForm({ precioPresentacionCop: '150.000' }).precioPresentacionCop ?? '', /Escribe 150000 \(sin punto de miles\)/);
+  assert.match(erroresForm({ precioPresentacionCop: '150,000' }).precioPresentacionCop ?? '', /se puede leer de dos formas/);
+  assert.match(erroresForm({ presentacionKg: '1.000' }).presentacionKg ?? '', /Escribe 1000/);
+  assert.match(erroresForm({ precioPresentacionCop: '$150000' }).precioPresentacionCop ?? '', /escribe solo un número/);
+});
+
+test('formulario de producto: el precio exige kg y fecha; EJEMPLO o etiqueta real es obligatorio', () => {
+  assert.match(erroresForm({ presentacionKg: '' }).presentacionKg ?? '', /obligatorio cuando registras el precio/);
+  assert.match(erroresForm({ fechaPrecio: '' }).fechaPrecio ?? '', /obligatoria cuando registras el precio/);
+  assert.match(erroresForm({ precioPresentacionCop: '' }).fechaPrecio ?? '', /escribe también el precio/);
+  assert.match(erroresForm({ fechaPrecio: '2026-10-30' }).fechaPrecio ?? '', /futura/);
+  assert.match(erroresForm({ esEjemplo: null }).esEjemplo ?? '', /etiqueta real o son de EJEMPLO/);
+  assert.match(erroresForm({ nombre: '  ' }).nombre ?? '', /nombre del producto/);
+  assert.match(erroresForm({ presentacionKg: '0' }).presentacionKg ?? '', /mayor que cero/);
+  assert.match(erroresForm({ precioPresentacionCop: '-5' }).precioPresentacionCop ?? '', /negativo/);
+});
+
+test('formulario de producto: contenido coherente, sin repetir formas y con porcentaje válido', () => {
+  const fila = (cambios: Partial<EntradaContenido>) => erroresForm({ contenido: [filaForm(cambios)] }).contenido?.[0] ?? '';
+  assert.match(fila({ forma: 'K₂O', formaLibre: true }), /corresponde a Potasio/);
+  assert.match(fila({ porcentaje: '0' }), /mayor que cero/);
+  assert.match(fila({ porcentaje: '101' }), /entre 0 y 100/);
+  assert.match(fila({ porcentaje: '' }), /obligatorio/);
+  assert.match(fila({ forma: '' }), /forma química/);
+  assert.match(fila({ elemento: 'Silicio' }), /Elige un elemento de la lista/);
+  assert.match(fila({ forma: 'H₂PO₄⁻' }), /Elige una forma de la lista/);
+  const repetida = erroresForm({ contenido: [filaForm(), filaForm({ forma: 'P2O5', formaLibre: true, porcentaje: '10' })] });
+  assert.match(repetida.contenido?.[1] ?? '', /ya está declarada/);
+  assert.match((erroresForm({ contenido: [filaForm({ elemento: '', forma: '', porcentaje: '' })] }).general ?? []).join(' '), /al menos un nutriente/);
 });

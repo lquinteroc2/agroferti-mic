@@ -61,7 +61,7 @@ export function parsearDecimal(texto: string): number | null {
   return r.estado === 'vacio' ? null : r.estado === 'ok' ? r.valor : Number.NaN;
 }
 
-interface OpcionesNumero {
+export interface OpcionesNumero {
   requerido?: boolean;
   /** Si es true, el valor debe ser mayor que cero; si no, se acepta cero. */
   positivo?: boolean;
@@ -106,7 +106,7 @@ export const AREA_LOTE_MAX_M2 = 10_000_000_000;
  * "1.500" o "1,500": puede ser mil quinientos (separador de miles) o uno coma cinco.
  * "0,500", "1,5" y "1234,567" no son ambiguos.
  */
-const AREA_AMBIGUA = /^([1-9]\d{0,2})[.,](\d{3})$/;
+const NUMERO_AMBIGUO = /^([1-9]\d{0,2})[.,](\d{3})$/;
 
 /** Cómo escribir sin ambigüedad el decimal de "1.500" (1,5), "1.000" (1) o "1,125" (1,1250). */
 function decimalSinAmbiguedad(entero: string, decimales: string): string {
@@ -115,17 +115,31 @@ function decimalSinAmbiguedad(entero: string, decimales: string): string {
   return recortados.length === 3 ? `${entero},${recortados}0` : `${entero},${recortados}`;
 }
 
-/** Área del lote en m², escrita con coma o punto decimal como el resto de formularios. */
-export function validarAreaLote(texto: string): Resultado<number> {
-  const ambigua = AREA_AMBIGUA.exec(texto.trim());
-  if (ambigua) {
-    const [escrito, entero, decimales] = ambigua;
+/**
+ * Igual que `validarNumero`, pero rechaza escrituras que pueden ser miles o decimales ("1.500",
+ * "150,000") y sugiere las dos formas. Para cantidades que suelen escribirse con punto de miles.
+ */
+export function validarNumeroSinAmbiguedad(texto: string, opciones: OpcionesNumero & { campo: string }): Resultado<number | undefined> {
+  const ambiguo = NUMERO_AMBIGUO.exec(texto.trim());
+  if (ambiguo) {
+    const [escrito, entero, decimales] = ambiguo;
     return {
       ok: false,
-      error: `Área: "${escrito}" se puede leer de dos formas. Escribe ${entero}${decimales} (sin punto de miles); si querías un decimal, escribe ${decimalSinAmbiguedad(entero, decimales)}.`
+      error: `${opciones.campo}: "${escrito}" se puede leer de dos formas. Escribe ${entero}${decimales} (sin punto de miles); si querías un decimal, escribe ${decimalSinAmbiguedad(entero, decimales)}.`
     };
   }
-  const lectura = validarNumero(texto, { campo: 'Área', requerido: true, positivo: true });
+  return validarNumero(texto, opciones);
+}
+
+/** Texto editable de un número guardado: agrega un cero si quedaría ambiguo (1,125 → "1,1250"), sin cambiar el valor. */
+export function numeroSinAmbiguedad(n: number): string {
+  const texto = numeroATexto(n);
+  return NUMERO_AMBIGUO.test(texto) ? `${texto}0` : texto;
+}
+
+/** Área del lote en m², escrita con coma o punto decimal como el resto de formularios. */
+export function validarAreaLote(texto: string): Resultado<number> {
+  const lectura = validarNumeroSinAmbiguedad(texto, { campo: 'Área', requerido: true, positivo: true });
   if (!lectura.ok) return lectura;
   const valor = lectura.valor as number; // requerido: nunca es undefined
   if (valor < AREA_LOTE_MIN_M2) return { ok: false, error: 'Área: debe ser de al menos 0,01 m².' };
@@ -133,11 +147,7 @@ export function validarAreaLote(texto: string): Resultado<number> {
   return { ok: true, valor };
 }
 
-/** Texto editable del área guardada: agrega un cero si quedaría ambiguo (1,125 → "1,1250"), sin cambiar el valor. */
-export function areaLoteATexto(areaM2: number): string {
-  const texto = numeroATexto(areaM2);
-  return AREA_AMBIGUA.test(texto) ? `${texto}0` : texto;
-}
+export const areaLoteATexto = numeroSinAmbiguedad;
 
 /** Fecha local del dispositivo en formato AAAA-MM-DD. */
 export function fechaLocalISO(fecha: Date = new Date()): string {

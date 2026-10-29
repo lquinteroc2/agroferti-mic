@@ -17,7 +17,7 @@ import type {
   ProductoVerificado
 } from '../types';
 import { calcularPlan } from './calculos.ts';
-import { coherenciaNutriente, mismaForma } from './catalogoNutrientes.ts';
+import { buscarElemento, coherenciaNutriente, mismaForma } from './catalogoNutrientes.ts';
 import {
   ausente,
   comprobarNumero,
@@ -26,7 +26,10 @@ import {
   fechaLocalISO,
   MAX_RESULTADOS,
   mayuscula,
-  validarFecha
+  validarFecha,
+  validarNumero,
+  validarNumeroSinAmbiguedad,
+  type Resultado
 } from './validacion.ts';
 
 export const ESTADOS_PLAN: ReadonlyArray<EstadoPlan> = ['propuesta', 'revisado', 'aprobado'];
@@ -457,4 +460,102 @@ export function ordenarPlanes<T extends Pick<PlanVerificado, 'id' | 'createdAt'>
 export function ordenarProductos<T extends Pick<ProductoVerificado, 'id' | 'nombre'>>(lista: T[]): T[] {
   return [...lista].sort((a, b) =>
     Number(!a.nombre) - Number(!b.nombre) || a.nombre.localeCompare(b.nombre, 'es') || a.id.localeCompare(b.id));
+}
+
+// ---- Formulario del catálogo (fase 3b): texto tal como lo escribe el usuario ----
+
+export interface EntradaContenido {
+  elemento: string;
+  forma: string;
+  porcentaje: string;
+  /** Eligió "Otro / No reconocido" como elemento: elemento y forma son texto libre. */
+  elementoLibre: boolean;
+  /** Eligió una forma fuera de la lista del elemento: la forma es texto libre. */
+  formaLibre: boolean;
+}
+
+export interface EntradaProducto {
+  nombre: string;
+  contenido: EntradaContenido[];
+  presentacionKg: string;
+  precioPresentacionCop: string;
+  fechaPrecio: string;
+  /** null: el usuario aún no indicó si los datos son de una etiqueta real o de EJEMPLO. */
+  esEjemplo: boolean | null;
+}
+
+export type ErroresProducto = Partial<Record<'nombre' | 'presentacionKg' | 'precioPresentacionCop' | 'fechaPrecio' | 'esEjemplo', string>> & {
+  contenido?: Record<number, string>;
+  general?: string[];
+};
+
+export function filaContenidoVacia(fila: EntradaContenido): boolean {
+  return !fila.elemento.trim() && !fila.forma.trim() && !fila.porcentaje.trim();
+}
+
+/** Conserva la forma declarada en la etiqueta: nunca convierte P₂O₅ en P ni K₂O en K. */
+export function validarFilaContenido(fila: EntradaContenido): Resultado<ContenidoDeclarado> {
+  const elemento = fila.elemento.trim();
+  const forma = fila.forma.trim();
+  if (!elemento) return { ok: false, error: 'Elige el elemento o escríbelo en "Otro / No reconocido".' };
+  if (!fila.elementoLibre && !buscarElemento(elemento)) {
+    return { ok: false, error: 'Elige un elemento de la lista o la opción "Otro / No reconocido".' };
+  }
+  if (!forma) return { ok: false, error: 'Indica la forma química tal como aparece en la etiqueta (por ejemplo, P₂O₅ o K₂O).' };
+  const coherencia = coherenciaNutriente(elemento, forma);
+  if (coherencia.error) return { ok: false, error: `${coherencia.error}. Revisa la etiqueta.` };
+  if (!fila.elementoLibre && !fila.formaLibre && !coherencia.reconocido) {
+    return { ok: false, error: 'Elige una forma de la lista o la opción "Otra forma / No reconocida".' };
+  }
+  const porcentaje = validarNumero(fila.porcentaje, { campo: 'Porcentaje', requerido: true, positivo: true, max: 100 });
+  if (!porcentaje.ok) return porcentaje;
+  return { ok: true, valor: { elemento, forma, porcentaje: porcentaje.valor as number } };
+}
+
+const valorDe = <T>(r: Resultado<T | undefined>): T | undefined => (r.ok ? r.valor : undefined);
+
+/**
+ * Valida el formulario del producto. Los kg y el precio rechazan escrituras ambiguas ("150.000"):
+ * en COP es común el punto de miles y se leería como 150. Las filas nuevas vacías se ignoran.
+ */
+export function validarProducto(
+  entrada: EntradaProducto,
+  hoy: Date = new Date()
+): { ok: true; datos: DatosProducto } | { ok: false; errores: ErroresProducto } {
+  const errores: ErroresProducto = {};
+  const nombre = entrada.nombre.trim();
+  if (!nombre) errores.nombre = 'Escribe el nombre del producto como aparece en la etiqueta.';
+
+  const contenido: ContenidoDeclarado[] = [];
+  entrada.contenido.forEach((fila, i) => {
+    if (filaContenidoVacia(fila)) return;
+    const r = validarFilaContenido(fila);
+    if (!r.ok) (errores.contenido ??= {})[i] = r.error;
+    else if (contenido.some(c => mismaForma(c, r.valor))) (errores.contenido ??= {})[i] = `${r.valor.forma} ya está declarada en otra fila.`;
+    else contenido.push(r.valor);
+  });
+  if (!errores.contenido && contenido.length === 0) errores.general = ['Registra al menos un nutriente de la etiqueta con su porcentaje.'];
+
+  const kg = validarNumeroSinAmbiguedad(entrada.presentacionKg, { campo: 'Kg por bulto', positivo: true });
+  if (!kg.ok) errores.presentacionKg = kg.error;
+  const precio = validarNumeroSinAmbiguedad(entrada.precioPresentacionCop, { campo: 'Precio del bulto' });
+  if (!precio.ok) errores.precioPresentacionCop = precio.error;
+  const hayPrecio = valorDe(precio) !== undefined;
+  let fechaPrecio: string | undefined;
+  if (entrada.fechaPrecio.trim()) {
+    const fecha = validarFecha(entrada.fechaPrecio, 'Fecha del precio', hoy);
+    if (!fecha.ok) errores.fechaPrecio = fecha.error;
+    else if (precio.ok && !hayPrecio) errores.fechaPrecio = 'Fecha del precio: escribe también el precio o deja la fecha vacía.';
+    else fechaPrecio = fecha.valor;
+  } else if (hayPrecio) errores.fechaPrecio = 'Fecha del precio: es obligatoria cuando registras el precio, porque los precios cambian.';
+  if (hayPrecio && kg.ok && kg.valor === undefined) errores.presentacionKg = 'Kg por bulto: es obligatorio cuando registras el precio del bulto.';
+  if (entrada.esEjemplo === null) errores.esEjemplo = 'Indica si los datos vienen de una etiqueta real o son de EJEMPLO.';
+
+  if (Object.keys(errores).length) return { ok: false, errores };
+  const datos: DatosProducto = {
+    nombre, contenido, presentacionKg: valorDe(kg), precioPresentacionCop: valorDe(precio), fechaPrecio, esEjemplo: entrada.esEjemplo as boolean
+  };
+  // Misma comprobación que se hace antes de persistir.
+  const final = validarDatosProducto(datos, { hoy });
+  return final.ok ? final : { ok: false, errores: { general: final.errores } };
 }

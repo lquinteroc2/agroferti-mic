@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { AnalisisSueloSeccion } from './components/AnalisisSueloSeccion';
 import { LoteForm, type DatosLote } from './components/LoteForm';
+import { ProductosSeccion } from './components/ProductosSeccion';
 import { db, eliminarLoteYRelacionados } from './lib/db';
 import { areaM2AHa } from './lib/calculos';
 import { fechaLegible, formatearNumero } from './lib/formato';
 import { CULTIVOS, type Lote } from './types';
 
-type Vista = 'inicio' | 'nuevo' | 'editar' | 'detalle' | 'ayuda';
+type Vista = 'inicio' | 'nuevo' | 'editar' | 'detalle' | 'productos' | 'ayuda';
 
 function nombreCultivo(codigo: string) {
   return CULTIVOS.find(c => c.value === codigo)?.label.replace(' (piloto)', '') ?? codigo;
@@ -80,7 +81,8 @@ export default function App() {
             <span><strong>AgroFerti <em>MIC</em></strong><small>Fertilización y seguimiento</small></span>
           </button>
           <nav className="nav" aria-label="Navegación principal">
-            <button className={vista === 'ayuda' ? 'nav-link' : 'nav-link selected'} onClick={() => ir('inicio')}>Mis lotes</button>
+            <button className={vista === 'ayuda' || vista === 'productos' ? 'nav-link' : 'nav-link selected'} onClick={() => ir('inicio')}>Mis lotes</button>
+            <button className={vista === 'productos' ? 'nav-link selected' : 'nav-link'} onClick={() => ir('productos')}>Productos</button>
             <button className={vista === 'ayuda' ? 'nav-link selected' : 'nav-link'} onClick={() => ir('ayuda')}>Cómo funciona</button>
           </nav>
         </div>
@@ -129,16 +131,18 @@ export default function App() {
           <button className="danger-link" onClick={() => void borrarLote()}>Eliminar este lote</button>
         </>}
 
+        {vista === 'productos' && <ProductosSeccion />}
+
         {vista === 'ayuda' && <div className="page-narrow help"><div className="section-kicker">GUÍA PARA EL PRODUCTOR</div><h1>Cómo funciona AgroFerti MIC</h1><p className="muted">El objetivo es que productores de distintos cultivos comprendan sus datos de fertilización y puedan registrar lo que realmente ocurre en el lote.</p>
           <div className="help-item"><span>1</span><div><h3>Registra el lote</h3><p>Indica cultivo, área, fecha de siembra y ubicación. Eso ya funciona en esta versión.</p></div></div>
-          <div className="help-item"><span>2</span><div><h3>Registra el suelo y prepara el plan</h3><p>Ya puedes registrar análisis de suelo en la ficha de cada lote y ver sus equivalencias explicadas. En la siguiente fase se registrarán productos con sus etiquetas. Para calcular una dosis será indispensable una meta nutricional validada; la aplicación explicará la operación.</p></div></div>
+          <div className="help-item"><span>2</span><div><h3>Registra el suelo y prepara el plan</h3><p>Ya puedes registrar análisis de suelo en la ficha de cada lote y ver sus equivalencias explicadas. En <strong>Productos</strong> puedes registrar los fertilizantes tal como aparecen en su etiqueta. El plan llegará después: para calcular una cantidad de producto será indispensable una meta nutricional validada, con su fuente y fecha, y la aplicación explicará la operación.</p></div></div>
           <div className="help-item"><span>3</span><div><h3>Monitorea lo realizado</h3><p>En fases posteriores registrarás aplicaciones, cantidades, responsables, costos y observaciones. No hacen falta sensores para registrar estos datos manualmente.</p></div></div>
           <div className="info-box"><strong>Nota de privacidad:</strong> el almacenamiento es local. No está conectado a una nube ni permite acceder a los mismos datos desde otro teléfono.</div>
           <button className="btn btn-primary" onClick={() => ir('inicio')}>Ir a mis lotes</button>
         </div>}
         {((vista === 'editar' || vista === 'detalle') && !activo) && <div className="empty"><p>Selecciona un lote para continuar.</p><button className="btn btn-primary" onClick={() => ir('inicio')}>Ver mis lotes</button></div>}
       </main>
-      <footer className="footer"><div className="container footer-inner"><span>AgroFerti MIC · Grupo 1 · SENA</span><span>Prototipo educativo · Fase 2</span></div></footer>
+      <footer className="footer"><div className="container footer-inner"><span>AgroFerti MIC · Grupo 1 · SENA</span><span>Prototipo educativo · Fase 3 en curso</span></div></footer>
     </div>
   );
 }

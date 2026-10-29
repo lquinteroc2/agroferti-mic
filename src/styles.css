@@ -89,3 +89,7 @@
 .nutrient-row-damaged{border-color:#f0bdb9;background:#fffafa}
 .field-warning p{margin:0 0 6px}
 .field-warning .check{margin-top:4px;color:#6b4a1c}
+.badge-example{background:transparent;color:#8a5413;border:1px dashed #d9a35b;padding:3px 8px}
+.choice-group{border:0;padding:0;margin:16px 0 0;min-width:0}
+.form-group .choice-group legend{font-size:.88rem;font-weight:700;color:#344d3e;margin-bottom:2px}
+.table-wrap+.data-list{margin-top:18px}
