@@ -57,7 +57,7 @@ export function LoteForm({ inicial, onGuardar, onCancelar }: Props) {
       <p className="muted">Estos datos identifican tu terreno. No se calcula ninguna dosis de fertilización todavía.</p>
       <div className="fields">
         <label>Nombre del lote <span className="required">*</span>
-          <input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej. Parcela de papa A" maxLength={70} required autoFocus />
+          <input value={nombre} onChange={e => { setNombre(e.target.value); setError(''); }} placeholder="Ej. Parcela de papa A" maxLength={70} required autoFocus />
         </label>
         <label>Cultivo <span className="required">*</span>
           <select value={cultivo} onChange={e => setCultivo(e.target.value as Cultivo)}>
@@ -65,7 +65,7 @@ export function LoteForm({ inicial, onGuardar, onCancelar }: Props) {
           </select>
         </label>
         <label>Área del lote en m² <span className="required">*</span>
-          <input inputMode="decimal" value={area} onChange={e => setArea(e.target.value)} placeholder="Ej. 500 o 1500,5" required />
+          <input inputMode="decimal" value={area} onChange={e => { setArea(e.target.value); setError(''); }} placeholder="Ej. 500 o 1500,5" required />
           <small>{lecturaArea.ok
             ? `Se guardará como ${formatearExacto(lecturaArea.valor)} m² (${formatearNumero(areaM2AHa(lecturaArea.valor), 4)} ha).`
             : 'Sin punto de miles (1500, no 1.500); usa coma para decimales. 1 hectárea = 10.000 m².'}</small>
