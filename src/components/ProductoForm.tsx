@@ -273,7 +273,7 @@ export function ProductoForm({ inicial, onGuardar, onCancelar }: Props) {
         {previa && <p className="hint">{previa}</p>}
       </fieldset>
 
-      {errorGeneral.length > 0 && <div role="alert" className="error">{errorGeneral.map(m => <p key={m}>{m}</p>)}</div>}
+      {errorGeneral.length > 0 && <div role="alert" className="error">{errorGeneral.map((m, i) => <p key={i}>{m}</p>)}</div>}
       <div className="form-actions">
         <button className="btn btn-outline" type="button" onClick={onCancelar}>Cancelar</button>
         <button className="btn btn-primary" type="submit" disabled={guardando}>{guardando ? 'Guardando…' : 'Guardar producto'}</button>

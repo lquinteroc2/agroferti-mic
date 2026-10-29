@@ -301,7 +301,7 @@ export function AnalisisSueloForm({ inicial, areaActualM2, onGuardar, onCancelar
         </label>
       </div>
 
-      {errorGeneral.length > 0 && <div role="alert" className="error">{errorGeneral.map(m => <p key={m}>{m}</p>)}</div>}
+      {errorGeneral.length > 0 && <div role="alert" className="error">{errorGeneral.map((m, i) => <p key={i}>{m}</p>)}</div>}
       <div className="form-actions">
         <button className="btn btn-outline" type="button" onClick={onCancelar}>Cancelar</button>
         <button className="btn btn-primary" type="submit" disabled={guardando}>{guardando ? 'Guardando…' : 'Guardar análisis'}</button>

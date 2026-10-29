@@ -13,7 +13,7 @@ interface Props {
   onCambiarEstado: (nuevo: EstadoPlan, datos: DatosCambio) => Promise<void>;
   onCopiar: (datos: DatosCambio) => Promise<void>;
   /** Plan del que se copió este, si sigue existiendo. */
-  origen?: { nombre: string; abrir: () => void };
+  origen?: { nombre: string; estado?: EstadoPlan; abrir: () => void };
 }
 
 const sinDato = <span className="missing">No registrado</span>;
@@ -100,9 +100,11 @@ export function PlanDetalle({ plan, analisis, onEditar, onEliminar, onCambiarEst
 
       {plan.estado && plan.estado !== 'propuesta' && <div className="trace-box">
         <strong>Plan {NOMBRE_ESTADO[plan.estado].toLowerCase()}</strong>
-        <p>{plan.estado === 'revisado'
-          ? 'Ya no se edita. Para corregirlo, devuélvelo a propuesta en «Estado del plan», al final.'
-          : 'Es de solo lectura y no se puede eliminar: es el registro de lo aprobado. Para cambiarlo, crea una copia como nueva propuesta en «Estado del plan», al final.'}</p>
+        <p>{plan.problemas.length > 0
+          ? 'Tiene datos guardados dañados: solo se puede consultar.'
+          : plan.estado === 'revisado'
+            ? 'Ya no se edita. Para corregirlo, devuélvelo a propuesta en «Estado del plan», al final.'
+            : 'Es de solo lectura y no se puede eliminar: es el registro de lo aprobado. Para cambiarlo, crea una copia como nueva propuesta en «Estado del plan», al final.'}</p>
       </div>}
 
       <section className="soil-block entered" aria-labelledby={`metas-plan-${plan.id}`}>
@@ -112,7 +114,7 @@ export function PlanDetalle({ plan, analisis, onEditar, onEliminar, onCambiarEst
           <div><dt>Análisis de referencia</dt><dd>{!plan.analisisReferenciaId ? 'Ninguno' : referencia ? `Análisis del ${fechaLegible(referencia.fechaAnalisis)}` : <span className="missing">Eliminado o no disponible</span>}</dd></div>
           <div><dt>Propuesta creada</dt><dd>{creacion ? `${fechaDeMarca(creacion.fecha)}${creacion.responsable ? ` · ${creacion.responsable}` : ''}` : sinDato}</dd></div>
           {plan.planOrigenId && <div><dt>Copia de</dt><dd>{origen
-            ? <button type="button" className="link-button" onClick={origen.abrir}>{origen.nombre}</button>
+            ? <><button type="button" className="link-button" onClick={origen.abrir}>{origen.nombre}</button> <EstadoPlanBadge estado={origen.estado} /></>
             : <span className="missing">Plan eliminado o no disponible</span>}</dd></div>}
         </dl>
         {plan.analisisReferenciaId && <p className="hint">El análisis de referencia es solo contexto: no entra en ningún cálculo y la app no deriva metas de él.</p>}
@@ -171,7 +173,7 @@ export function PlanDetalle({ plan, analisis, onEditar, onEliminar, onCambiarEst
         <p>Las cantidades se calculan con las metas que escribiste y con lo que declara la etiqueta. <strong>La app no propone metas ni dosis</strong>, no las deduce del análisis de suelo y no convierte entre formas químicas (P y P₂O₅, K y K₂O). Revisa el plan con un profesional antes de aplicarlo. Los valores con “≈” están redondeados para mostrarlos; el cálculo usa el valor completo.</p>
       </div>
 
-      {plan.id && <PlanEstado plan={plan} onCambiarEstado={onCambiarEstado} onCopiar={onCopiar} />}
+      {plan.id && <PlanEstado plan={plan} calculo={calculo} onCambiarEstado={onCambiarEstado} onCopiar={onCopiar} />}
     </article>
   );
 }

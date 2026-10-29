@@ -195,6 +195,9 @@ test('copiar un plan aprobado crea una propuesta nueva con el área actual y con
   assert.equal(copia.planOrigenId, planId);
   assert.equal(copia.areaM2AlCrear, 1_000);
   assert.match(copia.historial[0].nota ?? '', /Copia del plan/);
+  assert.equal(copia.nombre, 'Plan papa EJEMPLO (copia)', 'la copia no repite el nombre del original');
+  const copiaDeCopia = await a.planes.copiar('lote-a', copiaId, a.opciones());
+  assert.equal((await a.planes.listar('lote-a')).find(p => p.id === copiaDeCopia)?.nombre, 'Plan papa EJEMPLO (copia)', 'no acumula "(copia)"');
   const original = (await a.planes.listar('lote-a')).find(p => p.id === planId);
   assert.equal(original?.estado, 'aprobado');
   assert.equal(original?.areaM2AlCrear, 500);

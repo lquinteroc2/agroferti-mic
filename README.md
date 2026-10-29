@@ -55,10 +55,10 @@ Aplicación web progresiva (PWA) **multicultivo** para preparar el cálculo, la 
 
 **Fase 3 — 3d: estados del plan (panel "Estado del plan" al final del detalle)**
 ✅ Propuesta → revisado → aprobado, y devolver un plan revisado a propuesta. Cada cambio pide el nombre de quien lo registra (escrito por el usuario; la app no verifica identidades ni certifica aprobaciones técnicas) y una nota opcional.
-✅ Antes de revisar o aprobar, la app explica qué falta (p. ej. "El plan no tiene productos" o una meta cuya forma no coincide con la etiqueta) y no deja continuar.
-✅ Un plan revisado ya no se edita; uno aprobado es de solo lectura y no se elimina. Para cambiar un plan aprobado se crea una copia como nueva propuesta, con el área actual del lote y un enlace al plan original.
+✅ Revisar o aprobar exige al menos una meta, **un producto en cada meta** y la cantidad calculada de cada producto. Antes, la app explica qué falta (p. ej. "La meta de Potasio (K₂O) no tiene producto" o una meta cuya forma no coincide con la etiqueta) y no deja continuar.
+✅ Un plan revisado ya no se edita; uno aprobado es de solo lectura y no se elimina. Para cambiar un plan aprobado se crea una copia como nueva propuesta ("… (copia)"), con el área actual del lote y un enlace al plan original.
 ✅ Historial visible con estado, fecha y hora, nombre y nota de cada cambio. Lo aplicado en campo no es un estado del plan: se registrará en la fase 4.
-✅ 105 pruebas automáticas. Recorrido en Chrome: 72 comprobaciones.
+✅ 107 pruebas automáticas. Recorrido en Chrome: 72 comprobaciones. Una revisión de código encontró 9 puntos en 3d (entre ellos, que "Cancelar" no detenía una aprobación en curso y que se podía aprobar con metas sin producto); todos están corregidos.
 
 **No implementado aún:** seguimiento de aplicaciones y plan frente a lo aplicado (fase 4), reportes PDF y respaldo de información (fase 5).
 
@@ -135,7 +135,7 @@ Las pruebas de persistencia (`tests/persistencia.test.ts`) usan un almacén en m
 1. En el detalle de la propuesta, en **Estado del plan**, pulsa **Marcar como revisado** y confirma sin nombre: debe pedir el nombre. Escribe un nombre y una nota: el plan queda **Revisado** y desaparece **Editar**.
 2. Pulsa **Aprobar el plan**: desaparecen **Editar** y **Eliminar**, y el aviso dice que es de solo lectura. El historial muestra propuesta, revisado y aprobado con fecha, hora, nombre y nota.
 3. Pulsa **Copiar como nueva propuesta**: se abre una propuesta editable con las mismas cifras, "Copia del plan «…»" en el historial y un enlace al plan original.
-4. Crea una propuesta con una meta sin producto: **Marcar como revisado** queda deshabilitado con el motivo "El plan no tiene productos".
+4. Crea una propuesta con una meta sin producto: **Marcar como revisado** queda deshabilitado con el motivo "La meta de … no tiene producto".
 
 ## Inicio exclusivo desde terminal
 
@@ -274,7 +274,7 @@ No inventar resultados de campo. Etiquetar todos los datos simulados como **EJEM
 
 ## Para retomar (estado al 29 de octubre de 2026)
 
-- Fase 3 completa (3a modelo, 3b catálogo, 3c plan, 3d estados). 3b y 3c pasaron una revisión de código cada una, con todos los puntos corregidos, y están publicadas (recorrido sobre la URL publicada: 59 comprobaciones). 3d está en el repositorio.
+- Fase 3 completa (3a modelo, 3b catálogo, 3c plan, 3d estados). 3b, 3c y 3d pasaron una revisión de código cada una, con todos los puntos corregidos, y están publicadas.
 - Fase 3a (modelo, cálculos y persistencia) terminada y publicada; la app publicada muestra las fases 1 y 2. Recorrido en Chrome sobre la URL publicada: 16 comprobaciones correctas, incluido el uso sin conexión.
 - Fase 2 cerrada tras dos auditorías de Codex: 54 pruebas, build correcto y recorrido en navegador (Edge headless, 58 comprobaciones) aprobado.
 - El recorrido en navegador se ejecutó con un script temporal fuera del repositorio; las pruebas manuales equivalentes están en "Pruebas manuales en navegador (fase 2)".
@@ -304,7 +304,7 @@ No inventar resultados de campo. Etiquetar todos los datos simulados como **EJEM
 
 - El nombre de quien revisa o aprueba lo escribe el usuario; puede ser el mismo para todos los cambios. La app no verifica identidades ni que la revisión la haga otra persona.
 - Un plan aprobado solo se elimina junto con su lote (al eliminar el lote se borran todos sus datos, con confirmación).
-- Revisar o aprobar exige que todas las líneas tengan cantidad calculada; no exige precio, así que un plan aprobado puede no tener costo total.
+- Revisar o aprobar exige un producto con cantidad calculada en cada meta, pero no exige precio: un plan aprobado puede no tener costo total.
 
 ## Próximo PR: fase 4
 

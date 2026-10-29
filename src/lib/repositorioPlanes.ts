@@ -224,7 +224,8 @@ export function crearRepositorioPlanes(almacen: AlmacenPlanes) {
         const { nombre, analisisReferenciaId, metas, lineas } = planCompleto(plan);
         // Si el análisis de referencia ya se eliminó, la copia queda sin referencia en lugar de fallar.
         const referencia = analisisReferenciaId && await almacen.analisisDelLote(loteId, analisisReferenciaId) ? analisisReferenciaId : undefined;
-        const validado = await validar(loteId, { nombre, analisisReferenciaId: referencia, metas, lineas }, ahora, area);
+        const nombreCopia = / \(copia\)$/.test(nombre) ? nombre : `${nombre} (copia)`;
+        const validado = await validar(loteId, { nombre: nombreCopia, analisisReferenciaId: referencia, metas, lineas }, ahora, area);
         const marca = ahora.toISOString();
         const registro: PlanFertilizacion = {
           ...validado,

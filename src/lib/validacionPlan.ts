@@ -16,7 +16,7 @@ import type {
   ProductoFertilizante,
   ProductoVerificado
 } from '../types';
-import { calcularPlan, type ResultadoLineaPlan } from './calculos.ts';
+import { calcularPlan, type CalculoPlan, type ResultadoLineaPlan } from './calculos.ts';
 import { coherenciaNutriente, mismaForma } from './catalogoNutrientes.ts';
 import {
   ausente,
@@ -450,26 +450,36 @@ export function resumenErrores(errores: { general?: string[] }): string[] {
   return [...(errores.general ?? []), ...(hayCampos ? ['Revisa los datos marcados en rojo antes de guardar.'] : [])];
 }
 
+export const FALTA_RESPONSABLE = 'Escribe el nombre de quien registra este cambio.';
+
 /**
- * Reglas para cambiar de estado. Revisar o aprobar exige que todas las líneas tengan cantidad
- * calculada. El responsable es un nombre escrito por el usuario: la app no verifica identidades.
+ * Motivos que impiden pasar a `nuevo`, sin contar el nombre de quien registra el cambio. Revisar o
+ * aprobar exige al menos una meta, un producto en cada meta y la cantidad calculada de cada uno.
+ * `calculo` evita recalcular el plan si ya se calculó para mostrarlo.
  */
+export function motivosCambioEstado(plan: PlanVerificado, nuevo: EstadoPlan, calculo?: CalculoPlan): string[] {
+  if (plan.problemas.length) return ['El plan tiene datos guardados dañados; no puede cambiar de estado.'];
+  if (plan.estado === 'aprobado') return ['Un plan aprobado no cambia de estado: crea una copia como nueva propuesta.'];
+  if (!plan.estado || !TRANSICIONES_PLAN[plan.estado].includes(nuevo)) {
+    return [`Un plan en estado «${plan.estado ?? 'desconocido'}» no puede pasar a «${nuevo}».`];
+  }
+  if (nuevo === 'propuesta') return [];
+  if (plan.metas.length === 0) return ['El plan no tiene metas.'];
+  const motivos = plan.metas
+    .filter(m => !plan.lineas.some(l => l.metaId === m.id))
+    .map(m => `La meta de ${m.elemento} (${m.forma}) no tiene producto.`);
+  const nombre = (r: ResultadoLineaPlan) => r.linea.producto.nombre;
+  (calculo ?? calcularPlan(plan)).lineas.forEach(r => {
+    if (r.estado === 'sin-calculo') motivos.push(`${nombre(r)}: ${r.mensaje}`);
+    else if (!r.productoKgLote.ok) motivos.push(`${nombre(r)}: ${r.productoKgLote.mensaje}`);
+  });
+  return motivos;
+}
+
+/** Reglas para cambiar de estado. El responsable es un nombre escrito por el usuario: la app no verifica identidades. */
 export function validarCambioEstado(plan: PlanVerificado, nuevo: EstadoPlan, responsable: string): { ok: true } | { ok: false; errores: string[] } {
-  const errores: string[] = [];
-  if (plan.problemas.length) errores.push('El plan tiene datos guardados dañados; no puede cambiar de estado.');
-  else if (plan.estado === 'aprobado') errores.push('Un plan aprobado no cambia de estado: crea una copia como nueva propuesta.');
-  else if (!plan.estado || !TRANSICIONES_PLAN[plan.estado].includes(nuevo)) {
-    errores.push(`Un plan en estado «${plan.estado ?? 'desconocido'}» no puede pasar a «${nuevo}».`);
-  }
-  if (!responsable.trim()) errores.push('Escribe el nombre de quien registra este cambio.');
-  if (errores.length === 0 && nuevo !== 'propuesta') {
-    const calculo = calcularPlan(plan);
-    if (calculo.lineas.length === 0) errores.push('El plan no tiene productos.');
-    calculo.lineas.forEach((x, i) => {
-      if (x.estado === 'sin-calculo') errores.push(`Línea ${i + 1}: ${x.mensaje}`);
-      else if (!x.productoKgLote.ok) errores.push(`Línea ${i + 1}: ${x.productoKgLote.mensaje}`);
-    });
-  }
+  const errores = motivosCambioEstado(plan, nuevo);
+  if (!responsable.trim()) errores.push(FALTA_RESPONSABLE);
   return errores.length ? { ok: false, errores } : { ok: true };
 }
 

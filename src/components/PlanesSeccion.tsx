@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { PlanDetalle } from './PlanDetalle';
-import { EstadoPlanBadge, NOMBRE_ESTADO, type DatosCambio } from './PlanEstado';
+import { EstadoPlanBadge, type DatosCambio } from './PlanEstado';
 import { PlanForm, type OpcionesPlanFormulario } from './PlanForm';
 import { useSeleccionViva, type ModoSeccion } from './useSeleccionViva';
 import { calcularPlan } from '../lib/calculos';
@@ -58,10 +58,10 @@ export function PlanesSeccion({ lote, onIrAProductos }: { lote: Lote; onIrAProdu
     setAviso({ tipo: 'ok', texto: editando ? 'Los cambios de la propuesta se guardaron.' : 'La propuesta de plan se guardó en este dispositivo.' });
   }
 
-  // Los errores de estos dos se muestran en el panel de estado, junto al formulario del cambio.
+  // Los errores y la confirmación de un cambio de estado se muestran en el panel de estado, junto al formulario.
   async function cambiarEstado(p: PlanVerificado, nuevo: EstadoPlan, { responsable, nota }: DatosCambio) {
+    setAviso(null);
     await repositorioPlanes.cambiarEstado(lote.id, p.id, nuevo, { responsable, nota });
-    setAviso({ tipo: 'ok', texto: `El plan quedó en estado «${NOMBRE_ESTADO[nuevo]}».` });
   }
 
   async function copiar(p: PlanVerificado, { responsable, nota }: DatosCambio) {
@@ -69,6 +69,8 @@ export function PlanesSeccion({ lote, onIrAProductos }: { lote: Lote; onIrAProdu
     const id = await repositorioPlanes.copiar(lote.id, p.id, { responsable, nota: nota.trim() || undefined });
     seleccion.verGuardado(id);
     setAviso({ tipo: 'ok', texto: 'Se creó una copia como nueva propuesta. El plan original no cambió.' });
+    // La copia se abre desde el principio; el panel de estado del original quedaba al final de la página.
+    document.getElementById('titulo-planes')?.scrollIntoView({ block: 'start' });
   }
 
   async function borrar(p: PlanVerificado) {
@@ -85,7 +87,7 @@ export function PlanesSeccion({ lote, onIrAProductos }: { lote: Lote; onIrAProdu
   /** Plan del que se copió `p`, para enlazarlo desde el detalle. */
   function origenDe(p: PlanVerificado) {
     const origen = p.planOrigenId ? planes?.find(x => x.id === p.planOrigenId) : undefined;
-    return origen && { nombre: origen.nombre || 'Plan sin nombre', abrir: () => abrir('ver', origen.id) };
+    return origen && { nombre: origen.nombre || 'Plan sin nombre', estado: origen.estado, abrir: () => abrir('ver', origen.id) };
   }
 
   const productos = lectura?.ok ? lectura.productos : [];

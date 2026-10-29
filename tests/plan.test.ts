@@ -19,6 +19,8 @@ import {
   validarCambioEstado,
   validarPlanFormulario,
   validarProducto,
+  motivosCambioEstado,
+  FALTA_RESPONSABLE,
   resumenErrores,
   COPIA_GUARDADA,
   copiaDesactualizada,
@@ -299,8 +301,8 @@ test('estados: propuesta → revisado → aprobado; nada cambia un plan aprobado
   assert.match(errores(plan(), 'aprobado'), /no puede pasar a «aprobado»/);
   assert.match(errores(plan(), 'revisado', '  '), /nombre de quien registra/);
   assert.match(errores(plan({ estado: 'aprobado' }), 'propuesta'), /crea una copia/);
-  assert.match(errores(plan({ lineas: [] }), 'revisado'), /no tiene productos/);
-  assert.match(errores(plan({ metas: [meta({ forma: 'P' }), metaN] }), 'revisado'), /Línea 1: .*no convierte/);
+  assert.match(errores(plan({ lineas: [] }), 'revisado'), /La meta de Fósforo \(P₂O₅\) no tiene producto/);
+  assert.match(errores(plan({ metas: [meta({ forma: 'P' }), metaN] }), 'revisado'), /DAP EJEMPLO: .*no convierte/);
   const danado = plan({ problemas: [{ campo: 'x', etiqueta: 'X', detalle: 'd', valorOriginal: 'v' }] });
   assert.match(errores(danado, 'revisado'), /datos guardados dañados/);
 });
@@ -507,4 +509,22 @@ test('revisión 3c: detecta cuándo el producto del catálogo cambió después d
   assert.equal(copiaDesactualizada(copia, { ...DAP, precioPresentacionCop: 160_000 }), true);
   assert.equal(copiaDesactualizada(copia, { ...DAP, contenido: [{ elemento: 'Fósforo', forma: 'P₂O₅', porcentaje: 46 }] }), true);
   assert.equal(copiaDesactualizada(copia, { ...DAP, createdAt: 'otra', updatedAt: 'otra' }), false, 'las fechas de control no cuentan');
+});
+
+// ---- Revisión de 3d ----
+
+test('revisión 3d: revisar o aprobar exige un producto en cada meta', () => {
+  const sinK = plan({ metas: [meta(), metaN, meta({ id: 'm-k', elemento: 'Potasio', forma: 'K₂O', kgHa: 90 })] });
+  const r = validarCambioEstado(sinK, 'revisado', 'Agrónomo EJEMPLO');
+  assert.ok(!r.ok && r.errores.some(e => /La meta de Potasio \(K₂O\) no tiene producto/.test(e)));
+  assert.ok(!validarCambioEstado({ ...sinK, estado: 'revisado' }, 'aprobado', 'Agrónomo EJEMPLO').ok);
+  assert.ok(validarCambioEstado({ ...sinK, estado: 'revisado' }, 'propuesta', 'Agrónomo EJEMPLO').ok, 'devolver a propuesta no lo exige');
+  assert.deepEqual(motivosCambioEstado(plan({ metas: [], lineas: [] }), 'revisado'), ['El plan no tiene metas.']);
+});
+
+test('revisión 3d: los motivos no dependen del nombre y aceptan un cálculo ya hecho', () => {
+  assert.deepEqual(motivosCambioEstado(plan(), 'revisado'), []);
+  assert.deepEqual(motivosCambioEstado(plan(), 'revisado', calcularPlan(plan())), []);
+  const sinNombre = validarCambioEstado(plan(), 'revisado', ' ');
+  assert.ok(!sinNombre.ok && sinNombre.errores.length === 1 && sinNombre.errores[0] === FALTA_RESPONSABLE);
 });
