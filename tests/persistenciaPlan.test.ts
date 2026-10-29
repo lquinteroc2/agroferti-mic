@@ -279,3 +279,14 @@ test('revisión 3c: copiar un plan cuyo análisis de referencia se eliminó no f
   assert.equal(planes.find(p => p.id === copiaId)?.analisisReferenciaId, undefined);
   assert.equal(planes.find(p => p.id === planId)?.analisisReferenciaId, 'an-a', 'el plan aprobado no cambia');
 });
+
+test('revisión 4c: nombres de los planes de un lote sin verificar el resto del plan', async () => {
+  const a = crearAlmacenes();
+  const { planId } = await prepararPlan(a);
+  a.tablas.planes.set('danado', { id: 'danado', loteId: 'lote-a', nombre: 5, areaM2AlCrear: 'x' });
+  a.tablas.planes.set('otro', { id: 'otro', loteId: 'lote-b', nombre: 'Del otro lote' });
+  const nombres = await a.planes.nombres('lote-a');
+  assert.equal(nombres.get(planId), 'Plan papa EJEMPLO');
+  assert.equal(nombres.get('danado'), '', 'existe aunque su nombre esté dañado');
+  assert.equal(nombres.has('otro'), false);
+});

@@ -130,7 +130,7 @@ export function PlanDetalle({
               <td>{formatearExacto(m.kgHa)}</td>
               <td>{m.fuente}</td>
               <td>{fechaLegible(m.fechaFuente)}</td>
-              <td><OrigenBadge esEjemplo={m.esEjemplo} /></td>
+              <td><OrigenBadge esEjemplo={m.esEjemplo} real="Fuente real" /></td>
             </tr>)}</tbody>
           </table></div>}
       </section>

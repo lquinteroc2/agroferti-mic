@@ -375,3 +375,11 @@ test('registro dañado: conserva los datos válidos para precargar la correcció
   assert.equal(v.parcial.descripcion, undefined);
   assert.equal(v.problemas.find(p => p.campo === 'descripcion')?.textoEditable, '42');
 });
+
+// ---- Revisión de 4c ----
+
+test('revisión 4c: al corregir una tarea con estado dañado, el estado se elige de forma expresa', () => {
+  const r = validarTareaFormulario(formTarea({ estado: '' }), HOY);
+  assert.ok(!r.ok);
+  if (!r.ok) assert.match(r.errores.estado ?? '', /pendiente o hecha/);
+});

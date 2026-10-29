@@ -159,7 +159,7 @@ export interface EntradaAplicacion {
   origen: '' | 'real' | 'ejemplo';
 }
 
-export type ErroresAplicacion = Partial<Record<keyof EntradaAplicacion, string>> & { general?: string[] };
+export type ErroresAplicacion = ErroresFormulario<EntradaAplicacion>;
 
 /**
  * Valida el formulario de una aplicación de un producto del plan. Los kg y el costo rechazan
@@ -171,9 +171,7 @@ export function validarAplicacionFormulario(
   hoy: Date = new Date()
 ): { ok: true; datos: DatosRegistro } | { ok: false; errores: ErroresAplicacion } {
   const errores: ErroresAplicacion = {};
-  const fecha = entrada.fecha.trim()
-    ? validarFecha(entrada.fecha, 'Fecha de aplicación', hoy)
-    : { ok: false as const, error: 'Fecha de aplicación: es obligatoria.' };
+  const fecha = fechaObligatoria(entrada.fecha, 'Fecha de aplicación', hoy);
   if (!fecha.ok) errores.fecha = fecha.error;
   const cantidad = validarNumeroSinAmbiguedad(entrada.cantidadKg, { campo: 'Cantidad aplicada (kg)', requerido: true, positivo: true });
   if (!cantidad.ok) errores.cantidadKg = cantidad.error;
@@ -181,7 +179,7 @@ export function validarAplicacionFormulario(
   if (!costo.ok) errores.costoCop = costo.error;
   if (!entrada.origen) errores.origen = 'Indica si es una aplicación real o de EJEMPLO.';
   if (!fecha.ok || !cantidad.ok || !costo.ok || errores.origen) return { ok: false, errores };
-  const datos = {
+  return cierre({
     tipo: 'aplicacion',
     ...destino,
     fecha: fecha.valor,
@@ -190,10 +188,7 @@ export function validarAplicacionFormulario(
     nota: entrada.nota.trim() || undefined,
     responsable: entrada.responsable.trim() || undefined,
     esEjemplo: entrada.origen === 'ejemplo'
-  };
-  // Misma comprobación que se hace antes de persistir.
-  const final = validarDatosRegistro(datos, { hoy });
-  return final.ok ? final : { ok: false, errores: { general: final.errores } };
+  }, hoy);
 }
 
 // ---- Formularios de observación y tarea (fase 4c) ----
@@ -208,7 +203,8 @@ export interface EntradaObservacion {
 export interface EntradaTarea {
   descripcion: string;
   fechaPrevista: string;
-  estado: 'pendiente' | 'hecha';
+  /** '' solo al corregir una tarea cuyo estado guardado está dañado: hay que elegirlo. */
+  estado: '' | 'pendiente' | 'hecha';
   fechaRealizada: string;
   responsable: string;
   origen: '' | 'real' | 'ejemplo';
@@ -266,9 +262,10 @@ export function validarTareaFormulario(
   const hecha = entrada.estado === 'hecha';
   const realizada = hecha ? fechaObligatoria(entrada.fechaRealizada, 'Fecha en que se hizo', hoy) : undefined;
   if (realizada && !realizada.ok) errores.fechaRealizada = realizada.error;
+  if (!entrada.estado) errores.estado = 'Estado: indica si la tarea está pendiente o hecha.';
   if (entrada.responsable.trim().length > MAX_RESPONSABLE) errores.responsable = `Responsable: tiene más de ${MAX_RESPONSABLE} caracteres.`;
   if (!entrada.origen) errores.origen = 'Indica si es una tarea real o de EJEMPLO.';
-  if (!descripcion.ok || !prevista.ok || (realizada && !realizada.ok) || errores.responsable || errores.origen) return { ok: false, errores };
+  if (!descripcion.ok || !prevista.ok || (realizada && !realizada.ok) || errores.estado || errores.responsable || errores.origen) return { ok: false, errores };
   return cierre({
     tipo: 'tarea', descripcion: descripcion.valor, fechaPrevista: prevista.valor, estado: entrada.estado,
     // Una tarea pendiente no conserva fecha de realización.

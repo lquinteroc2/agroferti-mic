@@ -200,7 +200,7 @@ export function AplicacionesPlan({ plan, calculo, aplicaciones, aplicacionesDana
                   ? <AplicacionForm linea={a.linea} planId={plan.id} inicial={p}
                     onGuardar={async datos => { await onGuardar(datos, p.id); setAbierto(null); }} onCancelar={() => setAbierto(null)} />
                   : <>
-                    <span><strong>{fechaLegible(p.fecha)}</strong> · {formatearExacto(p.cantidadKg)} kg{p.costoCop !== undefined ? ` · ${formatearExacto(p.costoCop)} COP` : ''}{p.responsable ? ` · ${p.responsable}` : ''} <OrigenBadge esEjemplo={p.esEjemplo} />{aprobado && p.fecha < aprobado && <span className="badge badge-warn" title={`El plan se aprobó el ${fechaLegible(aprobado)}`}>Antes de la aprobación</span>}</span>
+                    <span><strong>{fechaLegible(p.fecha)}</strong> · {formatearExacto(p.cantidadKg)} kg{p.costoCop !== undefined ? ` · ${formatearExacto(p.costoCop)} COP` : ''}{p.responsable ? ` · ${p.responsable}` : ''} <OrigenBadge esEjemplo={p.esEjemplo} real="Dato real" />{aprobado && p.fecha < aprobado && <span className="badge badge-warn" title={`El plan se aprobó el ${fechaLegible(aprobado)}`}>Antes de la aprobación</span>}</span>
                     {p.nota && <small>{p.nota}</small>}
                     <span className="aplicacion-acciones">
                       <button type="button" className="link-button" disabled={ocupado} onClick={() => setAbierto({ lineaId: a.linea.id, aplicacionId: p.id })}>Editar</button>

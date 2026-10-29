@@ -22,8 +22,10 @@ import { OrigenBadge } from './ProductoDetalle';
 type Clase = 'observacion' | 'tarea';
 type Modo = { tipo: 'lista' } | { tipo: 'nuevo'; clase: Clase } | { tipo: 'editar'; id: string };
 type Aviso = { tipo: 'ok' | 'error'; texto: string } | null;
-type Lectura = { ok: true; registros: RegistroVerificado[]; nombresPlan: Map<string, string> } | { ok: false };
+type Lectura = { ok: true; registros: RegistroVerificado[] } | { ok: false };
 type Filtro = 'todos' | TipoRegistro;
+/** Un solo estado para los dos formularios: cada validación toma los campos que necesita. */
+type Entrada = EntradaObservacion & EntradaTarea;
 
 const NOMBRE_TIPO: Record<TipoRegistro, string> = { aplicacion: 'Aplicación', observacion: 'Observación', tarea: 'Tarea' };
 
@@ -41,8 +43,18 @@ function valorInicial(v: RegistroVerificado | undefined, campo: string, porDefec
   return v.problemas.find(p => p.campo === campo)?.textoEditable ?? '';
 }
 
-function origenInicial(v?: RegistroVerificado): '' | 'real' | 'ejemplo' {
-  return v?.parcial.esEjemplo === true ? 'ejemplo' : v?.parcial.esEjemplo === false ? 'real' : '';
+function entradaInicial(v?: RegistroVerificado): Entrada {
+  const estado = v?.parcial.estado;
+  return {
+    fecha: valorInicial(v, 'fecha', fechaLocalISO()),
+    descripcion: valorInicial(v, 'descripcion'),
+    fechaPrevista: valorInicial(v, 'fechaPrevista'),
+    // Un estado guardado dañado no se reemplaza en silencio por "pendiente": hay que elegirlo.
+    estado: estado === 'hecha' || estado === 'pendiente' ? estado : v ? '' : 'pendiente',
+    fechaRealizada: valorInicial(v, 'fechaRealizada'),
+    responsable: valorInicial(v, 'responsable'),
+    origen: v?.parcial.esEjemplo === true ? 'ejemplo' : v?.parcial.esEjemplo === false ? 'real' : ''
+  };
 }
 
 function RegistroForm({ clase, inicial, onGuardar, onCancelar }: {
@@ -51,31 +63,19 @@ function RegistroForm({ clase, inicial, onGuardar, onCancelar }: {
   onGuardar: (datos: DatosRegistro, descartarDanados: boolean) => Promise<void>;
   onCancelar: () => void;
 }) {
-  const [obs, setObs] = useState<EntradaObservacion>(() => ({
-    fecha: valorInicial(inicial, 'fecha', fechaLocalISO()), descripcion: valorInicial(inicial, 'descripcion'),
-    responsable: valorInicial(inicial, 'responsable'), origen: origenInicial(inicial)
-  }));
-  const [tarea, setTarea] = useState<EntradaTarea>(() => ({
-    descripcion: valorInicial(inicial, 'descripcion'), fechaPrevista: valorInicial(inicial, 'fechaPrevista'),
-    estado: inicial?.parcial.estado === 'hecha' ? 'hecha' : 'pendiente', fechaRealizada: valorInicial(inicial, 'fechaRealizada'),
-    responsable: valorInicial(inicial, 'responsable'), origen: origenInicial(inicial)
-  }));
-  const [errores, setErrores] = useState<ErroresFormulario<EntradaObservacion & EntradaTarea>>({});
+  const [entrada, setEntrada] = useState(() => entradaInicial(inicial));
+  const [errores, setErrores] = useState<ErroresFormulario<Entrada>>({});
   const [errorGeneral, setErrorGeneral] = useState<string[]>([]);
   const [descartar, setDescartar] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const problemas = inicial?.problemas ?? [];
 
   /** Al corregir un dato desaparece su error; los demás se conservan hasta volver a guardar. */
-  function corregido(campo: string) {
+  const cambiar = (campo: keyof Entrada, valor: string) => {
+    // Al marcar una tarea como hecha se propone la fecha de hoy; el usuario puede cambiarla.
+    setEntrada(e => ({ ...e, [campo]: valor, ...(campo === 'estado' && valor === 'hecha' && !e.fechaRealizada ? { fechaRealizada: fechaLocalISO() } : {}) }));
     setErrorGeneral([]);
-    setErrores(({ [campo as keyof typeof errores]: _, ...resto }) => resto);
-  }
-  const cambiarObs = (campo: keyof EntradaObservacion, valor: string) => { setObs(e => ({ ...e, [campo]: valor })); corregido(campo); };
-  const cambiarTarea = (campo: keyof EntradaTarea, valor: string) => {
-    // Al marcarla hecha se propone la fecha de hoy; el usuario puede cambiarla.
-    setTarea(e => ({ ...e, [campo]: valor, ...(campo === 'estado' && valor === 'hecha' && !e.fechaRealizada ? { fechaRealizada: fechaLocalISO() } : {}) }));
-    corregido(campo);
+    setErrores(({ [campo]: _, ...resto }) => resto);
   };
 
   async function enviar(event: FormEvent<HTMLFormElement>) {
@@ -84,7 +84,7 @@ function RegistroForm({ clase, inicial, onGuardar, onCancelar }: {
       setErrorGeneral(['Antes de guardar, confirma en el recuadro de arriba que quieres reemplazar los datos dañados.']);
       return;
     }
-    const resultado = clase === 'observacion' ? validarObservacionFormulario(obs) : validarTareaFormulario(tarea);
+    const resultado = clase === 'observacion' ? validarObservacionFormulario(entrada) : validarTareaFormulario(entrada);
     if (!resultado.ok) {
       setErrores(resultado.errores);
       setErrorGeneral(resumenErrores(resultado.errores));
@@ -102,11 +102,7 @@ function RegistroForm({ clase, inicial, onGuardar, onCancelar }: {
     }
   }
 
-  const error = (campo: keyof typeof errores) => errores[campo] && <span className="field-error">{errores[campo] as string}</span>;
-  const origen = clase === 'observacion' ? obs.origen : tarea.origen;
-  const cambiarOrigen = (valor: string) => (clase === 'observacion' ? cambiarObs('origen', valor) : cambiarTarea('origen', valor));
-  const responsable = clase === 'observacion' ? obs.responsable : tarea.responsable;
-  const cambiarResponsable = (valor: string) => (clase === 'observacion' ? cambiarObs('responsable', valor) : cambiarTarea('responsable', valor));
+  const error = (campo: keyof Entrada) => errores[campo] && <span className="field-error">{errores[campo]}</span>;
 
   return (
     <form className="form-card" onSubmit={enviar} noValidate aria-labelledby="titulo-form-registro">
@@ -128,39 +124,41 @@ function RegistroForm({ clase, inicial, onGuardar, onCancelar }: {
       <div className="fields">
         {clase === 'observacion' ? <>
           <label>Fecha
-            <input type="date" value={obs.fecha} max={fechaLocalISO()} onChange={e => cambiarObs('fecha', e.target.value)} aria-invalid={!!errores.fecha} />
+            <input type="date" value={entrada.fecha} max={fechaLocalISO()} onChange={e => cambiar('fecha', e.target.value)} aria-invalid={!!errores.fecha} />
             {error('fecha')}
           </label>
           <label className="full">Descripción
-            <textarea value={obs.descripcion} onChange={e => cambiarObs('descripcion', e.target.value)} maxLength={MAX_DESCRIPCION} rows={3} placeholder="Ej. Hojas amarillas en el borde norte" aria-invalid={!!errores.descripcion} />
+            <textarea value={entrada.descripcion} onChange={e => cambiar('descripcion', e.target.value)} maxLength={MAX_DESCRIPCION} rows={3} placeholder="Ej. Hojas amarillas en el borde norte" aria-invalid={!!errores.descripcion} />
             {error('descripcion')}
           </label>
         </> : <>
           <label className="full">Descripción
-            <textarea value={tarea.descripcion} onChange={e => cambiarTarea('descripcion', e.target.value)} maxLength={MAX_DESCRIPCION} rows={2} placeholder="Ej. Aplicar la segunda fracción del plan" aria-invalid={!!errores.descripcion} />
+            <textarea value={entrada.descripcion} onChange={e => cambiar('descripcion', e.target.value)} maxLength={MAX_DESCRIPCION} rows={2} placeholder="Ej. Aplicar la segunda fracción del plan" aria-invalid={!!errores.descripcion} />
             {error('descripcion')}
           </label>
           <label>Fecha prevista
-            <input type="date" value={tarea.fechaPrevista} onChange={e => cambiarTarea('fechaPrevista', e.target.value)} aria-invalid={!!errores.fechaPrevista} />
+            <input type="date" value={entrada.fechaPrevista} onChange={e => cambiar('fechaPrevista', e.target.value)} aria-invalid={!!errores.fechaPrevista} />
             {error('fechaPrevista')}
           </label>
           <label>Estado
-            <select value={tarea.estado} onChange={e => cambiarTarea('estado', e.target.value)}>
+            <select value={entrada.estado} onChange={e => cambiar('estado', e.target.value)} aria-invalid={!!errores.estado}>
+              {!entrada.estado && <option value="">Elige…</option>}
               <option value="pendiente">Pendiente</option>
               <option value="hecha">Hecha</option>
             </select>
+            {error('estado')}
           </label>
-          {tarea.estado === 'hecha' && <label>Fecha en que se hizo
-            <input type="date" value={tarea.fechaRealizada} max={fechaLocalISO()} onChange={e => cambiarTarea('fechaRealizada', e.target.value)} aria-invalid={!!errores.fechaRealizada} />
+          {entrada.estado === 'hecha' && <label>Fecha en que se hizo
+            <input type="date" value={entrada.fechaRealizada} max={fechaLocalISO()} onChange={e => cambiar('fechaRealizada', e.target.value)} aria-invalid={!!errores.fechaRealizada} />
             {error('fechaRealizada')}
           </label>}
         </>}
         <label>Responsable, opcional
-          <input value={responsable} onChange={e => cambiarResponsable(e.target.value)} maxLength={MAX_RESPONSABLE} placeholder="Quién lo registra" aria-invalid={!!errores.responsable} />
+          <input value={entrada.responsable} onChange={e => cambiar('responsable', e.target.value)} maxLength={MAX_RESPONSABLE} placeholder="Quién lo registra" aria-invalid={!!errores.responsable} />
           {error('responsable')}
         </label>
         <label>Origen del dato
-          <select value={origen} onChange={e => cambiarOrigen(e.target.value)} aria-invalid={!!errores.origen}>
+          <select value={entrada.origen} onChange={e => cambiar('origen', e.target.value)} aria-invalid={!!errores.origen}>
             <option value="">Elige…</option>
             <option value="real">Dato real</option>
             <option value="ejemplo">EJEMPLO (ficticio)</option>
@@ -185,14 +183,24 @@ export function SeguimientoSeccion({ lote }: { lote: Lote }) {
   const [ocupado, setOcupado] = useState(false);
   const lectura = useLiveQuery<Lectura>(async () => {
     try {
-      const [registros, planes] = await Promise.all([repositorioSeguimiento.listar(lote.id), repositorioPlanes.listar(lote.id)]);
-      return { ok: true, registros, nombresPlan: new Map(planes.map(p => [p.id, p.nombre ?? ''])) };
+      return { ok: true, registros: await repositorioSeguimiento.listar(lote.id) };
     } catch {
       return { ok: false };
     }
   }, [lote.id]);
+  // Los nombres de los planes se leen aparte: si fallan, el seguimiento se sigue mostrando.
+  const nombresPlan = useLiveQuery(async () => {
+    try {
+      return await repositorioPlanes.nombres(lote.id);
+    } catch {
+      return undefined;
+    }
+  }, [lote.id]);
   const registros = lectura?.ok ? lectura.registros : undefined;
   const editando = modo.tipo === 'editar' ? registros?.find(v => v.id === modo.id) : undefined;
+  // Si el registro que se editaba ya no existe (p. ej. se eliminó en otra pestaña), se vuelve a la lista.
+  const perdido = modo.tipo === 'editar' && registros !== undefined && !editando;
+  const enLista = modo.tipo === 'lista' || perdido;
   const visibles = (registros ?? []).filter(v => filtro === 'todos' || v.tipo === filtro);
   const cuenta = (t: TipoRegistro) => (registros ?? []).filter(v => v.tipo === t).length;
 
@@ -225,14 +233,26 @@ export function SeguimientoSeccion({ lote }: { lote: Lote }) {
     setAviso({ tipo: 'ok', texto: 'La tarea quedó hecha con la fecha de hoy. Puedes editarla si se hizo otro día.' });
   }, 'No se pudo marcar la tarea. Vuelve a intentarlo.');
 
-  const eliminar = (v: RegistroVerificado) => accion(async () => {
-    const nombre = v.tipo ? NOMBRE_TIPO[v.tipo].toLowerCase() : 'registro';
-    if (!window.confirm(`¿Eliminar este ${nombre}? Esta acción no se puede deshacer.`)) return;
-    await repositorioSeguimiento.eliminar(lote.id, v.id);
-    setAviso({ tipo: 'ok', texto: 'El registro se eliminó.' });
-  }, 'No se pudo eliminar el registro. Vuelve a intentarlo.');
+  function eliminar(v: RegistroVerificado) {
+    // La confirmación va primero: cancelar no cambia nada, ni siquiera el aviso que se estaba mostrando.
+    const nombre = v.tipo ? `esta ${NOMBRE_TIPO[v.tipo].toLowerCase()}` : 'este registro';
+    if (!window.confirm(`¿Eliminar ${nombre}? Esta acción no se puede deshacer.`)) return;
+    void accion(async () => {
+      await repositorioSeguimiento.eliminar(lote.id, v.id);
+      setAviso({ tipo: 'ok', texto: 'El registro se eliminó.' });
+    }, 'No se pudo eliminar el registro. Vuelve a intentarlo.');
+  }
 
-  /** Elemento de la lista según el tipo de registro (función, no componente: no se recrea en cada render). */
+  function nombrePlan(planId: string): string {
+    if (!nombresPlan) return 'plan no disponible';
+    const nombre = nombresPlan.get(planId);
+    return nombre === undefined ? 'plan no disponible' : `plan «${nombre || 'Plan sin nombre'}»`;
+  }
+
+  /**
+   * Elemento de la lista según el tipo de registro. Es una función que devuelve el elemento, no un
+   * componente declarado dentro de otro (React lo volvería a montar en cada render).
+   */
   function item(v: RegistroVerificado) {
     const r = v.registro;
     if (!r) {
@@ -243,26 +263,25 @@ export function SeguimientoSeccion({ lote }: { lote: Lote }) {
         {v.tipo === 'aplicacion' && <small>Una aplicación dañada no se suma al avance de su plan. Para corregirla, elimínala y regístrala de nuevo desde el plan.</small>}
         {v.id && <span className="registro-acciones">
           {corregible && <button type="button" className="link-button" disabled={ocupado} onClick={() => abrir({ tipo: 'editar', id: v.id })}>Corregir</button>}
-          <button type="button" className="link-button peligro" disabled={ocupado} onClick={() => void eliminar(v)}>Eliminar</button>
+          <button type="button" className="link-button peligro" disabled={ocupado} onClick={() => eliminar(v)}>Eliminar</button>
         </span>}
       </li>;
     }
     if (r.tipo === 'aplicacion') {
-      const plan = lectura?.ok ? lectura.nombresPlan.get(r.planId) : undefined;
       return <li>
-        <span className="registro-cabeza"><strong>Aplicación</strong> · {fechaLegible(r.fecha)} <OrigenBadge esEjemplo={r.esEjemplo} /></span>
+        <span className="registro-cabeza"><strong>Aplicación</strong> · {fechaLegible(r.fecha)} <OrigenBadge esEjemplo={r.esEjemplo} real="Dato real" /></span>
         <span>{r.productoNombre}: {formatearExacto(r.cantidadKg)} kg{r.costoCop !== undefined ? ` · ${formatearExacto(r.costoCop)} COP` : ''}{r.responsable ? ` · ${r.responsable}` : ''}</span>
-        <small>Plan «{plan || 'no disponible'}». Se edita en el detalle del plan.{r.nota ? ` Nota: ${r.nota}` : ''}</small>
+        <small>Del {nombrePlan(r.planId)}. Se edita en el detalle del plan.{r.nota ? ` Nota: ${r.nota}` : ''}</small>
       </li>;
     }
     if (r.tipo === 'observacion') {
       return <li>
-        <span className="registro-cabeza"><strong>Observación</strong> · {fechaLegible(r.fecha)} <OrigenBadge esEjemplo={r.esEjemplo} /></span>
+        <span className="registro-cabeza"><strong>Observación</strong> · {fechaLegible(r.fecha)} <OrigenBadge esEjemplo={r.esEjemplo} real="Dato real" /></span>
         <span className="registro-texto">{r.descripcion}</span>
         {r.responsable && <small>{r.responsable}</small>}
         <span className="registro-acciones">
           <button type="button" className="link-button" disabled={ocupado} onClick={() => abrir({ tipo: 'editar', id: r.id })}>Editar</button>
-          <button type="button" className="link-button peligro" disabled={ocupado} onClick={() => void eliminar(v)}>Eliminar</button>
+          <button type="button" className="link-button peligro" disabled={ocupado} onClick={() => eliminar(v)}>Eliminar</button>
         </span>
       </li>;
     }
@@ -273,14 +292,14 @@ export function SeguimientoSeccion({ lote }: { lote: Lote }) {
         {r.estado === 'hecha'
           ? <span className="badge badge-entered">Hecha el {fechaLegible(r.fechaRealizada)}</span>
           : <span className="badge badge-warn">{vencida ? 'Pendiente · fecha pasada' : 'Pendiente'}</span>}{' '}
-        <OrigenBadge esEjemplo={r.esEjemplo} />
+        <OrigenBadge esEjemplo={r.esEjemplo} real="Dato real" />
       </span>
       <span className="registro-texto">{r.descripcion}</span>
       {r.responsable && <small>{r.responsable}</small>}
       <span className="registro-acciones">
         {r.estado === 'pendiente' && <button type="button" className="link-button" disabled={ocupado} onClick={() => void marcarHecha(r)}>Marcar como hecha hoy</button>}
         <button type="button" className="link-button" disabled={ocupado} onClick={() => abrir({ tipo: 'editar', id: r.id })}>Editar</button>
-        <button type="button" className="link-button peligro" disabled={ocupado} onClick={() => void eliminar(v)}>Eliminar</button>
+        <button type="button" className="link-button peligro" disabled={ocupado} onClick={() => eliminar(v)}>Eliminar</button>
       </span>
     </li>;
   }
@@ -295,11 +314,13 @@ export function SeguimientoSeccion({ lote }: { lote: Lote }) {
           <h2 id="titulo-seguimiento">Seguimiento del lote</h2>
           <p>Observaciones, tareas y las aplicaciones registradas en los planes aprobados. Es un registro manual: no es una medición ni un sensor.</p>
         </div>
-        {modo.tipo === 'lista' && lectura?.ok && <div className="seguimiento-botones">
+        {enLista && lectura?.ok && <div className="seguimiento-botones">
           <button className="btn btn-outline" onClick={() => abrir({ tipo: 'nuevo', clase: 'observacion' })}>+ Observación</button>
           <button className="btn btn-outline" onClick={() => abrir({ tipo: 'nuevo', clase: 'tarea' })}>+ Tarea</button>
         </div>}
       </div>
+
+      {perdido && <div role="status" className="notice notice-error"><span aria-hidden="true">!</span>El registro que estabas editando ya no existe; no se guardó ningún cambio.</div>}
 
       {aviso && <div role={aviso.tipo === 'error' ? 'alert' : 'status'} className={`notice ${aviso.tipo === 'error' ? 'notice-error' : 'notice-ok'}`}>
         <span aria-hidden="true">{aviso.tipo === 'error' ? '!' : '✓'}</span>{aviso.texto}
@@ -318,7 +339,7 @@ export function SeguimientoSeccion({ lote }: { lote: Lote }) {
         onGuardar={(datos, descartarDanados) => guardar(datos, { id: editando.id, descartarDanados }, 'Los cambios se guardaron.')}
         onCancelar={() => abrir({ tipo: 'lista' })} />}
 
-      {(modo.tipo === 'lista' || (modo.tipo === 'editar' && registros && !editando)) && (
+      {enLista && (
         lectura === undefined ? <div className="empty"><p>Cargando seguimiento…</p></div>
           : !registros ? null
           : registros.length === 0 ? <div className="empty soil-empty">

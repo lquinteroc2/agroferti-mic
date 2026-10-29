@@ -10,11 +10,12 @@ interface Props {
 
 const sinDato = <span className="missing">No registrado</span>;
 
-export function OrigenBadge({ esEjemplo }: { esEjemplo?: boolean }) {
+/** "EJEMPLO" o el origen real del dato: la etiqueta de un producto, una fuente técnica o un dato de campo. */
+export function OrigenBadge({ esEjemplo, real = 'Etiqueta real' }: { esEjemplo?: boolean; real?: string }) {
   if (esEjemplo === undefined) return null;
   return esEjemplo
     ? <span className="badge badge-example">EJEMPLO</span>
-    : <span className="badge badge-entered">Etiqueta real</span>;
+    : <span className="badge badge-entered">{real}</span>;
 }
 
 /** "N 18 % · P₂O₅ 46 %": las formas tal como las declara la etiqueta. */

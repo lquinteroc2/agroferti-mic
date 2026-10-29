@@ -147,6 +147,14 @@ export function crearRepositorioPlanes(almacen: AlmacenPlanes) {
   }
 
   return {
+    /** Nombre de cada plan del lote (vacío si falta o está dañado), sin verificar el resto del plan. */
+    async nombres(loteId: string): Promise<Map<string, string>> {
+      const crudos = await almacen.listarPorLote(loteId);
+      return new Map(crudos.flatMap(c => (esObjeto(c) && typeof c.id === 'string' && c.loteId === loteId
+        ? [[c.id, typeof c.nombre === 'string' ? c.nombre.trim() : ''] as [string, string]]
+        : [])));
+    },
+
     /** Planes verificados de un lote, del más reciente al más antiguo. */
     async listar(loteId: string): Promise<PlanVerificado[]> {
       const crudos = await almacen.listarPorLote(loteId);

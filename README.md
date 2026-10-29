@@ -82,7 +82,7 @@ Aplicación web progresiva (PWA) **multicultivo** para preparar el cálculo, la 
 ✅ Lista de todos los registros del lote, del más reciente al más antiguo, con filtro por tipo: aplicaciones (se editan en su plan), observaciones y tareas.
 ✅ Observaciones (fecha no futura, descripción, responsable, origen real o EJEMPLO) y tareas (descripción, fecha prevista, pendiente o hecha con su fecha). Crear, editar, eliminar con confirmación y "Marcar como hecha hoy". Una tarea pendiente con fecha prevista pasada se marca "Pendiente · fecha pasada" (hecho de calendario, sin notificaciones).
 ✅ Los registros con datos dañados se muestran con su valor original. Las observaciones y tareas se corrigen precargando los datos válidos y el texto original de los dañados, con confirmación expresa; una aplicación dañada se elimina y se registra de nuevo desde su plan.
-✅ 140 pruebas automáticas. Recorrido en Chrome: 102 comprobaciones.
+✅ 142 pruebas automáticas. Recorrido en Chrome: 102 comprobaciones. Una revisión de código del 4c encontró 10 puntos; todos están corregidos.
 
 **No implementado aún:** informe para el productor (fase 5) y validación con datos reales (fase 6).
 
