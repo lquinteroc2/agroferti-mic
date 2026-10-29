@@ -147,7 +147,7 @@ export default function App() {
         </div>}
         {((vista === 'editar' || vista === 'detalle') && !activo) && <div className="empty"><p>Selecciona un lote para continuar.</p><button className="btn btn-primary" onClick={() => ir('inicio')}>Ver mis lotes</button></div>}
       </main>
-      <footer className="footer"><div className="container footer-inner"><span>AgroFerti MIC · Grupo 1 · SENA</span><span>Prototipo educativo · Fase 3 en curso</span></div></footer>
+      <footer className="footer"><div className="container footer-inner"><span>AgroFerti MIC · Grupo 1 · SENA</span><span>Prototipo educativo · Fases 1 a 3</span></div></footer>
     </div>
   );
 }

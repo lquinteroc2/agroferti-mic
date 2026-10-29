@@ -2,6 +2,7 @@ import { calcularPlan, type Calculo, type ResultadoLineaPlan } from '../lib/calc
 import { mismaForma } from '../lib/catalogoNutrientes';
 import { fechaDeMarca, fechaLegible, formatearExacto, formatearResultado } from '../lib/formato';
 import type { AnalisisVerificado, EstadoPlan, PlanVerificado } from '../types';
+import { EstadoPlanBadge, NOMBRE_ESTADO, PlanEstado, type DatosCambio } from './PlanEstado';
 import { OrigenBadge } from './ProductoDetalle';
 
 interface Props {
@@ -9,18 +10,15 @@ interface Props {
   analisis: ReadonlyArray<AnalisisVerificado>;
   onEditar: () => void;
   onEliminar: () => void;
+  onCambiarEstado: (nuevo: EstadoPlan, datos: DatosCambio) => Promise<void>;
+  onCopiar: (datos: DatosCambio) => Promise<void>;
+  /** Plan del que se copió este, si sigue existiendo. */
+  origen?: { nombre: string; abrir: () => void };
 }
 
-const NOMBRE_ESTADO: Record<EstadoPlan, string> = { propuesta: 'Propuesta', revisado: 'Revisado', aprobado: 'Aprobado' };
 const sinDato = <span className="missing">No registrado</span>;
 const kg = (n: number) => formatearResultado(n, 2);
 const cop = (n: number) => formatearResultado(n, 0);
-
-export function EstadoPlanBadge({ estado }: { estado?: EstadoPlan }) {
-  if (!estado) return <span className="badge badge-error">Estado por corregir</span>;
-  const clase = estado === 'aprobado' ? 'badge-entered' : estado === 'revisado' ? 'badge-calc' : 'badge-warn';
-  return <span className={`badge ${clase}`}>{NOMBRE_ESTADO[estado]}</span>;
-}
 
 function Falta({ calculo }: { calculo: Extract<Calculo<number>, { ok: false }> }) {
   return <p className="calc-skip">No calculado: {calculo.mensaje}</p>;
@@ -67,7 +65,7 @@ function Linea({ r, areaM2 }: { r: ResultadoLineaPlan; areaM2?: number }) {
   );
 }
 
-export function PlanDetalle({ plan, analisis, onEditar, onEliminar }: Props) {
+export function PlanDetalle({ plan, analisis, onEditar, onEliminar, onCambiarEstado, onCopiar, origen }: Props) {
   const calculo = calcularPlan(plan);
   const area = plan.areaM2AlCrear;
   const referencia = plan.analisisReferenciaId ? analisis.find(a => a.id === plan.analisisReferenciaId) : undefined;
@@ -102,7 +100,9 @@ export function PlanDetalle({ plan, analisis, onEditar, onEliminar }: Props) {
 
       {plan.estado && plan.estado !== 'propuesta' && <div className="trace-box">
         <strong>Plan {NOMBRE_ESTADO[plan.estado].toLowerCase()}</strong>
-        <p>Solo se puede editar un plan en propuesta.</p>
+        <p>{plan.estado === 'revisado'
+          ? 'Ya no se edita. Para corregirlo, devuélvelo a propuesta en «Estado del plan», al final.'
+          : 'Es de solo lectura y no se puede eliminar: es el registro de lo aprobado. Para cambiarlo, crea una copia como nueva propuesta en «Estado del plan», al final.'}</p>
       </div>}
 
       <section className="soil-block entered" aria-labelledby={`metas-plan-${plan.id}`}>
@@ -111,6 +111,9 @@ export function PlanDetalle({ plan, analisis, onEditar, onEliminar }: Props) {
           <div><dt>Área guardada con el plan</dt><dd>{area !== undefined ? `${formatearExacto(area)} m²` : <span className="missing">Área no válida</span>}</dd></div>
           <div><dt>Análisis de referencia</dt><dd>{!plan.analisisReferenciaId ? 'Ninguno' : referencia ? `Análisis del ${fechaLegible(referencia.fechaAnalisis)}` : <span className="missing">Eliminado o no disponible</span>}</dd></div>
           <div><dt>Propuesta creada</dt><dd>{creacion ? `${fechaDeMarca(creacion.fecha)}${creacion.responsable ? ` · ${creacion.responsable}` : ''}` : sinDato}</dd></div>
+          {plan.planOrigenId && <div><dt>Copia de</dt><dd>{origen
+            ? <button type="button" className="link-button" onClick={origen.abrir}>{origen.nombre}</button>
+            : <span className="missing">Plan eliminado o no disponible</span>}</dd></div>}
         </dl>
         {plan.analisisReferenciaId && <p className="hint">El análisis de referencia es solo contexto: no entra en ningún cálculo y la app no deriva metas de él.</p>}
         {plan.metas.length === 0 ? <p className="muted">Este plan aún no tiene metas.</p>
@@ -167,6 +170,8 @@ export function PlanDetalle({ plan, analisis, onEditar, onEliminar }: Props) {
         <span className="badge badge-warn">Importante</span>
         <p>Las cantidades se calculan con las metas que escribiste y con lo que declara la etiqueta. <strong>La app no propone metas ni dosis</strong>, no las deduce del análisis de suelo y no convierte entre formas químicas (P y P₂O₅, K y K₂O). Revisa el plan con un profesional antes de aplicarlo. Los valores con “≈” están redondeados para mostrarlos; el cálculo usa el valor completo.</p>
       </div>
+
+      {plan.id && <PlanEstado plan={plan} onCambiarEstado={onCambiarEstado} onCopiar={onCopiar} />}
     </article>
   );
 }

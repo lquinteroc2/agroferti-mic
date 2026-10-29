@@ -99,3 +99,15 @@
 @media(max-width:720px){.meta-fields{grid-template-columns:1fr 1fr}}
 /* Tablas de muchas columnas: en el móvil se desplazan dentro de su recuadro en lugar de comprimirse. */
 .tabla-ancha{min-width:560px}
+.plan-estado{margin-top:18px}
+.plan-estado h4 .badge{margin-left:6px;vertical-align:middle}
+.estado-acciones{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start;margin:6px 0 14px}
+.estado-accion{display:flex;flex-direction:column;gap:6px;max-width:100%}
+.estado-accion button:disabled{cursor:not-allowed}
+.estado-accion .hint ul{margin:4px 0 0;padding-left:18px}
+.estado-form{border:1px solid #e3e9df;background:white;border-radius:12px;padding:16px;margin:6px 0 16px}
+.estado-form p{font-size:.88rem}
+.historial-titulo{font-family:Manrope,sans-serif;font-size:.92rem;margin:16px 0 8px;color:#214734}
+.historial{list-style:none;padding:0;margin:0}
+.historial li{border-left:3px solid #c9dcc0;padding:6px 0 6px 12px;margin-bottom:8px;font-size:.86rem;color:#344d3e}
+.historial li p{margin:4px 0 0;color:#5f7468}

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { EstadoPlanBadge, PlanDetalle } from './PlanDetalle';
+import { PlanDetalle } from './PlanDetalle';
+import { EstadoPlanBadge, NOMBRE_ESTADO, type DatosCambio } from './PlanEstado';
 import { PlanForm, type OpcionesPlanFormulario } from './PlanForm';
 import { useSeleccionViva, type ModoSeccion } from './useSeleccionViva';
 import { calcularPlan } from '../lib/calculos';
@@ -8,7 +9,7 @@ import { repositorioAnalisis, repositorioPlanes, repositorioProductos } from '..
 import { fechaDeMarca, formatearResultado } from '../lib/formato';
 import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import type { DatosPlan } from '../lib/validacionPlan';
-import type { AnalisisVerificado, Lote, PlanVerificado, ProductoFertilizante } from '../types';
+import type { AnalisisVerificado, EstadoPlan, Lote, PlanVerificado, ProductoFertilizante } from '../types';
 
 type Aviso = { tipo: 'ok' | 'error'; texto: string } | null;
 type Lectura =
@@ -57,6 +58,19 @@ export function PlanesSeccion({ lote, onIrAProductos }: { lote: Lote; onIrAProdu
     setAviso({ tipo: 'ok', texto: editando ? 'Los cambios de la propuesta se guardaron.' : 'La propuesta de plan se guardó en este dispositivo.' });
   }
 
+  // Los errores de estos dos se muestran en el panel de estado, junto al formulario del cambio.
+  async function cambiarEstado(p: PlanVerificado, nuevo: EstadoPlan, { responsable, nota }: DatosCambio) {
+    await repositorioPlanes.cambiarEstado(lote.id, p.id, nuevo, { responsable, nota });
+    setAviso({ tipo: 'ok', texto: `El plan quedó en estado «${NOMBRE_ESTADO[nuevo]}».` });
+  }
+
+  async function copiar(p: PlanVerificado, { responsable, nota }: DatosCambio) {
+    // Sin nota, el repositorio registra "Copia del plan «…»" en el historial.
+    const id = await repositorioPlanes.copiar(lote.id, p.id, { responsable, nota: nota.trim() || undefined });
+    seleccion.verGuardado(id);
+    setAviso({ tipo: 'ok', texto: 'Se creó una copia como nueva propuesta. El plan original no cambió.' });
+  }
+
   async function borrar(p: PlanVerificado) {
     if (!window.confirm(`¿Eliminar el plan “${p.nombre || 'sin nombre'}”? Esta acción no se puede deshacer.`)) return;
     try {
@@ -66,6 +80,12 @@ export function PlanesSeccion({ lote, onIrAProductos }: { lote: Lote; onIrAProdu
     } catch (error) {
       setAviso({ tipo: 'error', texto: error instanceof ErrorPersistencia ? error.message : 'No se pudo eliminar el plan. Vuelve a intentarlo.' });
     }
+  }
+
+  /** Plan del que se copió `p`, para enlazarlo desde el detalle. */
+  function origenDe(p: PlanVerificado) {
+    const origen = p.planOrigenId ? planes?.find(x => x.id === p.planOrigenId) : undefined;
+    return origen && { nombre: origen.nombre || 'Plan sin nombre', abrir: () => abrir('ver', origen.id) };
   }
 
   const productos = lectura?.ok ? lectura.productos : [];
@@ -96,7 +116,16 @@ export function PlanesSeccion({ lote, onIrAProductos }: { lote: Lote; onIrAProdu
       {modo === 'editar' && seleccionado && <PlanForm key={seleccionado.id} inicial={seleccionado} lote={lote} productos={productos} analisis={analisis} onGuardar={guardar} onCancelar={() => abrir('ver')} />}
       {modo === 'ver' && seleccionado && <>
         <button className="back" onClick={() => abrir('lista', null)}>← Volver a los planes del lote</button>
-        <PlanDetalle plan={seleccionado} analisis={analisis} onEditar={() => abrir('editar')} onEliminar={() => void borrar(seleccionado)} />
+        <PlanDetalle
+          key={seleccionado.id}
+          plan={seleccionado}
+          analisis={analisis}
+          onEditar={() => abrir('editar')}
+          onEliminar={() => void borrar(seleccionado)}
+          onCambiarEstado={(nuevo, datos) => cambiarEstado(seleccionado, nuevo, datos)}
+          onCopiar={datos => copiar(seleccionado, datos)}
+          origen={origenDe(seleccionado)}
+        />
       </>}
       {esperando && <div className="empty"><p>Cargando plan…</p></div>}
 

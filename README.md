@@ -2,7 +2,7 @@
 
 Aplicación web progresiva (PWA) **multicultivo** para preparar el cálculo, la explicación y el monitoreo de fertilización, empezando por **papa** como cultivo piloto.
 
-## Estado actual: fase 3 en curso / fertilizantes y plan (catálogo y plan listos; faltan los cambios de estado)
+## Estado actual: fases 1 a 3 completas / lotes, suelo, catálogo de productos y plan de fertilización
 
 **Fase 1 (lotes)**
 ✅ Registro de lotes: crear, editar, eliminar y consultar.
@@ -53,7 +53,14 @@ Aplicación web progresiva (PWA) **multicultivo** para preparar el cálculo, la 
 ✅ Si el producto cambia en el catálogo, el plan conserva su copia y al editar avisa del cambio; para usar los datos nuevos se elige "datos actuales del catálogo". Si se elimina el análisis de referencia, el plan se sigue editando y copiando (queda sin referencia, con aviso).
 ✅ 105 pruebas automáticas en total. Recorrido en Chrome: 59 comprobaciones. Una revisión de código encontró 10 puntos en 3c; todos están corregidos.
 
-**No implementado aún:** cambios de estado del plan (revisado, aprobado) y su historial (3d); historial de aplicaciones, reportes PDF y respaldo de información.
+**Fase 3 — 3d: estados del plan (panel "Estado del plan" al final del detalle)**
+✅ Propuesta → revisado → aprobado, y devolver un plan revisado a propuesta. Cada cambio pide el nombre de quien lo registra (escrito por el usuario; la app no verifica identidades ni certifica aprobaciones técnicas) y una nota opcional.
+✅ Antes de revisar o aprobar, la app explica qué falta (p. ej. "El plan no tiene productos" o una meta cuya forma no coincide con la etiqueta) y no deja continuar.
+✅ Un plan revisado ya no se edita; uno aprobado es de solo lectura y no se elimina. Para cambiar un plan aprobado se crea una copia como nueva propuesta, con el área actual del lote y un enlace al plan original.
+✅ Historial visible con estado, fecha y hora, nombre y nota de cada cambio. Lo aplicado en campo no es un estado del plan: se registrará en la fase 4.
+✅ 105 pruebas automáticas. Recorrido en Chrome: 72 comprobaciones.
+
+**No implementado aún:** seguimiento de aplicaciones y plan frente a lo aplicado (fase 4), reportes PDF y respaldo de información (fase 5).
 
 ## Requisitos
 
@@ -122,6 +129,13 @@ Las pruebas de persistencia (`tests/persistencia.test.ts`) usan un almacén en m
 4. El detalle debe mostrar ≈ 217,39 kg/ha de DAP, ≈ 32,62 kg en el lote, ≈ 0,65 bultos, 3.200 COP por kg, ≈ 104.383 COP y ≈ 39,13 kg/ha de N acompañante; KCl: 150 kg/ha y ≈ 22,51 kg en el lote, sin costo por falta de precio; y "no se muestra un total parcial".
 5. Edita la propuesta: la meta 2 se precarga con `90` y el producto como "copia guardada en el plan". Cambia el precio del DAP en el catálogo a `200000`: el plan sigue mostrando ≈ 104.383 COP; al editarlo avisa del cambio y, si eliges "datos actuales del catálogo", pasa a ≈ 130.478 COP.
 6. Elimina DAP del catálogo y vuelve al plan: debe seguir mostrando DAP EJEMPLO con las mismas cifras.
+
+### Pruebas manuales en navegador (fase 3d, estados)
+
+1. En el detalle de la propuesta, en **Estado del plan**, pulsa **Marcar como revisado** y confirma sin nombre: debe pedir el nombre. Escribe un nombre y una nota: el plan queda **Revisado** y desaparece **Editar**.
+2. Pulsa **Aprobar el plan**: desaparecen **Editar** y **Eliminar**, y el aviso dice que es de solo lectura. El historial muestra propuesta, revisado y aprobado con fecha, hora, nombre y nota.
+3. Pulsa **Copiar como nueva propuesta**: se abre una propuesta editable con las mismas cifras, "Copia del plan «…»" en el historial y un enlace al plan original.
+4. Crea una propuesta con una meta sin producto: **Marcar como revisado** queda deshabilitado con el motivo "El plan no tiene productos".
 
 ## Inicio exclusivo desde terminal
 
@@ -260,6 +274,7 @@ No inventar resultados de campo. Etiquetar todos los datos simulados como **EJEM
 
 ## Para retomar (estado al 29 de octubre de 2026)
 
+- Fase 3 completa (3a modelo, 3b catálogo, 3c plan, 3d estados). 3b y 3c pasaron una revisión de código cada una, con todos los puntos corregidos, y están publicadas (recorrido sobre la URL publicada: 59 comprobaciones). 3d está en el repositorio.
 - Fase 3a (modelo, cálculos y persistencia) terminada y publicada; la app publicada muestra las fases 1 y 2. Recorrido en Chrome sobre la URL publicada: 16 comprobaciones correctas, incluido el uso sin conexión.
 - Fase 2 cerrada tras dos auditorías de Codex: 54 pruebas, build correcto y recorrido en navegador (Edge headless, 58 comprobaciones) aprobado.
 - El recorrido en navegador se ejecutó con un script temporal fuera del repositorio; las pruebas manuales equivalentes están en "Pruebas manuales en navegador (fase 2)".
@@ -282,10 +297,15 @@ No inventar resultados de campo. Etiquetar todos los datos simulados como **EJEM
 
 ## Limitaciones conocidas de la fase 3c
 
-- Desde la interfaz solo se crean y editan propuestas; los cambios de estado (revisado, aprobado), la copia de un plan aprobado y el historial completo llegan en 3d.
 - Cada meta se cubre con un solo producto y los aportes acompañantes no reducen otras cantidades (ver limitaciones de 3a).
 - El nombre de quien elabora la propuesta es opcional y lo escribe el usuario; la app no verifica identidades.
 
-## Próximo PR: fase 3d
+## Limitaciones conocidas de la fase 3d
 
-Cambios de estado del plan en su detalle: propuesta → revisado → aprobado (y devolver a propuesta), con nombre de quien registra el cambio y nota; historial visible; un plan aprobado de solo lectura con la opción de copiarlo como nueva propuesta. Usar `validarCambioEstado` y `repositorioPlanes.cambiarEstado`/`copiar`. Lee primero `AGENTS.md`.
+- El nombre de quien revisa o aprueba lo escribe el usuario; puede ser el mismo para todos los cambios. La app no verifica identidades ni que la revisión la haga otra persona.
+- Un plan aprobado solo se elimina junto con su lote (al eliminar el lote se borran todos sus datos, con confirmación).
+- Revisar o aprobar exige que todas las líneas tengan cantidad calculada; no exige precio, así que un plan aprobado puede no tener costo total.
+
+## Próximo PR: fase 4
+
+Seguimiento manual por lote: registrar aplicaciones (vinculadas a una línea de un plan aprobado), observaciones y tareas, con fecha y responsable, y mostrar plan frente a lo aplicado. Lee primero `AGENTS.md` y propone el modelo antes de implementarlo.
