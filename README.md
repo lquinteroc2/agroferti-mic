@@ -2,7 +2,7 @@
 
 Aplicación web progresiva (PWA) **multicultivo** para preparar el cálculo, la explicación y el monitoreo de fertilización, empezando por **papa** como cultivo piloto.
 
-## Estado actual: fase 3 en curso / fertilizantes y plan (modelo y catálogo de productos listos)
+## Estado actual: fase 3 en curso / fertilizantes y plan (catálogo y plan listos; faltan los cambios de estado)
 
 **Fase 1 (lotes)**
 ✅ Registro de lotes: crear, editar, eliminar y consultar.
@@ -41,9 +41,18 @@ Aplicación web progresiva (PWA) **multicultivo** para preparar el cálculo, la 
 ✅ Es obligatorio indicar si los datos vienen de una etiqueta real o son de **EJEMPLO**; los de ejemplo se marcan en la lista y en el detalle.
 ✅ Kg y precio del bulto rechazan escrituras ambiguas como `150.000` (en COP se leería como 150) y piden `150000`. El precio exige los kg del bulto y la fecha del precio. Vista previa: "Bulto de 50 kg a 150.000 COP: equivale a 3.000 COP por kg".
 ✅ Detalle con datos ingresados y el precio por kg explicado. Un producto con datos dañados se muestra con su valor original y solo se reemplaza con confirmación expresa.
-✅ 93 pruebas automáticas en total.
+✅ 93 pruebas automáticas al cerrar 3b. Una revisión de código posterior encontró 10 puntos (entre ellos, que vaciar un nutriente guardado lo borraba sin aviso); todos están corregidos.
 
-**No implementado aún:** interfaz del plan con explicación paso a paso (3c) y de los cambios de estado (3d); historial de aplicaciones, reportes PDF y respaldo de información.
+**Fase 3 — 3c: plan de fertilización (sección "Plan de fertilización" en la ficha del lote)**
+✅ Crear, consultar, editar y eliminar (con confirmación) propuestas de plan por lote.
+✅ Cada meta se escribe con nutriente, forma química, kg/ha, **fuente técnica, fecha de la fuente** y origen (fuente real o EJEMPLO). La app no propone metas, no las deduce del análisis de suelo y rechaza escrituras ambiguas como `1.200`.
+✅ Un producto del catálogo por meta. El formulario muestra lo que declara la etiqueta y avisa si la meta no se podrá calcular (p. ej. meta en P con etiqueta en P₂O₅). El plan guarda una copia del producto: editar o borrar el producto del catálogo no lo altera.
+✅ Detalle con cada operación explicada: kg/ha de producto, kg en el lote, bultos exactos, precio por kg, costo y aportes acompañantes; resumen por forma química (meta, aportado y diferencia aritmética) y costo total solo si todos los productos tienen costo.
+✅ Análisis de suelo de referencia opcional, mostrado solo como contexto.
+✅ El plan guarda el área del lote al crearse; al editar solo se actualiza si el usuario lo marca.
+✅ 101 pruebas automáticas en total. Recorrido en Chrome: 54 comprobaciones.
+
+**No implementado aún:** cambios de estado del plan (revisado, aprobado) y su historial (3d); historial de aplicaciones, reportes PDF y respaldo de información.
 
 ## Requisitos
 
@@ -104,6 +113,15 @@ Las pruebas de persistencia (`tests/persistencia.test.ts`) usan un almacén en m
 5. Edita el precio a `160000`: debe mostrar 3.200 COP por kg. Recarga la página: el producto sigue en el catálogo.
 6. Elimina el producto: debe pedir confirmación.
 
+### Pruebas manuales en navegador (fase 3c, plan)
+
+1. Registra en el catálogo "DAP EJEMPLO" (N 18 %, P₂O₅ 46 %, bulto de 50 kg a 160000 COP) y "KCl EJEMPLO" (K₂O 60 %, sin precio).
+2. En un lote de **1500,5 m²**, en **Plan de fertilización**, crea una propuesta. Meta 1: Fósforo / **P** / 100 kg/ha con fuente, fecha y origen EJEMPLO, producto DAP: debe avisar "Esta meta no se calculará". Cambia la forma a P₂O₅: el aviso desaparece y se ve "declara: N 18 % · P₂O₅ 46 %".
+3. Meta 2: Potasio / K₂O / `1.200` con producto KCl: al guardar debe rechazar "1.200". Escribe `90` y guarda.
+4. El detalle debe mostrar ≈ 217,39 kg/ha de DAP, ≈ 32,62 kg en el lote, ≈ 0,65 bultos, 3.200 COP por kg, ≈ 104.383 COP y ≈ 39,13 kg/ha de N acompañante; KCl: 150 kg/ha y ≈ 22,51 kg en el lote, sin costo por falta de precio; y "no se muestra un total parcial".
+5. Edita la propuesta: la meta 2 se precarga con `90` y el producto como "(copia guardada en el plan)".
+6. Elimina DAP del catálogo y vuelve al plan: debe seguir mostrando DAP EJEMPLO con las mismas cifras.
+
 ## Inicio exclusivo desde terminal
 
 Consulta [INICIO_TERMINAL.md](./INICIO_TERMINAL.md) para instalar Node.js, Git, Claude Code y Codex CLI, y para trabajar desde varias pestañas de terminal sin un editor gráfico.
@@ -123,7 +141,10 @@ agroferti-mic/
 │  │  ├─ AnalisisSueloDetalle.tsx  # Datos ingresados, cálculos explicados y advertencias
 │  │  ├─ ProductosSeccion.tsx      # Fase 3b: catálogo de productos (lista y flujo)
 │  │  ├─ ProductoForm.tsx          # Fase 3b: formulario según la etiqueta
-│  │  └─ ProductoDetalle.tsx       # Fase 3b: datos de la etiqueta y precio por kg
+│  │  ├─ ProductoDetalle.tsx       # Fase 3b: datos de la etiqueta y precio por kg
+│  │  ├─ PlanesSeccion.tsx         # Fase 3c: planes dentro de la ficha del lote
+│  │  ├─ PlanForm.tsx              # Fase 3c: metas con su fuente y producto por meta
+│  │  └─ PlanDetalle.tsx           # Fase 3c: cálculo del plan explicado paso a paso
 │  ├─ lib/
 │  │  ├─ calculos.ts            # Matemáticas verificables, sin prescribir dosis
 │  │  ├─ validacion.ts          # Validaciones puras y verificación de registros guardados
@@ -258,6 +279,13 @@ No inventar resultados de campo. Etiquetar todos los datos simulados como **EJEM
 - El catálogo de formas químicas es el mismo de la fase 2; las formas fuera de la lista (p. ej. SO₃) se guardan como texto, sin validación química adicional.
 - Los componentes React no tienen pruebas automáticas; la interfaz se verificó con un recorrido en Chrome (29 comprobaciones) hecho con un script fuera del repositorio. Las pruebas manuales equivalentes están arriba.
 
-## Próximo PR: fase 3c
+## Limitaciones conocidas de la fase 3c
 
-Plan de fertilización dentro de la ficha del lote: metas con fuente y fecha, una línea de producto del catálogo por meta y la explicación paso a paso de `calcularPlan` (cantidad, costo, bultos, aportes y resumen). Lee primero `AGENTS.md`. No proponer metas ni dosis; no convertir P/P₂O₅ ni K/K₂O.
+- Desde la interfaz solo se crean y editan propuestas; los cambios de estado (revisado, aprobado), la copia de un plan aprobado y el historial completo llegan en 3d.
+- La copia del producto se conserva mientras no se cambie de producto. Si el precio cambia en el catálogo, la propuesta mantiene el precio copiado; todavía no hay un botón para actualizar la copia. Para usar los datos nuevos hay que quitar la meta y volver a crearla con el mismo producto.
+- Cada meta se cubre con un solo producto y los aportes acompañantes no reducen otras cantidades (ver limitaciones de 3a).
+- El nombre de quien elabora la propuesta es opcional y lo escribe el usuario; la app no verifica identidades.
+
+## Próximo PR: fase 3d
+
+Cambios de estado del plan en su detalle: propuesta → revisado → aprobado (y devolver a propuesta), con nombre de quien registra el cambio y nota; historial visible; un plan aprobado de solo lectura con la opción de copiarlo como nueva propuesta. Usar `validarCambioEstado` y `repositorioPlanes.cambiarEstado`/`copiar`. Lee primero `AGENTS.md`.

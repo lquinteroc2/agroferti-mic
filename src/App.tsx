@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { AnalisisSueloSeccion } from './components/AnalisisSueloSeccion';
 import { LoteForm, type DatosLote } from './components/LoteForm';
+import { PlanesSeccion } from './components/PlanesSeccion';
 import { ProductosSeccion } from './components/ProductosSeccion';
 import { db, eliminarLoteYRelacionados } from './lib/db';
 import { areaM2AHa } from './lib/calculos';
@@ -99,7 +100,7 @@ export default function App() {
             <div className="hero-text">
               <div className="eyebrow">GRUPO 1 · PROTOTIPO ACADÉMICO</div>
               <h1>Tu cultivo, más organizado.</h1>
-              <p>Registra tus lotes en un solo lugar. Pronto podrás calcular aportes de fertilizantes y llevar el historial de cada aplicación, con resultados fáciles de entender.</p>
+              <p>Registra tus lotes, el análisis de suelo y tus fertilizantes en un solo lugar. Calcula la cantidad y el costo de producto para las metas que valida tu fuente técnica, con cada operación explicada.</p>
               <button className="btn btn-light" onClick={() => ir('nuevo')}>+ Crear un lote</button>
             </div>
             <div className="hero-deco" aria-hidden="true"><div className="hill hill-one"/><div className="hill hill-two"/><span className="decor-sprout">✳</span></div>
@@ -126,11 +127,12 @@ export default function App() {
           <div className="detail-grid"><div className="detail-panel"><span>Superficie</span><strong>{formatearNumero(activo.areaM2)} m²</strong><small>{formatearNumero(areaM2AHa(activo.areaM2), 4)} hectáreas</small></div><div className="detail-panel"><span>Cultivo</span><strong>{nombreCultivo(activo.cultivo)}</strong><small>Sin dosis precargadas</small></div><div className="detail-panel"><span>Fecha de siembra</span><strong className="detail-date">{fechaLegible(activo.fechaSiembra)}</strong><small>Registrada por productor</small></div></div>
           <section className="workflow"><div className="section-kicker">CÓMO SE USA</div><h2>Tres pasos para manejar tu cultivo</h2><div className="workflow-grid">
             <div className="workflow-step ready"><div className="step-number">01</div><h3>Crear el lote</h3><p>Datos del área, ubicación y cultivo.</p><span className="tag ready-tag">Disponible</span></div>
-            <div className="workflow-step ready"><div className="step-number">02</div><h3>Registrar el suelo</h3><p>Análisis de laboratorio y equivalencias explicadas. El plan con fertilizantes llegará después.</p><span className="tag ready-tag">Análisis disponible</span></div>
+            <div className="workflow-step ready"><div className="step-number">02</div><h3>Suelo y plan</h3><p>Análisis de laboratorio con equivalencias explicadas y plan de fertilización con metas de tu fuente técnica.</p><span className="tag ready-tag">Disponible</span></div>
             <div className="workflow-step"><div className="step-number">03</div><h3>Hacer seguimiento</h3><p>Registrar aplicaciones, costos y observaciones.</p><span className="tag">Fase siguiente</span></div>
           </div></section>
           <AnalisisSueloSeccion key={activo.id} lote={activo} />
-          <div className="info-box"><strong>Importante:</strong> esta versión no prescribe fertilizantes. Las dosis requieren un objetivo nutricional técnico respaldado por un análisis agronómico. Convertir ppm a kg/ha no determina automáticamente una dosis.</div>
+          <PlanesSeccion key={`plan-${activo.id}`} lote={activo} onIrAProductos={() => ir('productos')} />
+          <div className="info-box"><strong>Importante:</strong> esta versión no prescribe fertilizantes: solo calcula la cantidad de producto para las metas que escribes con su fuente técnica. Las dosis requieren un objetivo nutricional técnico respaldado por un análisis agronómico. Convertir ppm a kg/ha no determina automáticamente una dosis.</div>
           <button className="danger-link" onClick={() => void borrarLote()}>Eliminar este lote</button>
         </>}
 
@@ -138,7 +140,7 @@ export default function App() {
 
         {vista === 'ayuda' && <div className="page-narrow help"><div className="section-kicker">GUÍA PARA EL PRODUCTOR</div><h1>Cómo funciona AgroFerti MIC</h1><p className="muted">El objetivo es que productores de distintos cultivos comprendan sus datos de fertilización y puedan registrar lo que realmente ocurre en el lote.</p>
           <div className="help-item"><span>1</span><div><h3>Registra el lote</h3><p>Indica cultivo, área, fecha de siembra y ubicación. Eso ya funciona en esta versión.</p></div></div>
-          <div className="help-item"><span>2</span><div><h3>Registra el suelo y prepara el plan</h3><p>Ya puedes registrar análisis de suelo en la ficha de cada lote y ver sus equivalencias explicadas. En <strong>Productos</strong> puedes registrar los fertilizantes tal como aparecen en su etiqueta. El plan llegará después: para calcular una cantidad de producto será indispensable una meta nutricional validada, con su fuente y fecha, y la aplicación explicará la operación.</p></div></div>
+          <div className="help-item"><span>2</span><div><h3>Registra el suelo y prepara el plan</h3><p>Ya puedes registrar análisis de suelo en la ficha de cada lote y ver sus equivalencias explicadas. En <strong>Productos</strong> registras los fertilizantes tal como aparecen en su etiqueta, y en la ficha del lote preparas el plan: escribes cada meta nutricional con su fuente técnica y fecha, eliges el producto y la aplicación explica la cantidad y el costo. La app no propone metas ni convierte entre formas químicas.</p></div></div>
           <div className="help-item"><span>3</span><div><h3>Monitorea lo realizado</h3><p>En fases posteriores registrarás aplicaciones, cantidades, responsables, costos y observaciones. No hacen falta sensores para registrar estos datos manualmente.</p></div></div>
           <div className="info-box"><strong>Nota de privacidad:</strong> el almacenamiento es local. No está conectado a una nube ni permite acceder a los mismos datos desde otro teléfono.</div>
           <button className="btn btn-primary" onClick={() => ir('inicio')}>Ir a mis lotes</button>

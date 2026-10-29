@@ -27,6 +27,6 @@ Contexto: AgroFerti MIC es un prototipo académico SENA del Grupo 1, multicultiv
 - Primero ejecutar `npm run test`, después `npm run build`, corregir fallos antes de hacer commit.
 
 ## Prompt de siguiente tarea
-Fases 1 (lotes) y 2 (análisis de suelo) cerradas; de la fase 3 están listos el modelo (3a) y el catálogo de productos (3b). Estado detallado en `README.md`.
+Fases 1 (lotes) y 2 (análisis de suelo) cerradas; de la fase 3 están listos el modelo (3a), el catálogo de productos (3b) y el plan por lote (3c). Estado detallado en `README.md`.
 
 "Implementa únicamente la fase 3 AgroFerti MIC: fertilizantes y plan por lote. Registra productos según su etiqueta (contenido declarado N-P₂O₅-K₂O u otros nutrientes con forma química explícita y precio COP/kg opcional) y un plan con meta nutrimental escrita por el usuario (nutriente, forma química, kg/ha, fuente técnica y fecha obligatorias). Calcula la cantidad de producto con `productoKgHa` y el costo solo cuando la forma química de la meta coincide con la de la etiqueta; si no coinciden, no calcules ni conviertas P/P₂O₅ o K/K₂O. Explica cada operación paso a paso. Distingue propuesta, revisado y aprobado (lo aplicado se registra en la fase 4). No derives la meta del análisis de suelo ni precargues dosis o productos sin la marca «EJEMPLO». Si el esquema cambia, añade `db.version(2)` sin romper registros de las fases 1–2. Valida entradas en el formulario y antes de persistir, añade tests y preserva la UI actual. Al finalizar, resume archivos, pruebas y limitaciones."

@@ -93,3 +93,9 @@
 .choice-group{border:0;padding:0;margin:16px 0 0;min-width:0}
 .form-group .choice-group legend{font-size:.88rem;font-weight:700;color:#344d3e;margin-bottom:2px}
 .table-wrap+.data-list{margin-top:18px}
+.link-button{border:0;background:transparent;padding:0;color:#194c3b;font-weight:700;text-decoration:underline}
+.meta-fields{grid-template-columns:repeat(3,minmax(0,1fr))}
+.meta-fields label.full{grid-column:1 / -1}
+@media(max-width:720px){.meta-fields{grid-template-columns:1fr 1fr}}
+/* Tablas de muchas columnas: en el móvil se desplazan dentro de su recuadro en lugar de comprimirse. */
+.tabla-ancha{min-width:560px}

@@ -33,6 +33,14 @@ export function fechaLegible(fecha?: string) {
   return valor.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
+/** Fecha local de una marca de tiempo ISO (p. ej. la del historial de un plan). */
+export function fechaDeMarca(iso?: string) {
+  if (!iso) return 'Sin registrar';
+  const valor = new Date(iso);
+  if (Number.isNaN(valor.getTime())) return 'Fecha no válida';
+  return valor.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
 /**
  * Número a texto editable con coma decimal, SIN pérdida: `parsearDecimal(numeroATexto(n)) === n`
  * para todo número finito. Usa decimales normales si lo representan exactamente; si no,
