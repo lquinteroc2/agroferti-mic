@@ -2,19 +2,18 @@ import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { AnalisisSueloDetalle, EstadoBadge } from './AnalisisSueloDetalle';
 import { AnalisisSueloForm, type OpcionesFormulario } from './AnalisisSueloForm';
+import { useSeleccionViva, type ModoSeccion } from './useSeleccionViva';
 import { repositorioAnalisis } from '../lib/db';
+import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import { fechaLegible, formatearNumero } from '../lib/formato';
 import type { DatosAnalisis } from '../lib/validacion';
 import type { AnalisisVerificado, Lote } from '../types';
 
-type Modo = 'lista' | 'nuevo' | 'editar' | 'ver';
 type Aviso = { tipo: 'ok' | 'error'; texto: string } | null;
 type Lectura = { ok: true; analisis: AnalisisVerificado[] } | { ok: false };
 
 /** Módulo de análisis de suelo dentro de la ficha de un lote. Montar con key={lote.id}. */
 export function AnalisisSueloSeccion({ lote }: { lote: Lote }) {
-  const [modo, setModo] = useState<Modo>('lista');
-  const [seleccionId, setSeleccionId] = useState<string | null>(null);
   const [aviso, setAviso] = useState<Aviso>(null);
   // El error de lectura se captura aquí para mostrar un mensaje en lugar de romper la pantalla.
   const lectura = useLiveQuery<Lectura>(async () => {
@@ -25,19 +24,18 @@ export function AnalisisSueloSeccion({ lote }: { lote: Lote }) {
     }
   }, [lote.id]);
   const analisis = lectura?.ok ? lectura.analisis : undefined;
-  const seleccionado = analisis?.find(a => a.id === seleccionId);
+  const seleccion = useSeleccionViva(analisis);
+  const { modo, modoVisible, seleccionado, esperando } = seleccion;
 
-  function abrir(m: Modo, id: string | null = seleccionId) {
+  function abrir(m: ModoSeccion, id?: string | null) {
     setAviso(null);
-    setSeleccionId(id);
-    setModo(m);
+    seleccion.abrir(m, id);
   }
 
   async function guardar(datos: DatosAnalisis, { actualizarArea, resueltos }: OpcionesFormulario) {
     const editando = modo === 'editar' && seleccionado;
     const id = await repositorioAnalisis.guardar(lote.id, datos, { id: editando ? seleccionado.id : undefined, actualizarArea, resueltos });
-    setSeleccionId(id);
-    setModo('ver');
+    seleccion.verGuardado(id);
     setAviso({ tipo: 'ok', texto: editando ? 'Los cambios del análisis se guardaron.' : 'El análisis se guardó en este dispositivo.' });
   }
 
@@ -47,12 +45,10 @@ export function AnalisisSueloSeccion({ lote }: { lote: Lote }) {
       await repositorioAnalisis.eliminar(lote.id, a.id);
       abrir('lista', null);
       setAviso({ tipo: 'ok', texto: 'El análisis se eliminó.' });
-    } catch {
-      setAviso({ tipo: 'error', texto: 'No se pudo eliminar el análisis. Vuelve a intentarlo.' });
+    } catch (error) {
+      setAviso({ tipo: 'error', texto: error instanceof ErrorPersistencia ? error.message : 'No se pudo eliminar el análisis. Vuelve a intentarlo.' });
     }
   }
-
-  const mostrarLista = modo === 'lista' || ((modo === 'ver' || modo === 'editar') && analisis && !seleccionado);
 
   return (
     <section className="soil-section" aria-labelledby="titulo-suelo">
@@ -62,7 +58,7 @@ export function AnalisisSueloSeccion({ lote }: { lote: Lote }) {
           <h2 id="titulo-suelo">Análisis de suelo</h2>
           <p>Guarda los resultados del laboratorio y entiende sus unidades. No se calcula ninguna dosis.</p>
         </div>
-        {modo === 'lista' && lectura?.ok && <button className="btn btn-outline" onClick={() => abrir('nuevo', null)}>+ Agregar análisis</button>}
+        {modoVisible === 'lista' && lectura?.ok && <button className="btn btn-outline" onClick={() => abrir('nuevo', null)}>+ Agregar análisis</button>}
       </div>
 
       {aviso && <div role={aviso.tipo === 'error' ? 'alert' : 'status'} className={`notice ${aviso.tipo === 'error' ? 'notice-error' : 'notice-ok'}`}>
@@ -82,12 +78,15 @@ export function AnalisisSueloSeccion({ lote }: { lote: Lote }) {
         <AnalisisSueloDetalle analisis={seleccionado} onEditar={() => abrir('editar')} onEliminar={() => void borrar(seleccionado)} />
       </>}
 
-      {mostrarLista && (
+      {esperando && <div className="empty"><p>Cargando análisis…</p></div>}
+
+      {modoVisible === 'lista' && (
         lectura === undefined ? <div className="empty"><p>Cargando análisis…</p></div>
           : !analisis ? null
           : analisis.length === 0 ? <div className="empty soil-empty"><h3>Este lote aún no tiene análisis de suelo</h3><p>Cuando tengas el informe del laboratorio, regístralo aquí para conservar fecha, profundidad, unidades y método.</p><button className="btn btn-primary" onClick={() => abrir('nuevo', null)}>Agregar el primer análisis</button></div>
-          : <ul className="soil-history" aria-label="Historial de análisis, del más reciente al más antiguo">{analisis.map(a => (
-            <li key={a.id}><button className="lot-card soil-card" onClick={() => abrir('ver', a.id)}>
+          : <ul className="soil-history" aria-label="Historial de análisis, del más reciente al más antiguo">{analisis.map((a, i) => (
+            // Un registro sin identificador válido no se puede abrir: la app no podría editarlo ni eliminarlo.
+            <li key={a.id || `sin-id-${i}`}><button className="lot-card soil-card" disabled={!a.id} title={a.id ? undefined : 'Registro sin identificador válido'} onClick={() => abrir('ver', a.id)}>
               <span className="lot-card-content">
                 <strong>{fechaLegible(a.fechaAnalisis)}</strong>
                 <span>{a.profundidadCm !== undefined ? `${formatearNumero(a.profundidadCm, 3)} cm de profundidad` : 'Profundidad por corregir'} · {a.nutrientes.length} {a.nutrientes.length === 1 ? 'resultado' : 'resultados'}{a.ph !== undefined ? ` · pH ${formatearNumero(a.ph, 2)}` : ''}</span>
