@@ -7,7 +7,7 @@ Aplicación web progresiva (PWA) **multicultivo** para preparar el cálculo, la 
 **Fase 1 (lotes)**
 ✅ Registro de lotes: crear, editar, eliminar y consultar.
 ✅ Cultivos: papa, lechuga, kale, arveja y otro.
-✅ Registro de área (m², con coma o punto decimal y vista previa de cómo se interpretó el número), fecha de siembra y ubicación; conversión de m² a hectáreas.
+✅ Registro de área (m², con coma o punto decimal y vista previa de cómo se interpretó el número), fecha de siembra y ubicación; conversión de m² a hectáreas. Escrituras ambiguas como `1.500` o `1,500` se rechazan y se pide `1500` (o `1,5` si es un decimal).
 ✅ Datos persistentes en el navegador (IndexedDB + Dexie), interfaz adaptable y configuración PWA.
 
 **Fase 2 (análisis de suelo, dentro de la ficha de cada lote)**
@@ -23,7 +23,7 @@ Aplicación web progresiva (PWA) **multicultivo** para preparar el cálculo, la 
 ✅ Registros antiguos o dañados (null, NaN, arrays dispersos, estructuras inesperadas) se muestran con advertencia y su valor original; solo se suspenden los cálculos afectados. Consultar no modifica los registros.
 ✅ Editar un registro dañado no borra nada en silencio: cada dato dañado se precarga para corregirlo y exige una confirmación expresa (corregir, o descartar si se deja vacío). Sin todas las confirmaciones no se guarda; el original queda intacto hasta que el guardado validado termina. Los campos de otras versiones se conservan.
 ✅ Validación doble: en el formulario y otra vez antes de escribir en IndexedDB (lote existente, análisis del mismo lote, solo campos admitidos).
-✅ 58 pruebas automáticas (cálculos, validación del área y del análisis, catálogo, registros dañados, arrays dispersos, precisión numérica, desbordamientos y persistencia).
+✅ 60 pruebas automáticas (cálculos, validación del área y del análisis, catálogo, registros dañados, arrays dispersos, precisión numérica, desbordamientos y persistencia).
 
 **No implementado aún:** planes de fertilización, catálogo de productos NPK, historial de aplicaciones, reportes PDF y respaldo de información. Se desarrollarán por fases.
 
@@ -107,7 +107,7 @@ agroferti-mic/
 │  └─ styles.css
 ├─ tests/
 │  ├─ calculos.test.ts     # Fórmulas de base
-│  ├─ lote.test.ts         # Área del lote con coma o punto decimal
+│  ├─ lote.test.ts         # Área del lote: decimales y escrituras ambiguas
 │  ├─ suelo.test.ts        # Validación, catálogo, registros dañados, desbordamientos
 │  ├─ robustez.test.ts     # Precisión al editar, arrays dispersos, estructuras inesperadas
 │  └─ persistencia.test.ts # Crear, leer, editar, eliminar y aislamiento entre lotes

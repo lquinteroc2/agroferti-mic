@@ -12,6 +12,7 @@ import type {
 } from '../types';
 import { buscarElemento, coherenciaNutriente } from './catalogoNutrientes.ts';
 import { equivalenciasAnalisis } from './calculos.ts';
+import { numeroATexto } from './formato.ts';
 
 export const UNIDADES_NUTRIENTE: ReadonlyArray<UnidadNutriente> = ['mg/kg', 'cmol(+)/kg'];
 
@@ -101,14 +102,41 @@ export function validarNumero(texto: string, opciones: OpcionesNumero & { campo:
 export const AREA_LOTE_MIN_M2 = 0.01;
 export const AREA_LOTE_MAX_M2 = 10_000_000_000;
 
+/**
+ * "1.500" o "1,500": puede ser mil quinientos (separador de miles) o uno coma cinco.
+ * "0,500", "1,5" y "1234,567" no son ambiguos.
+ */
+const AREA_AMBIGUA = /^([1-9]\d{0,2})[.,](\d{3})$/;
+
+/** Cómo escribir sin ambigüedad el decimal de "1.500" (1,5), "1.000" (1) o "1,125" (1,1250). */
+function decimalSinAmbiguedad(entero: string, decimales: string): string {
+  const recortados = decimales.replace(/0+$/, '');
+  if (!recortados) return entero;
+  return recortados.length === 3 ? `${entero},${recortados}0` : `${entero},${recortados}`;
+}
+
 /** Área del lote en m², escrita con coma o punto decimal como el resto de formularios. */
 export function validarAreaLote(texto: string): Resultado<number> {
+  const ambigua = AREA_AMBIGUA.exec(texto.trim());
+  if (ambigua) {
+    const [escrito, entero, decimales] = ambigua;
+    return {
+      ok: false,
+      error: `Área: "${escrito}" se puede leer de dos formas. Escribe ${entero}${decimales} (sin punto de miles); si querías un decimal, escribe ${decimalSinAmbiguedad(entero, decimales)}.`
+    };
+  }
   const lectura = validarNumero(texto, { campo: 'Área', requerido: true, positivo: true });
   if (!lectura.ok) return lectura;
   const valor = lectura.valor as number; // requerido: nunca es undefined
   if (valor < AREA_LOTE_MIN_M2) return { ok: false, error: 'Área: debe ser de al menos 0,01 m².' };
   if (valor > AREA_LOTE_MAX_M2) return { ok: false, error: 'Área: supera un valor razonable para esta aplicación; revisa el dato.' };
   return { ok: true, valor };
+}
+
+/** Texto editable del área guardada: agrega un cero si quedaría ambiguo (1,125 → "1,1250"), sin cambiar el valor. */
+export function areaLoteATexto(areaM2: number): string {
+  const texto = numeroATexto(areaM2);
+  return AREA_AMBIGUA.test(texto) ? `${texto}0` : texto;
 }
 
 /** Fecha local del dispositivo en formato AAAA-MM-DD. */

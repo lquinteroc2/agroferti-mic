@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { areaM2AHa } from '../lib/calculos';
-import { formatearExacto, formatearNumero, numeroATexto } from '../lib/formato';
-import { validarAreaLote } from '../lib/validacion';
+import { formatearExacto, formatearNumero } from '../lib/formato';
+import { areaLoteATexto, validarAreaLote } from '../lib/validacion';
 import { CULTIVOS, type Cultivo, type Lote } from '../types';
 
 export interface DatosLote {
@@ -21,12 +21,12 @@ interface Props {
 export function LoteForm({ inicial, onGuardar, onCancelar }: Props) {
   const [nombre, setNombre] = useState(inicial?.nombre ?? '');
   const [cultivo, setCultivo] = useState<Cultivo>(inicial?.cultivo ?? 'papa');
-  const [area, setArea] = useState(inicial ? numeroATexto(inicial.areaM2) : '');
+  const [area, setArea] = useState(inicial ? areaLoteATexto(inicial.areaM2) : '');
   const [fecha, setFecha] = useState(inicial?.fechaSiembra ?? '');
   const [ubicacion, setUbicacion] = useState(inicial?.ubicacion ?? '');
   const [error, setError] = useState('');
   const [guardando, setGuardando] = useState(false);
-  // Muestra cómo se interpretó el número (p. ej. "1.500" se lee como 1,5) antes de guardarlo.
+  // Muestra cómo se interpretó el número antes de guardarlo.
   const lecturaArea = validarAreaLote(area);
 
   async function enviar(event: FormEvent<HTMLFormElement>) {
@@ -68,7 +68,7 @@ export function LoteForm({ inicial, onGuardar, onCancelar }: Props) {
           <input inputMode="decimal" value={area} onChange={e => setArea(e.target.value)} placeholder="Ej. 500 o 1500,5" required />
           <small>{lecturaArea.ok
             ? `Se guardará como ${formatearExacto(lecturaArea.valor)} m² (${formatearNumero(areaM2AHa(lecturaArea.valor), 4)} ha).`
-            : 'Usa coma o punto solo para decimales, sin puntos de miles. 1 hectárea = 10.000 m².'}</small>
+            : 'Sin punto de miles (1500, no 1.500); usa coma para decimales. 1 hectárea = 10.000 m².'}</small>
         </label>
         <label>Fecha de siembra (opcional)
           <input type="date" value={fecha} onChange={e => setFecha(e.target.value)} />
