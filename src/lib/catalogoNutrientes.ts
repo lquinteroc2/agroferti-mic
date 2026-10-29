@@ -47,6 +47,18 @@ export function buscarElemento(texto: string): ElementoCatalogo | undefined {
   return CATALOGO_NUTRIENTES.find(e => claveElemento(e.nombre) === clave || e.simbolo === texto.trim());
 }
 
+/** Mismo elemento por catálogo (nombre o símbolo); si alguno no está en el catálogo, por texto. */
+export function mismoElemento(a: string, b: string): boolean {
+  const ea = buscarElemento(a);
+  const eb = buscarElemento(b);
+  return ea || eb ? ea === eb : claveElemento(a) === claveElemento(b);
+}
+
+/** Mismo elemento y misma forma química, escrita de cualquier manera. P y P₂O₅ NO son la misma forma. */
+export function mismaForma(a: { elemento: string; forma: string }, b: { elemento: string; forma: string }): boolean {
+  return mismoElemento(a.elemento, b.elemento) && claveForma(a.forma) === claveForma(b.forma);
+}
+
 /** Coherencia elemento/forma. Solo rechaza combinaciones que el catálogo sabe incorrectas. */
 export function coherenciaNutriente(elemento: string, forma: string): { reconocido: boolean; error?: string } {
   const el = buscarElemento(elemento);

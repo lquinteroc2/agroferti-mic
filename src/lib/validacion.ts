@@ -32,7 +32,7 @@ export function esUnidadValida(unidad: string): unidad is UnidadNutriente {
   return (UNIDADES_NUTRIENTE as ReadonlyArray<string>).includes(unidad);
 }
 
-const mayuscula = (texto: string) => texto.charAt(0).toUpperCase() + texto.slice(1);
+export const mayuscula = (texto: string) => texto.charAt(0).toUpperCase() + texto.slice(1);
 
 type Interpretacion =
   | { estado: 'vacio' }
@@ -147,17 +147,21 @@ export function fechaLocalISO(fecha: Date = new Date()): string {
 }
 
 /** Fecha AAAA-MM-DD existente en el calendario. Si se indica `hoy`, tampoco puede ser futura. */
-export function validarFechaAnalisis(texto: string, hoy?: Date): Resultado<string> {
+export function validarFecha(texto: string, campo: string, hoy?: Date): Resultado<string> {
   const valor = texto.trim();
   const partes = /^(\d{4})-(\d{2})-(\d{2})$/.exec(valor);
-  if (!partes) return { ok: false, error: 'Fecha del análisis: escribe una fecha válida.' };
+  if (!partes) return { ok: false, error: `${campo}: escribe una fecha válida.` };
   const [anio, mes, dia] = partes.slice(1).map(Number);
   const fecha = new Date(anio, mes - 1, dia);
   if (fecha.getFullYear() !== anio || fecha.getMonth() !== mes - 1 || fecha.getDate() !== dia) {
-    return { ok: false, error: 'Fecha del análisis: esa fecha no existe en el calendario.' };
+    return { ok: false, error: `${campo}: esa fecha no existe en el calendario.` };
   }
-  if (hoy && valor > fechaLocalISO(hoy)) return { ok: false, error: 'Fecha del análisis: no puede ser una fecha futura.' };
+  if (hoy && valor > fechaLocalISO(hoy)) return { ok: false, error: `${campo}: no puede ser una fecha futura.` };
   return { ok: true, valor };
+}
+
+export function validarFechaAnalisis(texto: string, hoy?: Date): Resultado<string> {
+  return validarFecha(texto, 'Fecha del análisis', hoy);
 }
 
 /** Texto tal como lo escribe el productor en el formulario. */
@@ -291,8 +295,8 @@ function textoEditable(valor: unknown): string | undefined {
   return undefined;
 }
 
-const esObjeto = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === 'object' && !Array.isArray(v);
-const ausente = (v: unknown) => v === undefined || v === null;
+export const esObjeto = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === 'object' && !Array.isArray(v);
+export const ausente = (v: unknown) => v === undefined || v === null;
 
 function verificarNutriente(crudo: unknown, hueco: boolean): NutrienteLeido {
   const original = hueco ? '(posición vacía)' : describirValor(crudo);

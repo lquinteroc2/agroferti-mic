@@ -101,20 +101,111 @@ export interface AnalisisVerificado {
   camposAdicionales: string[];
 }
 
-/** Estructuras reservadas para siguientes fases. No implican diagnóstico automático. */
+/** Contenido declarado en la etiqueta: porcentaje en masa de una forma química (p. ej. P₂O₅ 46 %). */
+export interface ContenidoDeclarado {
+  elemento: string;
+  forma: string;
+  porcentaje: number;
+}
+
+/** Fertilizante del catálogo (fase 3), común a todos los lotes, tal como lo declara su etiqueta. */
+export interface ProductoFertilizante {
+  id: string;
+  nombre: string;
+  contenido: ContenidoDeclarado[];
+  /** Kg de una presentación (bulto). */
+  presentacionKg?: number;
+  /** Precio de una presentación en COP; exige kg de la presentación y fecha del precio. */
+  precioPresentacionCop?: number;
+  fechaPrecio?: string;
+  /** Dato ficticio: la interfaz debe mostrar "EJEMPLO". */
+  esEjemplo: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+/** Producto leído y verificado. `producto` falta si el registro tiene datos dañados. */
+export interface ProductoVerificado {
+  id: string;
+  nombre: string;
+  producto?: ProductoFertilizante;
+  problemas: ProblemaDato[];
+  camposAdicionales: string[];
+}
+
+/** Copia del producto dentro del plan: editar o borrar el producto del catálogo no altera el plan. */
+export type CopiaProducto = Omit<ProductoFertilizante, 'id' | 'createdAt' | 'updatedAt'> & { productoId: string };
+
+/** Meta escrita por el usuario y respaldada por una fuente técnica. La app no la calcula ni la sugiere. */
+export interface MetaNutrimental {
+  id: string;
+  elemento: string;
+  forma: string;
+  kgHa: number;
+  fuente: string;
+  fechaFuente: string;
+  esEjemplo: boolean;
+}
+
+/** Un producto elegido para cubrir una meta. Cada meta tiene como máximo una línea. */
+export interface LineaPlan {
+  id: string;
+  metaId: string;
+  producto: CopiaProducto;
+}
+
+/** Lo aplicado no es un estado del plan: se registra en la fase 4 como aplicaciones vinculadas. */
+export type EstadoPlan = 'propuesta' | 'revisado' | 'aprobado';
+
+export interface CambioEstadoPlan {
+  estado: EstadoPlan;
+  /** Fecha y hora ISO del cambio. */
+  fecha: string;
+  /** Nombre escrito por el usuario; la app no verifica identidades ni certifica aprobaciones técnicas. */
+  responsable?: string;
+  nota?: string;
+}
 
 export interface PlanFertilizacion {
   id: string;
   loteId: string;
-  producto: string;
-  objetivoNutrienteKgHa?: number;
-  fuenteObjetivo?: string;
-  dosisKgHa?: number;
-  precioCopKg?: number;
-  estado: 'borrador' | 'revisado' | 'aprobado';
+  nombre: string;
+  /** Copia del área del lote al crear el plan; conserva la trazabilidad como en los análisis. */
+  areaM2AlCrear: number;
+  /** Solo contexto: el análisis de suelo no entra en ningún cálculo del plan. */
+  analisisReferenciaId?: string;
+  /** Plan del que se copió (p. ej. para cambiar uno aprobado). */
+  planOrigenId?: string;
+  metas: MetaNutrimental[];
+  lineas: LineaPlan[];
+  estado: EstadoPlan;
+  historial: CambioEstadoPlan[];
   createdAt: string;
+  updatedAt: string;
 }
 
+/**
+ * Plan leído y verificado. Las metas y líneas dañadas se excluyen y se describen en `problemas`;
+ * un plan con problemas solo se consulta (no se edita, no cambia de estado ni se copia).
+ */
+export interface PlanVerificado {
+  id: string;
+  loteId: string;
+  nombre?: string;
+  areaM2AlCrear?: number;
+  analisisReferenciaId?: string;
+  planOrigenId?: string;
+  metas: MetaNutrimental[];
+  lineas: LineaPlan[];
+  estado?: EstadoPlan;
+  historial: CambioEstadoPlan[];
+  createdAt?: string;
+  updatedAt?: string;
+  problemas: ProblemaDato[];
+  camposAdicionales: string[];
+}
+
+/** Estructura reservada para la fase 4 (monitoreo). */
 export interface RegistroMonitoreo {
   id: string;
   loteId: string;

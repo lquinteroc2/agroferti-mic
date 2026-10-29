@@ -2,7 +2,7 @@
 
 Aplicación web progresiva (PWA) **multicultivo** para preparar el cálculo, la explicación y el monitoreo de fertilización, empezando por **papa** como cultivo piloto.
 
-## Estado actual: fase 2 / suelo y conversiones
+## Estado actual: fase 3 en curso / fertilizantes y plan (modelo listo, sin interfaz)
 
 **Fase 1 (lotes)**
 ✅ Registro de lotes: crear, editar, eliminar y consultar.
@@ -23,9 +23,19 @@ Aplicación web progresiva (PWA) **multicultivo** para preparar el cálculo, la 
 ✅ Registros antiguos o dañados (null, NaN, arrays dispersos, estructuras inesperadas) se muestran con advertencia y su valor original; solo se suspenden los cálculos afectados. Consultar no modifica los registros.
 ✅ Editar un registro dañado no borra nada en silencio: cada dato dañado se precarga para corregirlo y exige una confirmación expresa (corregir, o descartar si se deja vacío). Sin todas las confirmaciones no se guarda; el original queda intacto hasta que el guardado validado termina. Los campos de otras versiones se conservan.
 ✅ Validación doble: en el formulario y otra vez antes de escribir en IndexedDB (lote existente, análisis del mismo lote, solo campos admitidos).
-✅ 60 pruebas automáticas (cálculos, validación del área y del análisis, catálogo, registros dañados, arrays dispersos, precisión numérica, desbordamientos y persistencia).
+✅ 60 pruebas automáticas al cierre (cálculos, validación del área y del análisis, catálogo, registros dañados, arrays dispersos, precisión numérica, desbordamientos y persistencia).
 
-**No implementado aún:** planes de fertilización, catálogo de productos NPK, historial de aplicaciones, reportes PDF y respaldo de información. Se desarrollarán por fases.
+**Fase 3 (fertilizantes y plan) — 3a: modelo, cálculos y persistencia, todavía sin interfaz**
+✅ Catálogo de productos común a todos los lotes, según la etiqueta: contenido declarado por forma química (p. ej. P₂O₅ 46 %), kg y precio del bulto con su fecha, y marca **EJEMPLO** para datos ficticios.
+✅ Plan por lote con metas escritas por el usuario (nutriente, forma química, kg/ha, **fuente técnica y fecha obligatorias**) y una línea de producto por meta. La app no propone metas, productos ni dosis, y el análisis de suelo no entra en ningún cálculo.
+✅ Cantidad (kg/ha y kg en el lote), precio por kg, costo, bultos exactos y aportes acompañantes (p. ej. el N del DAP). Resumen por forma química: meta frente a la suma de aportes, sin ajustar nada.
+✅ **Sin conversiones químicas:** solo se calcula si la forma de la meta coincide con la de la etiqueta. Si la meta está en P y la etiqueta en P₂O₅, no se calcula y se explica por qué.
+✅ Estados propuesta → revisado → aprobado, con historial (fecha, nombre escrito por el usuario y nota). Un plan aprobado es de solo lectura y no se elimina; para cambiarlo se copia como nueva propuesta. Lo aplicado se registrará en la fase 4.
+✅ Trazabilidad: el plan guarda el área del lote al crearse y una copia de cada producto; editar o borrar el producto del catálogo no altera los planes.
+✅ Base de datos versión 2 (`db.version(2)`): solo agrega la tabla `productos`. Verificado con Dexie real que una base de la versión 1 se abre sin cambiar lotes ni análisis.
+✅ 89 pruebas automáticas en total.
+
+**No implementado aún:** interfaz del catálogo de productos (3b), del plan con explicación paso a paso (3c) y de los cambios de estado (3d); historial de aplicaciones, reportes PDF y respaldo de información.
 
 ## Requisitos
 
@@ -99,9 +109,11 @@ agroferti-mic/
 │  │  ├─ validacion.ts          # Validaciones puras y verificación de registros guardados
 │  │  ├─ catalogoNutrientes.ts  # Notación química elemento/forma (sin conversiones)
 │  │  ├─ repositorioAnalisis.ts # Reglas de persistencia, comprobables sin IndexedDB
+│  │  ├─ validacionPlan.ts      # Fase 3: validación de productos, planes y cambios de estado
+│  │  ├─ repositorioPlanes.ts   # Fase 3: persistencia del catálogo y de los planes
 │  │  ├─ formato.ts             # Números y fechas en es-CO
-│  │  └─ db.ts                  # IndexedDB mediante Dexie (esquema v1)
-│  ├─ types.ts           # Modelo de lotes, análisis y datos futuros
+│  │  └─ db.ts                  # IndexedDB mediante Dexie (esquema v2)
+│  ├─ types.ts           # Modelo de lotes, análisis, productos y planes
 │  ├─ App.tsx            # Navegación e interfaz principal
 │  ├─ main.tsx
 │  └─ styles.css
@@ -110,7 +122,9 @@ agroferti-mic/
 │  ├─ lote.test.ts         # Área del lote: decimales y escrituras ambiguas
 │  ├─ suelo.test.ts        # Validación, catálogo, registros dañados, desbordamientos
 │  ├─ robustez.test.ts     # Precisión al editar, arrays dispersos, estructuras inesperadas
-│  └─ persistencia.test.ts # Crear, leer, editar, eliminar y aislamiento entre lotes
+│  ├─ persistencia.test.ts # Crear, leer, editar, eliminar y aislamiento entre lotes
+│  ├─ plan.test.ts         # Fase 3: cálculos del plan, formas químicas, validación y estados
+│  └─ persistenciaPlan.test.ts # Fase 3: catálogo, planes, estados, copias y trazabilidad
 ├─ vite.config.ts        # Configuración de PWA
 ├─ tsconfig.json
 └─ package.json
@@ -135,8 +149,12 @@ agroferti-mic/
 1. `hectáreas = área_m² / 10.000`.
 2. `masa_kg/ha = 10.000 × profundidad_m × densidad_kg/m³`.
 3. `equivalencia_kg/ha = concentración_mg/kg × masa_kg/ha / 1.000.000`.
-4. `producto_kg/ha = meta_validada_kg/ha / (contenido_porcentual / 100)`.
-5. `costo_COP = kg_de_producto × COP_por_kg`.
+4. `producto_kg/ha = meta_validada_kg/ha / (contenido_porcentual / 100)`, solo si la forma química de la meta y la de la etiqueta coinciden.
+5. `producto_kg_lote = producto_kg/ha × área_m² / 10.000` (área guardada con el plan).
+6. `COP_por_kg = precio_bulto_COP / kg_por_bulto`.
+7. `costo_COP = kg_de_producto × COP_por_kg`.
+8. `bultos = kg_de_producto / kg_por_bulto` (exacto; redondear lo decide el productor).
+9. `aporte_kg/ha = producto_kg/ha × contenido_porcentual / 100`, para cada forma declarada en la etiqueta.
 
 **Advertencia esencial:** la equivalencia calculada a partir de un resultado de laboratorio expresado en mg/kg **NO determina la disponibilidad para la planta ni la dosis de fertilización**. El plan exige que el usuario suministre una meta nutricional justificada y respaldada por una fuente técnica. No deben copiarse dosis entre cultivos.
 
@@ -197,6 +215,15 @@ No inventar resultados de campo. Etiquetar todos los datos simulados como **EJEM
 - El recorrido en navegador se ejecutó con un script temporal fuera del repositorio; las pruebas manuales equivalentes están en "Pruebas manuales en navegador (fase 2)".
 - Pendiente opcional: probar en un teléfono Android real (teclado y selectores nativos).
 
-## Próximo PR: fase 3
+## Limitaciones conocidas de la fase 3a
 
-Fertilizantes y plan: N-P₂O₅-K₂O, meta técnicamente validada (con fuente y fecha), cantidad y costo con trazabilidad. Lee primero `AGENTS.md`. No implementar recomendaciones agronómicas universales.
+- Todavía no hay interfaz: el modelo se prueba con 29 pruebas automáticas y con una verificación de la migración en Dexie real hecha fuera del repositorio.
+- Cada meta se cubre con un solo producto. Repartir una meta entre varios productos (p. ej. parte del N con DAP y el resto con urea) queda para después; se puede agregar como campo opcional sin migrar datos.
+- Los aportes acompañantes se suman en el resumen, pero no reducen la cantidad de otros productos.
+- El nombre de quien revisa o aprueba lo escribe el usuario: la app no verifica identidades ni certifica aprobaciones técnicas.
+- Un plan guardado con datos dañados solo se consulta o se elimina (si no está aprobado); no se edita, no cambia de estado ni se copia.
+- Los campos de otras versiones se conservan en el primer nivel del plan y del producto; dentro de metas, líneas y contenido se descartan al editar.
+
+## Próximo PR: fase 3b
+
+Interfaz del catálogo de productos (crear, editar, eliminar con confirmación y marca EJEMPLO), con las validaciones de `validacionPlan.ts`. Lee primero `AGENTS.md`. No precargar productos reales ni dosis.
