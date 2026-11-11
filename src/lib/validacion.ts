@@ -275,7 +275,7 @@ export function validarNutriente(fila: EntradaNutriente): Resultado<NutrienteRep
   if (!nombres.ok) return nombres;
   const { elemento, forma } = nombres.valor;
   if (!esUnidadValida(fila.unidad)) return { ok: false, error: 'Unidad no válida: usa mg/kg o cmol(+)/kg.' };
-  const valor = validarNumero(fila.valor, { campo: 'Valor', requerido: true });
+  const valor = validarNumeroSinAmbiguedad(fila.valor, { campo: 'Valor', requerido: true });
   if (!valor.ok) return valor;
   return { ok: true, valor: { elemento, forma, valor: valor.valor as number, unidad: fila.unidad } };
 }
@@ -287,7 +287,7 @@ export function validarAnalisis(
   const errores: ErroresAnalisis = {};
   const fecha = validarFechaAnalisis(entrada.fechaAnalisis, hoy);
   if (!fecha.ok) errores.fechaAnalisis = fecha.error;
-  const profundidad = validarNumero(entrada.profundidadCm, { campo: 'Profundidad', requerido: true, positivo: true });
+  const profundidad = validarNumeroSinAmbiguedad(entrada.profundidadCm, { campo: 'Profundidad', requerido: true, positivo: true });
   if (!profundidad.ok) errores.profundidadCm = profundidad.error;
   const densidad = validarNumero(entrada.densidadGcm3, { campo: 'Densidad aparente', positivo: true });
   if (!densidad.ok) errores.densidadGcm3 = densidad.error;

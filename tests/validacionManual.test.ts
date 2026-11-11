@@ -8,7 +8,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { avancePlan, calcularPlan, costoRegistrado, equivalenciasAnalisis, type EntradaPlan, type ResultadoLineaPlan } from '../src/lib/calculos.ts';
 import { formatearDiferencia, formatearExacto, formatearResultado, textoCostoRegistrado } from '../src/lib/formato.ts';
-import { validarAnalisis, validarAreaLote, type EntradaAnalisis } from '../src/lib/validacion.ts';
+import { numeroSinAmbiguedad, validarAnalisis, validarAreaLote, validarNutriente, type EntradaAnalisis } from '../src/lib/validacion.ts';
 import { validarMetaFormulario, type EntradaMeta } from '../src/lib/validacionPlan.ts';
 import { validarAplicacionFormulario, type EntradaAplicacion } from '../src/lib/validacionSeguimiento.ts';
 import type { CopiaProducto, MetaNutrimental } from '../src/types.ts';
@@ -276,6 +276,25 @@ test('Límite L4: "1.500" ambiguo se rechaza en área, meta y kg aplicados', () 
   const aplicacion: EntradaAplicacion = { fecha: '2026-11-10', cantidadKg: '1.500', costoCop: '', responsable: '', nota: '', origen: 'ejemplo' };
   const r = validarAplicacionFormulario(aplicacion, { planId: 'p', lineaId: 'l', productoNombre: 'DAP EJEMPLO' }, HOY);
   assert.ok(!r.ok && /dos formas/.test(r.errores.cantidadKg ?? ''));
+});
+
+test('Límite L7: "1.500" en el valor del laboratorio o en la profundidad se rechaza; editar no lo vuelve ambiguo', () => {
+  const nutriente = (valor: string) => ({ elemento: 'Hierro', forma: 'Fe', elementoLibre: false, formaLibre: false, valor, unidad: 'mg/kg' as const });
+  for (const escrito of ['1.500', '1,500']) {
+    const r = validarNutriente(nutriente(escrito));
+    assert.ok(!r.ok && /dos formas/.test(r.error), `valor ${escrito}`);
+  }
+  assert.ok(validarNutriente(nutriente('1500')).ok);
+  assert.ok(validarNutriente(nutriente('0,500')).ok, '0,500 no es ambiguo');
+  assert.ok(validarNutriente(nutriente('12,5')).ok);
+  // Un valor guardado como 1,125 se precarga como "1,1250": se vuelve a guardar igual, sin rechazo.
+  assert.equal(numeroSinAmbiguedad(1.125), '1,1250');
+  const editado = validarNutriente(nutriente(numeroSinAmbiguedad(1.125)));
+  assert.ok(editado.ok && editado.valor.valor === 1.125);
+  const analisis = validarAnalisis({
+    fechaAnalisis: '2026-11-01', profundidadCm: '1.000', densidadGcm3: '', ph: '', laboratorio: '', metodoLaboratorio: '', observaciones: '', nutrientes: []
+  }, HOY);
+  assert.ok(!analisis.ok && /dos formas/.test(analisis.errores.profundidadCm ?? ''));
 });
 
 test('Límite L5: fechas futuras se rechazan (análisis, fuente de la meta y aplicación)', () => {

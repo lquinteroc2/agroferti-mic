@@ -214,7 +214,7 @@ La diferencia del N es solo aritmética: la app no dice si sobra o falta agronó
 | L4 | Área `1.500`, meta `1.200`, kg aplicados `1.500`, precio `150.000`. | Rechazo: "se puede leer de dos formas. Escribe 1500…". |
 | L5 | **Fecha futura** en el análisis, la fuente de la meta, el precio o una aplicación. | Rechazo: "no puede ser una fecha futura". |
 | L6 | Meta **sin fuente** o **sin fecha** de la fuente. | Rechazo en el formulario; sin fuente no se calcula nada. |
-| L7 | Valor de laboratorio escrito `1.500` mg/kg (p. ej. Hierro). | **Observar y anotar.** Hoy el formulario del análisis lo acepta y lo guarda como **1,5** (lee el punto como decimal), a diferencia de los otros campos, que rechazan `1.500`. Verificar en el detalle del análisis qué valor quedó y anotar el resultado en el registro de discrepancias para que el equipo decida. Mientras tanto: **escribe los valores del laboratorio sin punto de miles** (`1500`). |
+| L7 | Valor de laboratorio escrito `1.500` mg/kg (p. ej. Hierro) o profundidad `1.000` cm. | Rechazo: "se puede leer de dos formas. Escribe 1500…". (Corregido el 11 de noviembre de 2026: antes se guardaba como 1,5.) Escribe los valores del laboratorio sin punto de miles (`1500`). |
 
 ---
 

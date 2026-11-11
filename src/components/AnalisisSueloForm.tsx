@@ -1,11 +1,12 @@
 import { useState, type FormEvent } from 'react';
 import { CATALOGO_NUTRIENTES, OPCION_OTRO, buscarElemento } from '../lib/catalogoNutrientes';
-import { formatearNumero, numeroATexto } from '../lib/formato';
+import { formatearNumero } from '../lib/formato';
 import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import {
   UNIDADES_NUTRIENTE,
   fechaLocalISO,
   filaNutrienteVacia,
+  numeroSinAmbiguedad,
   validarAnalisis,
   type DatosAnalisis,
   type EntradaAnalisis,
@@ -45,7 +46,7 @@ function filaDesdeGuardado(n: NutrienteLeido, origen: number): FilaNutriente {
     clave: siguienteClave++,
     origen,
     existente: true,
-    valor: n.valor !== undefined ? numeroATexto(n.valor) : n.valorTexto ?? '',
+    valor: n.valor !== undefined ? numeroSinAmbiguedad(n.valor) : n.valorTexto ?? '',
     unidad: n.unidad ?? '',
     aviso: [n.problema, n.advertencia].filter(Boolean).join(' ') || undefined
   };
@@ -56,7 +57,7 @@ function filaDesdeGuardado(n: NutrienteLeido, origen: number): FilaNutriente {
 function entradaInicial(inicial?: AnalisisVerificado): EntradaFormulario {
   // Un dato inválido se precarga con su texto original para corregirlo, no se vacía en silencio.
   const original = (campo: string) => inicial?.problemas.find(p => p.campo === campo)?.textoEditable ?? '';
-  const numero = (campo: CampoSimple, valor?: number) => (valor !== undefined ? numeroATexto(valor) : original(campo));
+  const numero = (campo: CampoSimple, valor?: number) => (valor !== undefined ? numeroSinAmbiguedad(valor) : original(campo));
   const texto = (campo: CampoSimple, valor?: string) => valor ?? original(campo);
   return {
     fechaAnalisis: inicial ? texto('fechaAnalisis', inicial.fechaAnalisis) : fechaLocalISO(),
@@ -194,13 +195,13 @@ export function AnalisisSueloForm({ inicial, areaActualM2, onGuardar, onCancelar
             {avisoCampo('profundidadCm')}
             {errores.profundidadCm && <span id="err-prof" className="field-error">{errores.profundidadCm}</span>}
           </label>
-          <label>Densidad aparente (g/cm³), opcional
+          <label>Densidad aparente (g/cm³)
             <input inputMode="decimal" value={entrada.densidadGcm3} onChange={e => cambiar('densidadGcm3', e.target.value)} placeholder="Ej. 1,2" {...errorProps('err-dens', errores.densidadGcm3)} />
             <small>Sin este dato no se calculan equivalencias en kg/ha. No se usa ningún valor supuesto.</small>
             {avisoCampo('densidadGcm3')}
             {errores.densidadGcm3 && <span id="err-dens" className="field-error">{errores.densidadGcm3}</span>}
           </label>
-          <label>pH del suelo, opcional
+          <label>pH del suelo
             <input inputMode="decimal" value={entrada.ph} onChange={e => cambiar('ph', e.target.value)} placeholder="Entre 0 y 14" {...errorProps('err-ph', errores.ph)} />
             {avisoCampo('ph')}
             {errores.ph && <span id="err-ph" className="field-error">{errores.ph}</span>}
@@ -295,7 +296,7 @@ export function AnalisisSueloForm({ inicial, areaActualM2, onGuardar, onCancelar
       </fieldset>
 
       <div className="fields">
-        <label className="full">Observaciones del productor, opcional
+        <label className="full">Observaciones del productor
           <textarea value={entrada.observaciones} onChange={e => cambiar('observaciones', e.target.value)} maxLength={500} rows={3} placeholder="Ej. Muestra tomada después de la cosecha anterior" />
           {avisoCampo('observaciones')}
         </label>
