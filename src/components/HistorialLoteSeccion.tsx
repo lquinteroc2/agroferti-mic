@@ -87,7 +87,7 @@ function CierreForm({ lote, ultimoCierre, onGuardar, onCancelar }: {
           </select>
           {error('motivo')}
         </label>
-        <label className="full">Resultado y notas, opcional
+        <label className="full">Resultado y notas
           <textarea value={entrada.notas} onChange={e => cambiar('notas', e.target.value)} maxLength={MAX_NOTAS_CICLO} rows={3} placeholder="Ej. Se cosecharon 40 bultos; hubo heladas en floración" aria-invalid={!!errores.notas} />
           <small>Lo escribes tú: la app no calcula rendimientos ni los interpreta.</small>
           {error('notas')}
@@ -105,7 +105,7 @@ function CierreForm({ lote, ultimoCierre, onGuardar, onCancelar }: {
             {CULTIVOS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
           </select>
         </label>
-        <label>Siembra del nuevo cultivo, opcional
+        <label>Siembra del nuevo cultivo
           <input type="date" value={entrada.nuevaFechaSiembra} min={entrada.fechaCierre || undefined} onChange={e => cambiar('nuevaFechaSiembra', e.target.value)} aria-invalid={!!errores.nuevaFechaSiembra} />
           {error('nuevaFechaSiembra')}
         </label>
@@ -159,7 +159,7 @@ function NotasForm({ ciclo, onGuardar, onCancelar }: {
             <option value="ejemplo">EJEMPLO (ficticio)</option>
           </select>
         </label>
-        <label className="full">Resultado y notas, opcional
+        <label className="full">Resultado y notas
           <textarea value={notas} onChange={e => { setNotas(e.target.value); setError([]); }} maxLength={MAX_NOTAS_CICLO} rows={3} />
         </label>
       </div>

@@ -152,7 +152,7 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
             <input value={entrada.nombre} onChange={e => { setEntrada(x => ({ ...x, nombre: e.target.value })); corregido('nombre'); }} maxLength={80} placeholder="Ej. Siembra 2026-B" aria-invalid={!!errores.nombre} aria-describedby={errores.nombre ? 'err-nombre-plan' : undefined} />
             {errores.nombre && <span id="err-nombre-plan" className="field-error">{errores.nombre}</span>}
           </label>
-          <label>Análisis de suelo de referencia, opcional
+          <label>Análisis de suelo de referencia
             <select value={entrada.analisisReferenciaId} onChange={e => setEntrada(x => ({ ...x, analisisReferenciaId: e.target.value }))}>
               <option value="">Ninguno</option>
               {analisis.filter(a => a.problemas.length === 0 || a.id === entrada.analisisReferenciaId).map(a =>
@@ -161,7 +161,7 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
             <small>Solo como contexto: el análisis no entra en ningún cálculo del plan.</small>
             {referenciaPerdida && <span className="field-warning">El análisis que este plan tenía como referencia ya no existe. Al guardar, el plan quedará sin referencia.</span>}
           </label>
-          {!inicial && <label>Elaborado por, opcional
+          {!inicial && <label>Elaborado por
             <input value={responsable} onChange={e => setResponsable(e.target.value)} maxLength={80} placeholder="Nombre de quien prepara la propuesta" />
           </label>}
         </div>

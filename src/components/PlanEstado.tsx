@@ -131,7 +131,7 @@ export function PlanEstado({ plan, calculo, onCambiarEstado, onCopiar }: Props) 
           <label>Nombre de quien registra el cambio <span className="required" aria-hidden="true">*</span>
             <input value={responsable} onChange={e => { setResponsable(e.target.value); setErrores([]); }} maxLength={80} placeholder="Nombre y rol, p. ej. agrónomo" autoFocus />
           </label>
-          <label>Nota, opcional
+          <label>Nota
             <input value={nota} onChange={e => setNota(e.target.value)} maxLength={200} placeholder={ACCIONES[accion].nota} />
           </label>
         </div>

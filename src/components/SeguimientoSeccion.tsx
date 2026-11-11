@@ -153,7 +153,7 @@ function RegistroForm({ clase, inicial, onGuardar, onCancelar }: {
             {error('fechaRealizada')}
           </label>}
         </>}
-        <label>Responsable, opcional
+        <label>Responsable
           <input value={entrada.responsable} onChange={e => cambiar('responsable', e.target.value)} maxLength={MAX_RESPONSABLE} placeholder="Quién lo registra" aria-invalid={!!errores.responsable} />
           {error('responsable')}
         </label>

@@ -71,10 +71,10 @@ export function LoteForm({ inicial, onGuardar, onCancelar }: Props) {
             ? `Se guardará como ${formatearExacto(lecturaArea.valor)} m² (${formatearNumero(areaM2AHa(lecturaArea.valor), 4)} ha).`
             : 'Sin punto de miles (1500, no 1.500); usa coma para decimales. 1 hectárea = 10.000 m².'}</small>
         </label>
-        <label>Fecha de siembra (opcional)
+        <label>Fecha de siembra
           <input type="date" value={fecha} onChange={e => setFecha(e.target.value)} />
         </label>
-        <label className="full">Ubicación o referencia (opcional)
+        <label className="full">Ubicación o referencia
           <input value={ubicacion} onChange={e => setUbicacion(e.target.value)} maxLength={140} placeholder="Ej. Vereda, invernadero o sector" />
         </label>
       </div>

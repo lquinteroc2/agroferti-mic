@@ -97,7 +97,7 @@ Aplicación web progresiva (PWA) **multicultivo** para preparar el cálculo, la 
 ✅ Fechas validadas: el cierre no es futuro, no es anterior a la siembra del cultivo que se cierra ni al cierre anterior, y la nueva siembra no es anterior al cierre. El cierre se guarda en una sola transacción (ciclo y lote juntos).
 ✅ En un ciclo cerrado se corrigen cómo terminó, las notas y el origen; el cultivo y las fechas no se editan (ordenan el historial): si están mal, se quita el ciclo y se cierra de nuevo. Quitar un ciclo no cambia el lote ni borra registros. Los ciclos con datos dañados se muestran con su valor original y solo se pueden quitar.
 ✅ Base de datos versión 3 (`db.version(3)`): solo agrega la tabla `ciclos`. La copia de seguridad incluye los ciclos (dependen de su lote) y las copias anteriores, sin ciclos, se siguen restaurando. Eliminar un lote elimina sus ciclos.
-✅ 174 pruebas automáticas (10 del historial, más 15 de la validación manual de la fase 6). Recorrido en Edge headless: 23 comprobaciones, incluida la migración de una base v2 con datos previos, el cierre, la edición de notas, la recarga, el ancho de teléfono (390 px) y la eliminación del lote.
+✅ 174 pruebas automáticas al cerrar el historial (10 del historial, más 15 de la validación manual de la fase 6). Recorrido en Edge headless: 23 comprobaciones, incluida la migración de una base v2 con datos previos, el cierre, la edición de notas, la recarga, el ancho de teléfono (390 px) y la eliminación del lote.
 
 **Fase 6 (validación) — kit preparado, falta ejecutarlo con datos reales**
 ✅ Protocolo en [`docs/VALIDACION_FASE6.md`](./docs/VALIDACION_FASE6.md): roles, datos reales que reunir, carga en la app publicada, fórmulas, dos casos completos de EJEMPLO calculados a mano (papa y arveja), casos límite, registro de discrepancias y pruebas en un Android real.
@@ -366,9 +366,10 @@ No inventar resultados de campo. Etiquetar todos los datos simulados como **EJEM
 
 ## Para retomar (estado al 11 de noviembre de 2026)
 
-- Historial del lote (ciclos de cultivo) terminado a pedido del instructor: 174 pruebas, build correcto y recorrido en Edge headless (23 comprobaciones). Falta publicarlo y que Codex lo revise.
+- Historial del lote (ciclos de cultivo) terminado a pedido del instructor: 175 pruebas al día de hoy, build correcto y recorrido en Edge headless (23 comprobaciones). Falta publicarlo y que Codex lo revise.
 - Kit de la fase 6 listo en `docs/`. Falta que el equipo consiga datos reales y llene la hoja de comparación.
-- Observado al preparar la fase 6 (sin corregir, decisión pendiente): en el análisis de suelo, un valor de nutriente escrito `1.500` se guarda como 1,5 (el punto se lee como decimal), a diferencia del área, las metas y los kg, que rechazan esa escritura ambigua. Está como caso L7 en el protocolo.
+- Corregido al preparar la fase 6: en el análisis de suelo, el valor de un nutriente o la profundidad escritos `1.500` se guardaban como 1,5. Ahora se rechazan como en el área, las metas y los kg, y se pide `1500` (caso L7 del protocolo).
+- Los formularios ya no dicen "opcional" junto a los campos que se pueden dejar vacíos (pedido del equipo).
 - Si trabajas en otro equipo, haz `git pull` antes de empezar: el 11 de noviembre la copia local estaba 23 commits atrás.
 
 ## Estado al 29 de octubre de 2026

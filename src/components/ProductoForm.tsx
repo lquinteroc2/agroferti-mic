@@ -254,7 +254,7 @@ export function ProductoForm({ inicial, onGuardar, onCancelar }: Props) {
       </fieldset>
 
       <fieldset className="form-group">
-        <legend>Presentación y precio, opcional</legend>
+        <legend>Presentación y precio</legend>
         <p className="hint">Escribe los números sin punto de miles: <strong>150000</strong>, no 150.000. Si registras el precio, también se piden los kg del bulto y la fecha del precio, porque los precios cambian.</p>
         <div className="fields">
           <label>Kg por bulto

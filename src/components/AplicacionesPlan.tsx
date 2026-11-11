@@ -91,7 +91,7 @@ function AplicacionForm({ linea, planId, inicial, onGuardar, onCancelar }: {
           <input inputMode="decimal" value={entrada.cantidadKg} onChange={e => cambiar('cantidadKg', e.target.value)} placeholder="Ej. 5 o 3,5" aria-invalid={!!errores.cantidadKg} />
           {error('cantidadKg')}
         </label>
-        <label>Costo real (COP), opcional
+        <label>Costo real (COP)
           <input inputMode="decimal" value={entrada.costoCop} onChange={e => cambiar('costoCop', e.target.value)} placeholder="Lo que costó, ej. 15000" aria-invalid={!!errores.costoCop} />
           {error('costoCop')}
         </label>
@@ -103,10 +103,10 @@ function AplicacionForm({ linea, planId, inicial, onGuardar, onCancelar }: {
           </select>
           {error('origen')}
         </label>
-        <label>Responsable, opcional
+        <label>Responsable
           <input value={entrada.responsable} onChange={e => cambiar('responsable', e.target.value)} maxLength={80} placeholder="Quién aplicó" />
         </label>
-        <label>Nota, opcional
+        <label>Nota
           <input value={entrada.nota} onChange={e => cambiar('nota', e.target.value)} maxLength={200} placeholder="Ej. Primera fracción, a la siembra" />
         </label>
       </div>
