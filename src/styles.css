@@ -179,3 +179,15 @@
   .informe-recomendacion{background:white}
   .badge,.informe-aviso-ejemplo{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
+
+/* Historial del lote */
+.historial-lista{display:grid;gap:10px}
+.historial-ciclo{background:white;border:1px solid #e0e7dd;border-radius:12px;padding:14px 16px;font-size:.88rem;color:#344d3e}
+.historial-ciclo.historial-actual{border-color:#b9d6af;background:#f7fbf5}
+.historial-ciclo>summary{cursor:pointer;display:flex;flex-direction:column;gap:4px;list-style-position:outside}
+.historial-ciclo>summary>span:last-child{color:#738479}
+.historial-ciclo[open]>summary{margin-bottom:12px}
+.historial-contenido{display:grid;gap:12px}
+.historial-contenido h4{margin:0 0 4px;font-size:.86rem;color:#2e5236}
+.historial-contenido ul{margin:0;padding-left:18px;display:grid;gap:3px}
+.historial-ciclo .registro-acciones{margin-top:12px}

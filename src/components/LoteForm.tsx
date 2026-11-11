@@ -63,6 +63,7 @@ export function LoteForm({ inicial, onGuardar, onCancelar }: Props) {
           <select value={cultivo} onChange={e => setCultivo(e.target.value as Cultivo)}>
             {CULTIVOS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
           </select>
+          {inicial && <small>Para cambiar de cultivo sin perder el anterior, usa «Cerrar ciclo y empezar otro cultivo» en el historial del lote.</small>}
         </label>
         <label>Área del lote en m² <span className="required">*</span>
           <input inputMode="decimal" value={area} onChange={e => { setArea(e.target.value); setError(''); }} placeholder="Ej. 500 o 1500,5" required />

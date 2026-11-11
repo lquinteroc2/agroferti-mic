@@ -276,3 +276,44 @@ export interface RegistroVerificado {
   problemas: ProblemaDato[];
   camposAdicionales: string[];
 }
+
+/** Cómo terminó un ciclo de cultivo; lo indica el usuario. */
+export type MotivoCierre = 'cosechado' | 'perdido' | 'otro';
+
+export const MOTIVOS_CIERRE: ReadonlyArray<{ value: MotivoCierre; label: string }> = [
+  { value: 'cosechado', label: 'Se cosechó' },
+  { value: 'perdido', label: 'Se perdió el cultivo' },
+  { value: 'otro', label: 'Otro motivo' }
+];
+
+/**
+ * Historial del lote: un cultivo anterior, guardado al cerrar su ciclo. Copia el cultivo, la siembra
+ * y el área que tenía el lote; los análisis, planes y registros no se mueven ni se modifican.
+ */
+export interface CicloCultivo {
+  id: string;
+  loteId: string;
+  cultivo: Cultivo;
+  fechaSiembra?: string;
+  /** AAAA-MM-DD, no futura. Los registros con fecha hasta este día (inclusive) pertenecen al ciclo. */
+  fechaCierre: string;
+  /** Copia del área del lote al cerrar el ciclo. */
+  areaM2: number;
+  motivo: MotivoCierre;
+  /** Resultado y notas escritos por el usuario (p. ej. lo cosechado); la app no los interpreta. */
+  notas?: string;
+  /** Dato ficticio: la interfaz debe mostrar "EJEMPLO". */
+  esEjemplo: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Ciclo leído y verificado. `ciclo` falta si tiene datos dañados; entonces no agrupa registros. */
+export interface CicloVerificado {
+  id: string;
+  loteId: string;
+  ciclo?: CicloCultivo;
+  /** Fecha de cierre, si es válida, para ordenar aunque otros datos estén dañados. */
+  fechaCierre?: string;
+  problemas: ProblemaDato[];
+}

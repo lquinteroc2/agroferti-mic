@@ -33,11 +33,11 @@ const producto = (id: string) => ({ id, nombre: `Producto ${id} EJEMPLO`, conten
 const plan = (id: string, loteId: string) => ({ id, loteId, nombre: 'Plan EJEMPLO', estado: 'propuesta', metas: [], lineas: [], historial: [] });
 
 const tablas = (cambios: Partial<TablasRespaldo> = {}): TablasRespaldo => ({
-  lotes: [lote('l1')], analisisSuelos: [analisis('a1', 'l1')], productos: [producto('p1')], planes: [plan('pl1', 'l1')], registros: [], ...cambios
+  lotes: [lote('l1')], analisisSuelos: [analisis('a1', 'l1')], productos: [producto('p1')], planes: [plan('pl1', 'l1')], registros: [], ciclos: [], ...cambios
 });
 const sinIds = (): IdsExistentes => ({ lotes: new Set(), analisisSuelos: new Set(), productos: new Set(), planes: new Set(), registros: new Set() });
 
-function crearAlmacen(inicial: TablasRespaldo = { lotes: [], analisisSuelos: [], productos: [], planes: [], registros: [] }) {
+function crearAlmacen(inicial: TablasRespaldo = { lotes: [], analisisSuelos: [], productos: [], planes: [], registros: [], ciclos: [] }) {
   let datos = structuredClone(inicial);
   let fallarAlAgregar = false;
   const almacen: AlmacenRespaldo = {
@@ -98,7 +98,7 @@ test('leer: listas ausentes cuentan como vacías y las desconocidas se avisan', 
   const r = leerRespaldo(JSON.stringify({ formato: FORMATO_RESPALDO, version: 1, creado: 'x', datos: { lotes: [lote('l1')], cosechas: [] } }));
   assert.ok(r.ok);
   if (!r.ok) return;
-  assert.deepEqual(contar(r.respaldo.datos), { lotes: 1, analisisSuelos: 0, productos: 0, planes: 0, registros: 0 });
+  assert.deepEqual(contar(r.respaldo.datos), { lotes: 1, analisisSuelos: 0, productos: 0, planes: 0, registros: 0, ciclos: 0 });
   assert.match(r.avisos.join(' '), /no conoce y no se restaurarán \(cosechas\)/);
 });
 
@@ -143,7 +143,7 @@ test('restaurar en un dispositivo vacío reproduce la copia; repetirla no duplic
   if (!copia.ok) return;
   const destino = crearAlmacen();
   const previa = await destino.repo.previsualizar(copia.respaldo.datos);
-  assert.deepEqual(destino.datos(), { lotes: [], analisisSuelos: [], productos: [], planes: [], registros: [] }, 'previsualizar no escribe');
+  assert.deepEqual(destino.datos(), { lotes: [], analisisSuelos: [], productos: [], planes: [], registros: [], ciclos: [] }, 'previsualizar no escribe');
   assert.equal(resumenCantidades(contar(previa.agregar)), '1 lote, 1 análisis de suelo, 1 producto, 1 plan');
   await destino.repo.restaurar(copia.respaldo.datos);
   assert.deepEqual(destino.datos(), tablas());
@@ -155,7 +155,7 @@ test('restaurar en un dispositivo vacío reproduce la copia; repetirla no duplic
 
 test('restaurar nunca borra ni sobrescribe, y un error a mitad no deja cambios', async () => {
   const propio = { ...lote('l1'), nombre: 'Mi lote real' };
-  const destino = crearAlmacen({ lotes: [propio], analisisSuelos: [], productos: [], planes: [], registros: [] });
+  const destino = crearAlmacen({ lotes: [propio], analisisSuelos: [], productos: [], planes: [], registros: [], ciclos: [] });
   await destino.repo.restaurar(tablas({ lotes: [lote('l1'), lote('l2')] }));
   assert.equal((destino.datos().lotes[0] as { nombre: string }).nombre, 'Mi lote real', 'el registro propio no cambia');
   assert.equal(destino.datos().lotes.length, 2);
@@ -163,7 +163,7 @@ test('restaurar nunca borra ni sobrescribe, y un error a mitad no deja cambios',
   const conFallo = crearAlmacen();
   conFallo.fallar();
   await assert.rejects(conFallo.repo.restaurar(tablas()), /Almacenamiento lleno/);
-  assert.deepEqual(conFallo.datos(), { lotes: [], analisisSuelos: [], productos: [], planes: [], registros: [] }, 'o entra todo o no entra nada');
+  assert.deepEqual(conFallo.datos(), { lotes: [], analisisSuelos: [], productos: [], planes: [], registros: [], ciclos: [] }, 'o entra todo o no entra nada');
 });
 
 // ---- Revisión de la copia de seguridad ----

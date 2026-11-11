@@ -7,7 +7,7 @@ import { describirValor, esObjeto, fechaLocalISO, problemaLote } from './validac
 
 export const FORMATO_RESPALDO = 'agroferti-mic-respaldo';
 export const VERSION_RESPALDO = 1;
-export const TABLAS_RESPALDO = ['lotes', 'analisisSuelos', 'productos', 'planes', 'registros'] as const;
+export const TABLAS_RESPALDO = ['lotes', 'analisisSuelos', 'productos', 'planes', 'registros', 'ciclos'] as const;
 export type TablaRespaldo = typeof TABLAS_RESPALDO[number];
 export type TablasRespaldo = Record<TablaRespaldo, unknown[]>;
 
@@ -16,10 +16,11 @@ const NOMBRE_TABLA: Record<TablaRespaldo, [singular: string, plural: string]> = 
   analisisSuelos: ['análisis de suelo', 'análisis de suelo'],
   productos: ['producto', 'productos'],
   planes: ['plan', 'planes'],
-  registros: ['registro de seguimiento', 'registros de seguimiento']
+  registros: ['registro de seguimiento', 'registros de seguimiento'],
+  ciclos: ['ciclo de cultivo anterior', 'ciclos de cultivo anteriores']
 };
 /** Registros que pertenecen a un lote: sin su lote no se verían en la app. */
-const DEPENDEN_DE_LOTE: ReadonlyArray<TablaRespaldo> = ['analisisSuelos', 'planes', 'registros'];
+const DEPENDEN_DE_LOTE: ReadonlyArray<TablaRespaldo> = ['analisisSuelos', 'planes', 'registros', 'ciclos'];
 
 export interface Respaldo {
   formato: typeof FORMATO_RESPALDO;
@@ -31,7 +32,7 @@ export interface Respaldo {
   datos: TablasRespaldo;
 }
 
-const tablasVacias = (): TablasRespaldo => ({ lotes: [], analisisSuelos: [], productos: [], planes: [], registros: [] });
+const tablasVacias = (): TablasRespaldo => ({ lotes: [], analisisSuelos: [], productos: [], planes: [], registros: [], ciclos: [] });
 
 /** Los registros se copian tal como están guardados, incluidos los dañados y los campos de otras versiones. */
 export function crearRespaldo(datos: TablasRespaldo, { ahora = new Date(), esquema }: { ahora?: Date; esquema: number }): Respaldo {

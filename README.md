@@ -90,7 +90,20 @@ Aplicación web progresiva (PWA) **multicultivo** para preparar el cálculo, la 
 ✅ La recomendación es la del plan aprobado: sus metas vienen de la fuente técnica escrita por el usuario. La app no calcula dosis por su cuenta ni a partir del análisis de suelo. Sin plan aprobado, el informe lo dice y no incluye recomendación. Avisa si hay datos de EJEMPLO, planes aprobados con datos por corregir y aplicaciones que no se suman.
 ✅ 149 pruebas automáticas. Recorrido en Chrome: 117 comprobaciones, incluida la impresión a PDF. Una revisión de código del informe encontró 10 puntos; todos están corregidos.
 
-**No implementado aún:** validación con datos reales y comparación con cálculos manuales (fase 6).
+**Historial del lote (sección "Historial del lote" en la ficha; pedido del instructor)**
+✅ Ciclos de cultivo: al cosechar (o perder el cultivo), **"Cerrar ciclo y empezar otro cultivo"** guarda en el historial el cultivo actual con su siembra, la fecha de cierre, el área del lote, cómo terminó (se cosechó, se perdió, otro motivo), resultado y notas escritos por el productor (p. ej. lo cosechado) y la marca real/EJEMPLO. El lote sigue con el nuevo cultivo y, si se indica, su fecha de siembra.
+✅ El historial muestra el cultivo actual y cada cultivo anterior con su duración en días y lo registrado en su periodo: análisis de suelo, planes, aplicaciones, observaciones y tareas. Cada registro se ubica por su fecha (análisis: fecha del análisis; plan: día de creación; seguimiento: fecha o fecha prevista) entre el día siguiente al cierre anterior y su cierre, inclusive. Un análisis tomado antes de sembrar queda con el cultivo siguiente.
+✅ **No se mueve, borra ni modifica ningún registro:** los análisis, planes y registros siguen en sus secciones; el historial solo los agrupa al leerlos. La app no calcula rendimientos ni interpreta las notas.
+✅ Fechas validadas: el cierre no es futuro, no es anterior a la siembra del cultivo que se cierra ni al cierre anterior, y la nueva siembra no es anterior al cierre. El cierre se guarda en una sola transacción (ciclo y lote juntos).
+✅ En un ciclo cerrado se corrigen cómo terminó, las notas y el origen; el cultivo y las fechas no se editan (ordenan el historial): si están mal, se quita el ciclo y se cierra de nuevo. Quitar un ciclo no cambia el lote ni borra registros. Los ciclos con datos dañados se muestran con su valor original y solo se pueden quitar.
+✅ Base de datos versión 3 (`db.version(3)`): solo agrega la tabla `ciclos`. La copia de seguridad incluye los ciclos (dependen de su lote) y las copias anteriores, sin ciclos, se siguen restaurando. Eliminar un lote elimina sus ciclos.
+✅ 174 pruebas automáticas (10 del historial, más 15 de la validación manual de la fase 6). Recorrido en Edge headless: 23 comprobaciones, incluida la migración de una base v2 con datos previos, el cierre, la edición de notas, la recarga, el ancho de teléfono (390 px) y la eliminación del lote.
+
+**Fase 6 (validación) — kit preparado, falta ejecutarlo con datos reales**
+✅ Protocolo en [`docs/VALIDACION_FASE6.md`](./docs/VALIDACION_FASE6.md): roles, datos reales que reunir, carga en la app publicada, fórmulas, dos casos completos de EJEMPLO calculados a mano (papa y arveja), casos límite, registro de discrepancias y pruebas en un Android real.
+✅ Hoja para el equipo: [`docs/hoja-comparacion-fase6.csv`](./docs/hoja-comparacion-fase6.csv) (separador `;`, abre en Excel). Pruebas automáticas de los casos manuales en `tests/validacionManual.test.ts`.
+
+**No implementado aún:** la ejecución de la fase 6 con datos reales de papa y de otro cultivo.
 
 ## Requisitos
 
@@ -187,6 +200,15 @@ Las pruebas de persistencia (`tests/persistencia.test.ts`) usan un almacén en m
 3. Elige un archivo JSON que no sea una copia: debe rechazarlo.
 4. En otro navegador o en una ventana privada (o después de borrar los datos del sitio), restaura el archivo: revisa el resumen, pulsa **Agregar estos datos** y comprueba que vuelven los lotes, productos y planes con sus estados e historial.
 
+### Pruebas manuales en navegador (historial del lote)
+
+1. Abre un lote de papa con siembra registrada y algún análisis u observación. En **Historial del lote** debe verse solo "Cultivo actual", con esos registros.
+2. Pulsa **Cerrar ciclo y empezar otro cultivo** y guarda sin elegir nada: debe pedir cómo terminó y el origen del dato. Pon una fecha de cierre anterior a la siembra: debe rechazarla.
+3. Cierra con una fecha válida, "Se cosechó", notas de EJEMPLO, nuevo cultivo Arveja y su siembra. La ficha debe mostrar Arveja; el historial, el ciclo de papa con su duración, la marca EJEMPLO y, al abrirlo, sus análisis y observaciones. Esos registros siguen en sus secciones.
+4. Pulsa **Editar notas**, cambia el texto y recarga la página: el cambio debe seguir ahí.
+5. Intenta cerrar otro ciclo con una fecha anterior al cierre anterior: debe rechazarla.
+6. **Quitar del historial** pide confirmación y no cambia el cultivo actual ni borra registros.
+
 ## Inicio exclusivo desde terminal
 
 Consulta [INICIO_TERMINAL.md](./INICIO_TERMINAL.md) para instalar Node.js, Git, Claude Code y Codex CLI, y para trabajar desde varias pestañas de terminal sin un editor gráfico.
@@ -215,6 +237,7 @@ agroferti-mic/
 │  │  ├─ AplicacionesPlan.tsx      # Fase 4b: lo aplicado frente a un plan aprobado
 │  │  ├─ SeguimientoSeccion.tsx    # Fase 4c: observaciones, tareas y lista del seguimiento
 │  │  ├─ InformeLote.tsx           # Fase 5: informe imprimible para el productor
+│  │  ├─ HistorialLoteSeccion.tsx  # Historial: cierre de ciclos y cultivos anteriores del lote
 │  │  └─ useSeleccionViva.ts       # Registro abierto en una sección sobre una consulta en vivo
 │  ├─ lib/
 │  │  ├─ calculos.ts            # Matemáticas verificables, sin prescribir dosis
@@ -227,8 +250,10 @@ agroferti-mic/
 │  │  ├─ informe.ts             # Fase 5: datos del informe (plan aprobado más reciente, análisis, seguimiento)
 │  │  ├─ validacionSeguimiento.ts # Fase 4: validación y verificación de aplicaciones, observaciones y tareas
 │  │  ├─ repositorioSeguimiento.ts # Fase 4: persistencia del seguimiento (solo planes aprobados)
+│  │  ├─ historial.ts           # Historial: verificación de ciclos, validación del cierre y agrupación por fechas
+│  │  ├─ repositorioCiclos.ts   # Historial: cerrar ciclo (ciclo y lote en una transacción), notas y quitar
 │  │  ├─ formato.ts             # Números y fechas en es-CO
-│  │  └─ db.ts                  # IndexedDB mediante Dexie (esquema v2)
+│  │  └─ db.ts                  # IndexedDB mediante Dexie (esquema v3)
 │  ├─ types.ts           # Modelo de lotes, análisis, productos y planes
 │  ├─ App.tsx            # Navegación e interfaz principal
 │  ├─ main.tsx
@@ -243,6 +268,8 @@ agroferti-mic/
 │  ├─ persistenciaPlan.test.ts # Fase 3: catálogo, planes, estados, copias y trazabilidad
 │  ├─ respaldo.test.ts      # Copia de seguridad: exportar, leer, restaurar sin sobrescribir
 │  ├─ seguimiento.test.ts   # Fase 4: registros, avance del plan y persistencia
+│  ├─ historial.test.ts     # Historial: ciclos, agrupación por fechas, cierre atómico y copia
+│  ├─ validacionManual.test.ts # Fase 6: casos de EJEMPLO calculados a mano frente a la app
 │  └─ informe.test.ts       # Fase 5: qué plan, análisis y seguimiento muestra el informe
 ├─ vite.config.ts        # Configuración de PWA
 ├─ tsconfig.json
@@ -337,7 +364,14 @@ No inventar resultados de campo. Etiquetar todos los datos simulados como **EJEM
 - Las listas de resultados con más de 500 posiciones no se revisan una por una: se informan como dañadas y solo pueden descartarse con confirmación.
 - Todo se guarda solo en este navegador; no hay respaldo hasta la fase 5.
 
-## Para retomar (estado al 29 de octubre de 2026)
+## Para retomar (estado al 11 de noviembre de 2026)
+
+- Historial del lote (ciclos de cultivo) terminado a pedido del instructor: 174 pruebas, build correcto y recorrido en Edge headless (23 comprobaciones). Falta publicarlo y que Codex lo revise.
+- Kit de la fase 6 listo en `docs/`. Falta que el equipo consiga datos reales y llene la hoja de comparación.
+- Observado al preparar la fase 6 (sin corregir, decisión pendiente): en el análisis de suelo, un valor de nutriente escrito `1.500` se guarda como 1,5 (el punto se lee como decimal), a diferencia del área, las metas y los kg, que rechazan esa escritura ambigua. Está como caso L7 en el protocolo.
+- Si trabajas en otro equipo, haz `git pull` antes de empezar: el 11 de noviembre la copia local estaba 23 commits atrás.
+
+## Estado al 29 de octubre de 2026
 
 - Fase 3 completa (3a modelo, 3b catálogo, 3c plan, 3d estados). 3b, 3c y 3d pasaron una revisión de código cada una, con todos los puntos corregidos, y están publicadas.
 - Fase 3a (modelo, cálculos y persistencia) terminada y publicada; la app publicada muestra las fases 1 y 2. Recorrido en Chrome sobre la URL publicada: 16 comprobaciones correctas, incluido el uso sin conexión.
@@ -383,6 +417,13 @@ No inventar resultados de campo. Etiquetar todos los datos simulados como **EJEM
 - El PDF lo genera el navegador: el aspecto puede variar un poco entre navegadores; se probó con Chrome.
 - La recomendación es la del plan aprobado; para que la app propusiera metas a partir del análisis harían falta tablas agronómicas validadas con su fuente (decisión pendiente, fuera del alcance actual).
 
+## Limitaciones conocidas del historial del lote
+
+- Los registros se ubican en un ciclo por su fecha, no por un vínculo guardado: si se corrige la fecha de un análisis o un registro, puede pasar a otro ciclo. Un plan se ubica por el día en que se creó, no por el de su aprobación.
+- Cambiar el cultivo con **Editar información** no guarda el cultivo anterior en el historial; el formulario lo advierte.
+- El historial no compara rendimientos ni costos entre ciclos: las notas son texto libre y la app no las interpreta.
+- El informe para el productor todavía no incluye los cultivos anteriores.
+
 ## Próximo trabajo: fase 6 (validación)
 
-Probar con datos reales de papa y de otro cultivo, comparar los cálculos de la app con cálculos manuales y corregir solo los errores encontrados. Lee primero `AGENTS.md`.
+Seguir [`docs/VALIDACION_FASE6.md`](./docs/VALIDACION_FASE6.md): probar con datos reales de papa y de otro cultivo, comparar los cálculos de la app con cálculos manuales en la hoja `docs/hoja-comparacion-fase6.csv` y corregir solo los errores encontrados. Lee primero `AGENTS.md`.

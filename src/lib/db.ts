@@ -1,6 +1,7 @@
 import Dexie, { type EntityTable } from 'dexie';
-import type { AnalisisSuelo, Lote, PlanFertilizacion, ProductoFertilizante, RegistroSeguimiento } from '../types';
+import type { AnalisisSuelo, CicloCultivo, Lote, PlanFertilizacion, ProductoFertilizante, RegistroSeguimiento } from '../types';
 import { crearRepositorioAnalisis } from './repositorioAnalisis';
+import { crearRepositorioCiclos } from './repositorioCiclos';
 import { crearRepositorioPlanes, crearRepositorioProductos } from './repositorioPlanes';
 import { crearRepositorioRespaldo, type IdsExistentes } from './respaldo';
 import { crearRepositorioSeguimiento } from './repositorioSeguimiento';
@@ -11,6 +12,7 @@ export const db = new Dexie('AgroFertiMIC') as Dexie & {
   planes: EntityTable<PlanFertilizacion, 'id'>;
   registros: EntityTable<RegistroSeguimiento, 'id'>;
   productos: EntityTable<ProductoFertilizante, 'id'>;
+  ciclos: EntityTable<CicloCultivo, 'id'>;
 };
 
 // Mantener versiones e índices estables. Cada cambio de esquema añade una versión nueva.
@@ -25,6 +27,12 @@ db.version(1).stores({
 // las tablas de la versión 1 y sus datos; `planes` ya tenía los índices necesarios y estaba vacía.
 db.version(2).stores({
   productos: 'id, nombre'
+});
+
+// Historial del lote: solo se agrega la tabla de ciclos de cultivo cerrados. Las tablas anteriores y
+// sus datos no cambian; los análisis, planes y registros se agrupan por fecha al leerlos.
+db.version(3).stores({
+  ciclos: 'id, loteId, fechaCierre'
 });
 
 // Fase 2: el esquema v1 ya indexa analisisSuelos por loteId y fechaAnalisis; los campos nuevos
@@ -67,6 +75,16 @@ export const repositorioSeguimiento = crearRepositorioSeguimiento({
   transaccion: fn => db.transaction('rw', db.lotes, db.planes, db.registros, fn)
 });
 
+export const repositorioCiclos = crearRepositorioCiclos({
+  obtenerLote: loteId => db.lotes.get(loteId),
+  guardarLote: async lote => { await db.lotes.put(lote); },
+  obtener: id => db.ciclos.get(id),
+  listarPorLote: loteId => db.ciclos.where('loteId').equals(loteId).toArray(),
+  guardar: async ciclo => { await db.ciclos.put(ciclo); },
+  eliminar: id => db.ciclos.delete(id),
+  transaccion: fn => db.transaction('rw', db.lotes, db.ciclos, fn)
+});
+
 /** Identificadores de texto de una tabla (otros tipos de clave no pueden coincidir con los de una copia). */
 async function idsDe(tabla: { toCollection(): { primaryKeys(): Promise<unknown[]> } }): Promise<Set<string>> {
   return new Set((await tabla.toCollection().primaryKeys()).filter((k): k is string => typeof k === 'string'));
@@ -76,19 +94,21 @@ async function idsDe(tabla: { toCollection(): { primaryKeys(): Promise<unknown[]
 // transacción. bulkAdd nunca reemplaza: los identificadores existentes se filtran antes.
 export const repositorioRespaldo = crearRepositorioRespaldo({
   esquema: () => db.verno,
-  leerTodo: () => db.transaction('r', [db.lotes, db.analisisSuelos, db.productos, db.planes, db.registros], async () => ({
+  leerTodo: () => db.transaction('r', [db.lotes, db.analisisSuelos, db.productos, db.planes, db.registros, db.ciclos], async () => ({
     lotes: await db.lotes.toArray(),
     analisisSuelos: await db.analisisSuelos.toArray(),
     productos: await db.productos.toArray(),
     planes: await db.planes.toArray(),
-    registros: await db.registros.toArray()
+    registros: await db.registros.toArray(),
+    ciclos: await db.ciclos.toArray()
   })),
-  idsExistentes: (): Promise<IdsExistentes> => db.transaction('r', [db.lotes, db.analisisSuelos, db.productos, db.planes, db.registros], async () => ({
+  idsExistentes: (): Promise<IdsExistentes> => db.transaction('r', [db.lotes, db.analisisSuelos, db.productos, db.planes, db.registros, db.ciclos], async () => ({
     lotes: await idsDe(db.lotes),
     analisisSuelos: await idsDe(db.analisisSuelos),
     productos: await idsDe(db.productos),
     planes: await idsDe(db.planes),
-    registros: await idsDe(db.registros)
+    registros: await idsDe(db.registros),
+    ciclos: await idsDe(db.ciclos)
   })),
   agregar: async datos => {
     // Análisis, productos, planes y registros se guardan tal cual y la app los verifica al leerlos;
@@ -98,15 +118,17 @@ export const repositorioRespaldo = crearRepositorioRespaldo({
     await db.productos.bulkAdd(datos.productos as ProductoFertilizante[]);
     await db.planes.bulkAdd(datos.planes as PlanFertilizacion[]);
     await db.registros.bulkAdd(datos.registros as RegistroSeguimiento[]);
+    await db.ciclos.bulkAdd(datos.ciclos as CicloCultivo[]);
   },
-  transaccion: fn => db.transaction('rw', [db.lotes, db.analisisSuelos, db.productos, db.planes, db.registros], fn)
+  transaccion: fn => db.transaction('rw', [db.lotes, db.analisisSuelos, db.productos, db.planes, db.registros, db.ciclos], fn)
 });
 
 export async function eliminarLoteYRelacionados(id: string): Promise<void> {
-  await db.transaction('rw', db.lotes, db.analisisSuelos, db.planes, db.registros, async () => {
+  await db.transaction('rw', [db.lotes, db.analisisSuelos, db.planes, db.registros, db.ciclos], async () => {
     await db.analisisSuelos.where('loteId').equals(id).delete();
     await db.planes.where('loteId').equals(id).delete();
     await db.registros.where('loteId').equals(id).delete();
+    await db.ciclos.where('loteId').equals(id).delete();
     await db.lotes.delete(id);
   });
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { AnalisisSueloSeccion } from './components/AnalisisSueloSeccion';
+import { HistorialLoteSeccion } from './components/HistorialLoteSeccion';
 import { InformeLote } from './components/InformeLote';
 import { LoteForm, type DatosLote } from './components/LoteForm';
 import { PlanesSeccion } from './components/PlanesSeccion';
@@ -132,6 +133,7 @@ export default function App() {
           <AnalisisSueloSeccion key={activo.id} lote={activo} />
           <PlanesSeccion key={`plan-${activo.id}`} lote={activo} onIrAProductos={() => ir('productos')} />
           <SeguimientoSeccion key={`seg-${activo.id}`} lote={activo} />
+          <HistorialLoteSeccion key={`hist-${activo.id}`} lote={activo} />
           <div className="info-box"><strong>Importante:</strong> esta versión no prescribe fertilizantes: solo calcula la cantidad de producto para las metas que escribes con su fuente técnica. Las dosis requieren un objetivo nutricional técnico respaldado por un análisis agronómico. Convertir ppm a kg/ha no determina automáticamente una dosis.</div>
           <button className="danger-link" onClick={() => void borrarLote()}>Eliminar este lote</button>
         </>}
