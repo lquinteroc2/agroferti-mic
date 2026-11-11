@@ -1,0 +1,59 @@
+﻿caso;cultivo;dato_origen;operacion;formula;valor_manual;valor_app;coincide;diferencia;responsable;fecha;observacion
+A1;Papa;EJEMPLO;Área en hectáreas;2500 m2 / 10000;0,25 ha;;;;;;Pantalla de análisis con 4 decimales
+A2;Papa;EJEMPLO;Masa de suelo;10000 × (20 cm / 100) × (1,1 g/cm3 × 1000);2.200.000 kg suelo/ha;;;;;;Pantalla con 0 decimales
+A3;Papa;EJEMPLO;P mg/kg a kg/ha;35 × 2.200.000 / 1.000.000;77 kg P/ha;;;;;;Forma P (no P2O5). Equivalencia dimensional: no es dosis
+A4;Papa;EJEMPLO;P total del lote;77 × 2500 / 10000;19,25 kg P;;;;;;
+A5;Papa;EJEMPLO;K mg/kg a kg/ha;180 × 2.200.000 / 1.000.000;396 kg K/ha;;;;;;Forma K (no K2O)
+A6;Papa;EJEMPLO;K total del lote;396 × 2500 / 10000;99 kg K;;;;;;
+A7;Papa;EJEMPLO;K+ 0,45 cmol(+)/kg;no se convierte;No convertible;;;;;;La app no debe mostrar kg/ha
+A8;Papa;EJEMPLO;DAP kg/ha (meta 120 kg/ha P2O5 con etiqueta P2O5 46 %);120 / (46 / 100);260,87 kg/ha;;;;;;Valor completo 260,869565… (la app muestra ≈)
+A9;Papa;EJEMPLO;DAP kg en el lote;260,869565… × 2500 / 10000;65,22 kg;;;;;;Valor completo 65,2173913… (≈)
+A10;Papa;EJEMPLO;DAP bultos de 50 kg;65,2173913… / 50;1,3 bultos;;;;;;Valor completo 1,304347… (≈ 1,3)
+A11;Papa;EJEMPLO;DAP precio por kg;145000 / 50;2.900 COP/kg;;;;;;
+A12;Papa;EJEMPLO;DAP costo;65,2173913… × 2900;189.130 COP;;;;;;Si se redondea antes (65,22 × 2900) sale 189.138: es error del cálculo manual
+A13;Papa;EJEMPLO;N acompañante del DAP;260,869565… × 18 / 100;46,96 kg N/ha;;;;;;Valor completo 46,956521… (≈)
+A14;Papa;EJEMPLO;KCl kg/ha (meta 150 kg/ha K2O con etiqueta K2O 60 %);150 / (60 / 100);250 kg/ha;;;;;;
+A15;Papa;EJEMPLO;KCl kg en el lote;250 × 2500 / 10000;62,5 kg;;;;;;
+A16;Papa;EJEMPLO;KCl bultos de 50 kg;62,5 / 50;1,25 bultos;;;;;;
+A17;Papa;EJEMPLO;KCl precio por kg;130000 / 50;2.600 COP/kg;;;;;;
+A17b;Papa;EJEMPLO;KCl costo;62,5 × 2600;162.500 COP;;;;;;
+A18;Papa;EJEMPLO;Urea kg/ha (meta 100 kg/ha N con etiqueta N 46 %);100 / (46 / 100);217,39 kg/ha;;;;;;Valor completo 217,391304… (≈)
+A19;Papa;EJEMPLO;Urea kg en el lote;217,391304… × 2500 / 10000;54,35 kg;;;;;;Valor completo 54,347826… (≈)
+A19b;Papa;EJEMPLO;Urea bultos de 50 kg;54,347826… / 50;1,09 bultos;;;;;;Valor completo 1,086956… (≈)
+A20;Papa;EJEMPLO;Urea costo;54,347826… × (125000 / 50);135.870 COP;;;;;;Valor completo 135.869,56… (≈)
+A21;Papa;EJEMPLO;Resumen P2O5: aportado − meta;120 − 120;0;;;;;;Igual para K2O: 150 − 150 = 0
+A22;Papa;EJEMPLO;Resumen N: aportado;46,956521… + 100;146,96 kg N/ha;;;;;;(≈)
+A22b;Papa;EJEMPLO;Resumen N: aportado − meta;146,956521… − 100;+46,96 kg N/ha;;;;;;Solo aritmética: la app no juzga si es adecuado
+A23;Papa;EJEMPLO;Costo total del plan;189.130,43… + 162.500 + 135.869,56…;487.500 COP;;;;;;
+A24;Papa;EJEMPLO;DAP aplicado (suma);30 + 20;50 kg;;;;;;Dos aplicaciones parciales
+A24b;Papa;EJEMPLO;DAP aplicado − planeado;50 − 65,2173913…;-15,22 kg;;;;;;Falta por aplicar (≈)
+A24c;Papa;EJEMPLO;DAP avance;50 / 65,2173913… × 100;76,7 %;;;;;;1 decimal (≈)
+A25;Papa;EJEMPLO;DAP aplicado en forma P2O5;50 × 10000 / 2500 × 46 / 100;92 kg P2O5/ha;;;;;;Meta: 120
+A26;Papa;EJEMPLO;KCl aplicado − planeado;62,5 − 62,5;0 kg;;;;;;
+A26b;Papa;EJEMPLO;KCl avance;62,5 / 62,5 × 100;100 %;;;;;;
+A26c;Papa;EJEMPLO;KCl aplicado en forma K2O;62,5 × 10000 / 2500 × 60 / 100;150 kg K2O/ha;;;;;;Meta: 150
+A27;Papa;EJEMPLO;Costo registrado del DAP;suma de los costos escritos (87000 + sin costo);87.000 COP (1 aplicación sin costo registrado);;;;;;
+B1;Arveja;EJEMPLO;Área en hectáreas;800 / 10000;0,08 ha;;;;;;
+B2;Arveja;EJEMPLO;Masa de suelo;10000 × (15 / 100) × (1,3 × 1000);1.950.000 kg suelo/ha;;;;;;
+B3;Arveja;EJEMPLO;P mg/kg a kg/ha;12,5 × 1.950.000 / 1.000.000;24,375 kg P/ha;;;;;;Pantalla con 3 decimales
+B4;Arveja;EJEMPLO;P total del lote;24,375 × 800 / 10000;1,95 kg P;;;;;;
+B4b;Arveja;EJEMPLO;Ca2+ 2,1 cmol(+)/kg;no se convierte;No convertible;;;;;;
+B5;Arveja;EJEMPLO;Compuesto 10-30-10 kg/ha (meta 60 kg/ha P2O5 con etiqueta P2O5 30 %);60 / (30 / 100);200 kg/ha;;;;;;
+B6;Arveja;EJEMPLO;Compuesto kg en el lote;200 × 800 / 10000;16 kg;;;;;;
+B7;Arveja;EJEMPLO;Bultos de 50 kg;16 / 50;0,32 bultos;;;;;;
+B8;Arveja;EJEMPLO;Precio por kg;152000 / 50;3.040 COP/kg;;;;;;
+B9;Arveja;EJEMPLO;Costo (y costo total);16 × 3040;48.640 COP;;;;;;
+B10;Arveja;EJEMPLO;N acompañante;200 × 10 / 100;20 kg N/ha;;;;;;Sin meta de N: la diferencia se muestra —
+B10b;Arveja;EJEMPLO;K2O acompañante;200 × 10 / 100;20 kg K2O/ha;;;;;;Sin meta de K2O: la diferencia se muestra —
+B12;Arveja;EJEMPLO;Aplicado − planeado (una aplicación de 16 kg);16 − 16;0 kg;;;;;;Igual a lo planeado
+B12b;Arveja;EJEMPLO;Avance;16 / 16 × 100;100 %;;;;;;
+B13;Arveja;EJEMPLO;Aplicado en forma P2O5;16 × 10000 / 800 × 30 / 100;60 kg P2O5/ha;;;;;;Meta: 60
+L1;—;EJEMPLO;Meta en P con etiqueta en P2O5;no se calcula;Formas químicas distintas;;;;;;No debe aparecer ninguna cantidad (tampoco K frente a K2O)
+L2;—;EJEMPLO;Análisis sin densidad aparente;no se calcula;Falta un dato para calcular;;;;;;Se guarda pero sin kg/ha
+L3;—;EJEMPLO;Nutriente en cmol(+)/kg;no se convierte;No convertible;;;;;;
+L4;—;EJEMPLO;Área 1.500 m2;rechazo;Se puede leer de dos formas;;;;;;Igual en meta 1.200 y en aplicación 1.500 kg
+L5;—;EJEMPLO;Fecha futura (análisis, fuente de la meta, aplicación);rechazo;No puede ser una fecha futura;;;;;;
+L6;—;EJEMPLO;Meta sin fuente o sin fecha;rechazo en el formulario;Fuente técnica y fecha obligatorias;;;;;;
+L7;—;EJEMPLO;Valor de laboratorio escrito 1.500 mg/kg;observar;(anotar qué guarda la app);;;;;;Hoy la app lo guarda como 1,5: confirmar con el equipo (ver protocolo)
+R-papa;Papa;REAL;;;;;;;;;Copiar las filas A1–A27 y reemplazar con los datos reales
+R-otro;(otro cultivo);REAL;;;;;;;;;Copiar las filas B1–B13 y reemplazar con los datos reales
