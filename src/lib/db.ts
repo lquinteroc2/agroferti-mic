@@ -3,7 +3,6 @@ import type { AnalisisSuelo, CicloCultivo, Lote, PlanFertilizacion, ProductoFert
 import { crearRepositorioAnalisis, ErrorPersistencia } from './repositorioAnalisis';
 import { crearRepositorioCiclos } from './repositorioCiclos';
 import { crearRepositorioPlanes, crearRepositorioProductos } from './repositorioPlanes';
-import { crearRepositorioRespaldo, type IdsExistentes } from './respaldo';
 import { crearRepositorioSeguimiento } from './repositorioSeguimiento';
 import type { EstadoNube } from './nube';
 import { TABLAS_NUBE, type TablaNube } from './protocoloNube';
@@ -102,44 +101,6 @@ export const repositorioCiclos = crearRepositorioCiclos({
   guardar: async ciclo => { await db.ciclos.put(ciclo); },
   eliminar: id => db.ciclos.delete(id),
   transaccion: fn => db.transaction('rw', db.lotes, db.ciclos, fn)
-});
-
-/** Identificadores de texto de una tabla (otros tipos de clave no pueden coincidir con los de una copia). */
-async function idsDe(tabla: { toCollection(): { primaryKeys(): Promise<unknown[]> } }): Promise<Set<string>> {
-  return new Set((await tabla.toCollection().primaryKeys()).filter((k): k is string => typeof k === 'string'));
-}
-
-// Copia de seguridad: lee todo en una transacción de lectura y restaura con bulkAdd en una sola
-// transacción. bulkAdd nunca reemplaza: los identificadores existentes se filtran antes.
-export const repositorioRespaldo = crearRepositorioRespaldo({
-  esquema: () => db.verno,
-  leerTodo: () => db.transaction('r', [db.lotes, db.analisisSuelos, db.productos, db.planes, db.registros, db.ciclos], async () => ({
-    lotes: await db.lotes.toArray(),
-    analisisSuelos: await db.analisisSuelos.toArray(),
-    productos: await db.productos.toArray(),
-    planes: await db.planes.toArray(),
-    registros: await db.registros.toArray(),
-    ciclos: await db.ciclos.toArray()
-  })),
-  idsExistentes: (): Promise<IdsExistentes> => db.transaction('r', [db.lotes, db.analisisSuelos, db.productos, db.planes, db.registros, db.ciclos], async () => ({
-    lotes: await idsDe(db.lotes),
-    analisisSuelos: await idsDe(db.analisisSuelos),
-    productos: await idsDe(db.productos),
-    planes: await idsDe(db.planes),
-    registros: await idsDe(db.registros),
-    ciclos: await idsDe(db.ciclos)
-  })),
-  agregar: async datos => {
-    // Análisis, productos, planes y registros se guardan tal cual y la app los verifica al leerlos;
-    // los lotes ya se comprobaron con problemaLote.
-    await db.lotes.bulkAdd(datos.lotes as Lote[]);
-    await db.analisisSuelos.bulkAdd(datos.analisisSuelos as AnalisisSuelo[]);
-    await db.productos.bulkAdd(datos.productos as ProductoFertilizante[]);
-    await db.planes.bulkAdd(datos.planes as PlanFertilizacion[]);
-    await db.registros.bulkAdd(datos.registros as RegistroSeguimiento[]);
-    await db.ciclos.bulkAdd(datos.ciclos as CicloCultivo[]);
-  },
-  transaccion: fn => db.transaction('rw', [db.lotes, db.analisisSuelos, db.productos, db.planes, db.registros, db.ciclos], fn)
 });
 
 export type DatosEdicionLote = Pick<Lote, 'nombre' | 'cultivo' | 'areaM2' | 'fechaSiembra' | 'ubicacion'>;

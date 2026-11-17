@@ -71,7 +71,7 @@ Para cada cultivo (papa y el segundo cultivo, por ejemplo arveja):
 7. **Estado del plan**: Marcar como revisado → Aprobar el plan (con el nombre de quien revisa/aprueba).
 8. En el plan aprobado, **+ Registrar aplicación** para cada aplicación real y copia el bloque "Lo aplicado frente al plan".
 9. **Informe para el productor**: revisa que los números coincidan con los del plan.
-10. Al terminar cada sesión: **Mis lotes → Copia de seguridad → Descargar copia (JSON)** y guárdala en la carpeta del equipo.
+10. Al terminar cada sesión: en **Mis lotes → Mi cuenta** verifica que diga **Todo sincronizado**, y guarda en PDF el informe de cada lote (ficha del lote → **Informe para el productor** → **Imprimir o guardar como PDF**) en la carpeta del equipo.
 
 ---
 
@@ -246,7 +246,7 @@ Usar Chrome en un Android de gama media:
 - [ ] Girar la pantalla (vertical/horizontal) sin perder lo escrito.
 - [ ] Cerrar y volver a abrir la app: los datos siguen ahí.
 - [ ] **Modo avión:** la app abre y muestra los lotes (después de una primera visita con conexión).
-- [ ] **Copia de seguridad:** descargar el JSON y restaurarlo (aparece "No hay nada nuevo que agregar").
+- [ ] **Ingreso y nube:** sin iniciar sesión no se ve nada de la app; después de ingresar funciona en modo avión y, al volver la conexión, dice "Todo sincronizado". El lote aparece en otro dispositivo con la misma cuenta.
 - [ ] **Informe para el productor → Imprimir o guardar como PDF**: el PDF solo contiene el informe.
 - [ ] Repetir en el teléfono al menos los casos A8–A12 y comparar con lo que muestra el computador.
 
@@ -262,4 +262,4 @@ Anotar modelo de teléfono, versión de Android y de Chrome en la hoja.
 - [ ] Pruebas en Android hechas.
 - [ ] Discrepancias registradas, confirmadas y corregidas (o explicadas).
 - [ ] `npm run test` y `npm run build` sin errores.
-- [ ] Copia de seguridad final descargada; capturas para la presentación (los datos de EJEMPLO deben verse marcados como EJEMPLO).
+- [ ] Todo sincronizado al final e informes en PDF de cada lote guardados; capturas para la presentación (los datos de EJEMPLO deben verse marcados como EJEMPLO).

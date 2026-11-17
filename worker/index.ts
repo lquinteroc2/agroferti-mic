@@ -18,7 +18,7 @@ import {
   type RespuestaSesion,
   type RespuestaSincronizar
 } from '../src/lib/protocoloNube.ts';
-import { decodificarRegistro } from '../src/lib/respaldo.ts';
+import { decodificarRegistro } from '../src/lib/codificacion.ts';
 import { problemaParaNube } from '../src/lib/validacionNube.ts';
 import { crearObtenerClaves, ErrorDescargaClaves, ErrorToken, verificarTokenGoogle } from './google.ts';
 import { crearSesion, verificarSesion } from './sesion.ts';

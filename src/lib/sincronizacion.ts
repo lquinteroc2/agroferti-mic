@@ -16,7 +16,7 @@
  *   sincronizado y vuelve a subir todo lo suyo.
  */
 import { actualizadoDe, MAX_SUBIDA, TABLAS_NUBE, type Cambio, type CambioNube, type RegistroInvalido, type RespuestaSincronizar, type SolicitudSincronizar, type TablaNube } from './protocoloNube.ts';
-import { codificarRegistro, decodificarRegistro } from './respaldo.ts';
+import { codificarRegistro, decodificarRegistro } from './codificacion.ts';
 import { esObjeto, problemaLote } from './validacion.ts';
 import { problemaParaNube } from './validacionNube.ts';
 

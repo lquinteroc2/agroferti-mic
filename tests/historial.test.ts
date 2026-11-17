@@ -7,7 +7,6 @@ import assert from 'node:assert/strict';
 import { agruparHistorial, datosCultivoActual, duracionDias, ordenarCiclos, validarCierreFormulario, validarDatosCierre, validarNotasCiclo, verificarCiclo, type EntradaCierre } from '../src/lib/historial.ts';
 import { ErrorPersistencia } from '../src/lib/repositorioAnalisis.ts';
 import { crearRepositorioCiclos, type AlmacenCiclos } from '../src/lib/repositorioCiclos.ts';
-import { planearRestauracion, TABLAS_RESPALDO, type IdsExistentes } from '../src/lib/respaldo.ts';
 import { verificarAnalisis } from '../src/lib/validacion.ts';
 import { verificarPlan } from '../src/lib/validacionPlan.ts';
 import { verificarRegistro } from '../src/lib/validacionSeguimiento.ts';
@@ -225,16 +224,6 @@ test('editar notas y quitar un ciclo: solo del mismo lote; un ciclo dañado no s
   assert.equal(lotes.get('lote-a')!.cultivo, 'papa');
 });
 
-test('copia de seguridad: los ciclos dependen de su lote', () => {
-  assert.ok((TABLAS_RESPALDO as ReadonlyArray<string>).includes('ciclos'));
-  const vacio = Object.fromEntries(TABLAS_RESPALDO.map(t => [t, new Set<string>()])) as unknown as IdsExistentes;
-  const plan = planearRestauracion({
-    lotes: [loteEjemplo()], analisisSuelos: [], productos: [], planes: [], registros: [],
-    ciclos: [cicloEjemplo(), cicloEjemplo({ id: 'huerfano', loteId: 'no-esta' })]
-  }, vacio);
-  assert.deepEqual(plan.agregar.ciclos.map(c => (c as CicloCultivo).id), ['c1']);
-  assert.ok(plan.omitidos.some(o => o.tabla === 'ciclos' && o.id === 'huerfano'));
-});
 
 // ---- Correcciones de la revisión del historial ----
 
@@ -290,13 +279,3 @@ test('revisión: notas del ciclo con datos no confiables dan mensajes claros, si
   await assert.rejects(crearRepositorioCiclos(almacen).editarNotas('lote-a', 'c1', null), (e: unknown) => e instanceof ErrorPersistencia);
 });
 
-test('revisión: restaurar no agrega ciclos a un lote que ya está en el dispositivo', () => {
-  const ids = Object.fromEntries(TABLAS_RESPALDO.map(t => [t, new Set<string>()])) as unknown as Record<string, Set<string>>;
-  ids.lotes.add('lote-a');
-  const plan = planearRestauracion({
-    lotes: [loteEjemplo({ cultivo: 'arveja' }), loteEjemplo({ id: 'lote-b' })], analisisSuelos: [], productos: [], planes: [], registros: [],
-    ciclos: [cicloEjemplo(), cicloEjemplo({ id: 'c-b', loteId: 'lote-b' })]
-  }, ids as unknown as IdsExistentes);
-  assert.deepEqual(plan.agregar.ciclos.map(c => (c as CicloCultivo).id), ['c-b'], 'el ciclo del lote nuevo sí entra');
-  assert.ok(plan.omitidos.some(o => o.tabla === 'ciclos' && o.id === 'c1' && /ya está en este dispositivo/.test(o.motivo)));
-});

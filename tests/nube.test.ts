@@ -9,7 +9,7 @@ import assert from 'node:assert/strict';
 import { crearObtenerClaves, ErrorToken, verificarTokenGoogle, type ClavePublica } from '../worker/google.ts';
 import { crearSesion, DURACION_SESION_MS, verificarSesion } from '../worker/sesion.ts';
 import { MAX_BAJADA, MAX_BYTES_BAJADA, MAX_SUBIDA, TABLAS_NUBE, validarSolicitudSincronizar, type CambioNube, type RespuestaSincronizar, type SolicitudSincronizar } from '../src/lib/protocoloNube.ts';
-import { codificarRegistro, decodificarRegistro } from '../src/lib/respaldo.ts';
+import { codificarRegistro, decodificarRegistro } from '../src/lib/codificacion.ts';
 import { calcularPendientes, claveDe, contarSinLote, sincronizar, type AlmacenSincronizacion, type TablasNube, type VersionApartada } from '../src/lib/sincronizacion.ts';
 import { problemaParaNube } from '../src/lib/validacionNube.ts';
 import { copiarProducto } from '../src/lib/validacionPlan.ts';

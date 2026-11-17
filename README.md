@@ -60,7 +60,7 @@ Aplicación web progresiva (PWA) **multicultivo** para preparar el cálculo, la 
 ✅ Historial visible con estado, fecha y hora, nombre y nota de cada cambio. Lo aplicado en campo no es un estado del plan: se registrará en la fase 4.
 ✅ 107 pruebas automáticas. Recorrido en Chrome: 72 comprobaciones. Una revisión de código encontró 9 puntos en 3d (entre ellos, que "Cancelar" no detenía una aprobación en curso y que se podía aprobar con metas sin producto); todos están corregidos.
 
-**Fase 5 (adelantada) — copia de seguridad (sección "Copia de seguridad" en Mis lotes)**
+**Fase 5 (adelantada) — copia de seguridad JSON — RETIRADA el 17 de noviembre de 2026** (reemplazada por la nube con ingreso obligatorio; para tener los datos en papel o PDF se usa el informe de cada lote). Se conserva la descripción como historia del proyecto:
 ✅ **Descargar copia (JSON):** todos los lotes, análisis, productos y planes, tal como están guardados (incluidos los datos dañados, los campos de otras versiones y valores como `NaN`, que se guardan con una marca y se restauran igual), en `agroferti-respaldo-AAAA-MM-DD.json`.
 ✅ **Restaurar desde un archivo:** primero muestra qué se agregará, qué ya existe y qué se omite (con el motivo), y pide confirmación. **Solo agrega lo que no existe: nunca borra ni sobrescribe** datos del dispositivo. Todo se escribe en una sola transacción: o entra todo o no entra nada.
 ✅ Rechaza archivos que no son una copia de AgroFerti o de una versión de formato desconocida. Omite, explicando el motivo, lotes que romperían la lista (sin nombre, cultivo, área o fechas válidos) junto con sus registros, y registros cuyo lote no está en la copia ni en el dispositivo.
@@ -215,12 +215,15 @@ Las pruebas de persistencia (`tests/persistencia.test.ts`) usan un almacén en m
 2. Pulsa **Imprimir o guardar como PDF** y elige "Guardar como PDF": solo debe salir el informe, sin la barra superior ni los botones.
 3. En un lote sin plan aprobado, el informe debe decir que no incluye recomendación.
 
-### Pruebas manuales en navegador (copia de seguridad)
+### Pruebas manuales en navegador (ingreso y nube)
 
-1. Con datos de EJEMPLO, en **Mis lotes → Copia de seguridad**, pulsa **Descargar copia (JSON)**: se descarga `agroferti-respaldo-AAAA-MM-DD.json` y el aviso resume lo incluido.
-2. Restaura ese mismo archivo: debe decir "Ya están en este dispositivo y no se modifican" y "No hay nada nuevo que agregar".
-3. Elige un archivo JSON que no sea una copia: debe rechazarlo.
-4. En otro navegador o en una ventana privada (o después de borrar los datos del sitio), restaura el archivo: revisa el resumen, pulsa **Agregar estos datos** y comprueba que vuelven los lotes, productos y planes con sus estados e historial.
+1. Abre la app en una ventana privada: solo debe verse **Ingresa para usar AgroFerti MIC**, sin menú ni lotes.
+2. El botón **Iniciar sesión con Google** aparece solo después de marcar la autorización de datos. Ingresa con una cuenta de prueba.
+3. Crea un lote de EJEMPLO: en **Mis lotes → Mi cuenta** debe decir que hay cambios por subir y, a los pocos segundos, **Todo sincronizado**.
+4. En otro dispositivo, ingresa con la misma cuenta: el lote debe aparecer. Elimínalo allí y sincroniza en el primero: debe desaparecer.
+5. **Cerrar sesión** vuelve a la pantalla de ingreso; al volver a entrar con la misma cuenta, los datos siguen ahí.
+6. Sin internet (modo avión), con la sesión iniciada, la app sigue funcionando; al volver la conexión se sincroniza sola.
+7. Para tener los datos en papel o PDF: ficha del lote → **Informe para el productor** → **Imprimir o guardar como PDF**.
 
 ### Pruebas manuales en navegador (historial del lote)
 
@@ -255,7 +258,8 @@ agroferti-mic/
 │  │  ├─ PlanForm.tsx              # Fase 3c: metas con su fuente y producto por meta
 │  │  ├─ PlanDetalle.tsx           # Fase 3c: cálculo del plan explicado paso a paso
 │  │  ├─ PlanEstado.tsx            # Fase 3d: estados del plan e historial
-│  │  ├─ RespaldoSeccion.tsx       # Copia de seguridad: descargar y restaurar
+│  │  ├─ PantallaIngreso.tsx       # Ingreso obligatorio con Google y autorización de datos (Ley 1581)
+│  │  ├─ NubeSeccion.tsx           # Mi cuenta: estado de la sincronización, cerrar sesión, borrar datos de la nube
 │  │  ├─ AplicacionesPlan.tsx      # Fase 4b: lo aplicado frente a un plan aprobado
 │  │  ├─ SeguimientoSeccion.tsx    # Fase 4c: observaciones, tareas y lista del seguimiento
 │  │  ├─ InformeLote.tsx           # Fase 5: informe imprimible para el productor
@@ -268,7 +272,7 @@ agroferti-mic/
 │  │  ├─ repositorioAnalisis.ts # Reglas de persistencia, comprobables sin IndexedDB
 │  │  ├─ validacionPlan.ts      # Fase 3: validación de productos, planes y cambios de estado
 │  │  ├─ repositorioPlanes.ts   # Fase 3: persistencia del catálogo y de los planes
-│  │  ├─ respaldo.ts            # Copia de seguridad: formato, lectura y restauración sin sobrescribir
+│  │  ├─ codificacion.ts        # Registro como texto para la nube (conserva NaN y fechas)
 │  │  ├─ informe.ts             # Fase 5: datos del informe (plan aprobado más reciente, análisis, seguimiento)
 │  │  ├─ validacionSeguimiento.ts # Fase 4: validación y verificación de aplicaciones, observaciones y tareas
 │  │  ├─ repositorioSeguimiento.ts # Fase 4: persistencia del seguimiento (solo planes aprobados)
@@ -293,7 +297,6 @@ agroferti-mic/
 │  ├─ persistencia.test.ts # Crear, leer, editar, eliminar y aislamiento entre lotes
 │  ├─ plan.test.ts         # Fase 3: cálculos del plan, formas químicas, validación y estados
 │  ├─ persistenciaPlan.test.ts # Fase 3: catálogo, planes, estados, copias y trazabilidad
-│  ├─ respaldo.test.ts      # Copia de seguridad: exportar, leer, restaurar sin sobrescribir
 │  ├─ seguimiento.test.ts   # Fase 4: registros, avance del plan y persistencia
 │  ├─ historial.test.ts     # Historial: ciclos, agrupación por fechas, cierre atómico y copia
 │  ├─ validacionManual.test.ts # Fase 6: casos de EJEMPLO calculados a mano frente a la app
@@ -316,7 +319,7 @@ agroferti-mic/
 | 2. Suelo y conversiones | 4–6 | Registrar fecha, unidades y método de análisis; pruebas de ppm, profundidad y densidad |
 | 3. Fertilizantes y plan | 7–8 | N-P₂O₅-K₂O, meta técnicamente validada, cantidad y costo con trazabilidad |
 | 4. Monitoreo | 9–11 | Registrar aplicación/observación/tarea, responsable, fecha y plan vs. aplicado |
-| 5. Entrega y despliegue | 12–13 | Informe productor, copia/restauración JSON, instalación PWA, Cloudflare Workers |
+| 5. Entrega y despliegue | 12–13 | Informe productor (PDF), nube con ingreso obligatorio, instalación PWA, Cloudflare Workers |
 | 6. Validación | 14–15 | Prueba con papa, otro cultivo, comparación manual, correcciones y presentación |
 
 **No incluir en los primeros 15 días:** backend NestJS, autenticación, IA por API, OCR de análisis, sensores, diagnósticos foliares por foto, notificaciones push, publicación en tiendas móviles.
@@ -337,7 +340,7 @@ agroferti-mic/
 
 ## Datos del productor y privacidad
 
-Todo queda en **IndexedDB del navegador**, que depende de la dirección de la app. No existe sincronización entre navegadores o teléfonos. Limpiar el almacenamiento del sitio o cambiar la dirección deja la app vacía. **Descarga una copia de seguridad con frecuencia** (Mis lotes → Copia de seguridad) y guárdala fuera del dispositivo; con ella se recuperan los datos aquí o en otro dispositivo. Aun así, es un prototipo académico: no lo uses como registro único de un cultivo real.
+Para usar la app hay que **ingresar con Google** y aceptar la autorización de tratamiento de datos (Ley 1581 de 2012). Los datos se guardan en el teléfono (IndexedDB) y en la cuenta del usuario en la nube (Cloudflare D1), así no se pierden si se borra el navegador o se cambia de teléfono. El usuario puede borrar sus datos de la nube en **Mis lotes → Mi cuenta**. Para tenerlos en papel o PDF se usa el **Informe para el productor** de cada lote. Es un prototipo académico: no lo uses como registro único de un cultivo real.
 
 ## Publicación en Cloudflare Workers
 
@@ -398,6 +401,7 @@ No inventar resultados de campo. Etiquetar todos los datos simulados como **EJEM
 ## Para retomar (estado al 17 de noviembre de 2026)
 
 - Historial del lote (ciclos de cultivo) publicado y revisado: los 10 puntos de la revisión de código están corregidos (181 pruebas, build correcto).
+- **Ingreso obligatorio (17 de noviembre de 2026):** sin iniciar sesión con Google solo se ve la pantalla de ingreso. Con la sesión vencida y sin internet se puede seguir trabajando; al volver la conexión hay que ingresar de nuevo. La copia de seguridad JSON se retiró: la nube la reemplaza y el informe de cada lote se imprime o se guarda en PDF.
 - **Nube publicada y revisada (17 de noviembre de 2026):** Worker + D1 (`agroferti-db`, migraciones 0001 y 0002 aplicadas) + Sign in with Google, en planes gratuitos y sin métodos de pago. La cuenta de Cloudflare es la de `leonardoquintero222@gmail.com`; el secreto `SESION_SECRETO` está guardado en Cloudflare (no en el repositorio). Falta la prueba con un inicio de sesión real de Google en la app publicada y en un teléfono.
 - Para trabajar con la API en local: `npm run db:migrar:local` (una vez), crear `.dev.vars` con `SESION_SECRETO=<texto de 32+ caracteres>` y luego `npm run dev:api` (app + API en http://localhost:8787). En Windows PowerShell usa `npm.cmd` y `npx.cmd`.
 - Si cambia el esquema de D1: nueva migración en `migrations/` y `npm run db:migrar:nube` antes de publicar el código que la usa.
@@ -433,12 +437,6 @@ No inventar resultados de campo. Etiquetar todos los datos simulados como **EJEM
 
 - Cada meta se cubre con un solo producto y los aportes acompañantes no reducen otras cantidades (ver limitaciones de 3a).
 - El nombre de quien elabora la propuesta es opcional y lo escribe el usuario; la app no verifica identidades.
-
-## Limitaciones conocidas de la copia de seguridad
-
-- Restaurar solo agrega: no hay una opción para reemplazar los datos del dispositivo por los de la copia ni para fusionar dos versiones distintas de un mismo registro (el del dispositivo se conserva).
-- La copia no se hace sola: hay que descargarla. El archivo no está cifrado; contiene todos los datos del navegador.
-- Un lote de la copia que no cumple las reglas de la lista de lotes se omite con todos sus registros (se explica el motivo); la app no lo repara.
 
 ## Limitaciones conocidas de la fase 3d
 
