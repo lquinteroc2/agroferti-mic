@@ -111,6 +111,15 @@ Aplicación web progresiva (PWA) **multicultivo** para preparar el cálculo, la 
 ✅ **Cerrar sesión** conserva los datos. **Borrar mis datos de la nube** los elimina del servidor (derecho de supresión). Un teléfono con datos de una cuenta no se mezcla con otra: hay que entrar con esa cuenta o borrar los datos del teléfono.
 ✅ Backend: API en el mismo Worker (`worker/`), base **Cloudflare D1** (`migrations/`), token de Google verificado en el servidor (firma, `aud`, `iss`, `exp`, correo verificado) y sesión propia de 30 días firmada con `SESION_SECRETO`. Todo en planes gratuitos: al superar un límite diario, la nube deja de responder hasta el día siguiente y la app sigue con los datos del teléfono. Detalles y costos en [`docs/NUBE_CLOUDFLARE.md`](./docs/NUBE_CLOUDFLARE.md).
 ✅ 190 pruebas automáticas (9 de la nube: token de Google, sesión, protocolo y sincronización entre dos teléfonos simulados). Prueba de la API con `wrangler dev` y D1 local: 15 comprobaciones. Recorrido con dos navegadores contra la API local: 10 comprobaciones (crear en uno, ver en otro, eliminar, cerrar sesión).
+✅ **Revisión independiente del backend y de la sincronización (17 de noviembre de 2026):** 29 hallazgos en total (2 críticos de pérdida de datos). Todos corregidos, cada uno con una prueba que reproduce el escenario:
+   - **La nube valida el contenido** con las mismas reglas de la app (`src/lib/validacionNube.ts`): un registro dañado no se sube, se queda en el teléfono y se informa. Un plan revisado o aprobado debe cumplir lo que la app exige para ese paso, y **un plan aprobado no se puede modificar en la nube** (solo eliminar).
+   - **Nada se pierde en silencio:** una edición hecha mientras se sincroniza se conserva; en un conflicto, la versión que pierde se **aparta** y se puede descargar; los datos de la nube que no se pueden aplicar también se apartan; los registros cuyo lote se eliminó en otro teléfono se muestran para descargarlos o eliminarlos.
+   - Las eliminaciones usan la **hora real** en que se hicieron; restaurar una copia de algo eliminado lo vuelve a subir.
+   - **Época de la cuenta:** si la cuenta se borra y se vuelve a crear, los teléfonos lo detectan y suben todo de nuevo, y las sesiones anteriores dejan de servir.
+   - Límites del plan gratuito: páginas de bajada de máximo 1 MB, cuerpos de máximo 1,4 MB (se cortan sin leerlos completos), registros de máximo 50 KB, **cuota de 20 MB y 50.000 registros por cuenta** (disparadores de D1), fechas futuras recortadas a la hora del servidor, sin bucles de solicitudes y pendientes calculados una sola vez por sincronización.
+   - Una sola sincronización a la vez entre pestañas (Web Locks); el avance se guarda en la misma transacción que los datos.
+   - Inicio de sesión: errores del token siempre como "no válido", descarga de claves de Google limitada, no se crea nada en la nube si el teléfono es de otra cuenta, y se registra la versión de la autorización aceptada.
+✅ 202 pruebas automáticas (21 de la nube). API con el SQL real (`wrangler dev` + D1 local, migración 0002): 20 comprobaciones. Dos navegadores contra la API local: 12 comprobaciones.
 
 **Fase 6 (validación) — kit preparado, falta ejecutarlo con datos reales**
 ✅ Protocolo en [`docs/VALIDACION_FASE6.md`](./docs/VALIDACION_FASE6.md): roles, datos reales que reunir, carga en la app publicada, fórmulas, dos casos completos de EJEMPLO calculados a mano (papa y arveja), casos límite, registro de discrepancias y pruebas en un Android real.
@@ -266,6 +275,7 @@ agroferti-mic/
 │  │  ├─ historial.ts           # Historial: verificación de ciclos, validación del cierre y agrupación por fechas
 │  │  ├─ repositorioCiclos.ts   # Historial: cerrar ciclo (ciclo y lote en una transacción), notas y quitar
 │  │  ├─ protocoloNube.ts       # Nube: formato y validación de las solicitudes (lo usan la app y el Worker)
+│  │  ├─ validacionNube.ts      # Nube: reglas de contenido para subir (las mismas de la app; las aplica también el Worker)
 │  │  ├─ sincronizacion.ts      # Nube: qué subir, qué aplicar al bajar y conflictos (reglas puras)
 │  │  ├─ nube.ts                # Nube: cliente de la API y Client ID de Google
 │  │  ├─ cuentaNube.ts          # Nube: sesión y sincronización automática
@@ -388,7 +398,7 @@ No inventar resultados de campo. Etiquetar todos los datos simulados como **EJEM
 ## Para retomar (estado al 17 de noviembre de 2026)
 
 - Historial del lote (ciclos de cultivo) publicado y revisado: los 10 puntos de la revisión de código están corregidos (181 pruebas, build correcto).
-- **Nube publicada (17 de noviembre de 2026):** Worker + D1 (`agroferti-db`, migración aplicada) + Sign in with Google, en planes gratuitos y sin métodos de pago. La cuenta de Cloudflare es la de `leonardoquintero222@gmail.com`; el secreto `SESION_SECRETO` está guardado en Cloudflare (no en el repositorio). Falta la prueba con un inicio de sesión real de Google en la app publicada y en un teléfono.
+- **Nube publicada y revisada (17 de noviembre de 2026):** Worker + D1 (`agroferti-db`, migraciones 0001 y 0002 aplicadas) + Sign in with Google, en planes gratuitos y sin métodos de pago. La cuenta de Cloudflare es la de `leonardoquintero222@gmail.com`; el secreto `SESION_SECRETO` está guardado en Cloudflare (no en el repositorio). Falta la prueba con un inicio de sesión real de Google en la app publicada y en un teléfono.
 - Para trabajar con la API en local: `npm run db:migrar:local` (una vez), crear `.dev.vars` con `SESION_SECRETO=<texto de 32+ caracteres>` y luego `npm run dev:api` (app + API en http://localhost:8787). En Windows PowerShell usa `npm.cmd` y `npx.cmd`.
 - Si cambia el esquema de D1: nueva migración en `migrations/` y `npm run db:migrar:nube` antes de publicar el código que la usa.
 - Kit de la fase 6 listo en `docs/`. Falta que el equipo consiga datos reales y llene la hoja de comparación.
@@ -444,7 +454,13 @@ No inventar resultados de campo. Etiquetar todos los datos simulados como **EJEM
 
 ## Limitaciones conocidas de la nube
 
-- En un conflicto gana la versión con la fecha de actualización más reciente; depende del reloj de cada teléfono.
+- En un conflicto gana la versión con la fecha de actualización más reciente; depende del reloj de cada teléfono (la nube recorta las fechas que estén más de 5 minutos adelante de su hora). La versión que pierde se aparta y se puede descargar.
+- La hora real de cada eliminación se guarda en el almacenamiento local del navegador; si se pierde, se usa la hora de la sincronización.
+- La nube valida estructura, datos y reglas de los planes (las mismas de la app), pero no relaciones entre registros: por ejemplo, no comprueba que una aplicación sea de un plan aprobado del mismo lote. Esas reglas las aplica la app.
+- Cerrar sesión solo cierra la sesión en ese teléfono; la sesión de otro dispositivo sigue válida hasta que vence (30 días) o hasta borrar los datos de la nube.
+- Las marcas de eliminación se guardan para siempre en la nube (ocupan poco); un dispositivo nuevo las descarga.
+- Cuota por cuenta: 20 MB y 50.000 registros. Al llegar, los cambios nuevos se quedan en el teléfono y la app lo avisa; eliminar sí se permite. Cualquier persona con una cuenta de Google puede crear una cuenta: si se abusa, habría que agregar una lista de correos permitidos.
+- Cada migración nueva de D1 se aplica a mano con `npm run db:migrar:nube` antes de subir el código que la usa (Workers Builds no la aplica).
 - La autorización de datos indica como contacto del responsable leonardoquintero222@gmail.com.
 - El inicio de sesión necesita internet la primera vez en cada dispositivo. La sesión dura 30 días; después hay que volver a entrar (los datos del teléfono no se pierden).
 - Un teléfono queda vinculado a una cuenta. Para usar otra, hay que borrar los datos del teléfono.

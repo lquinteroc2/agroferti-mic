@@ -2,7 +2,7 @@
  * Sesión en la nube y sincronización automática. La app funciona igual sin sesión: todo se guarda
  * primero en el teléfono, y la nube se actualiza cuando hay internet.
  */
-import { almacenSincronizacion, borrarDatosDelTelefono, db, desvincularNube, guardarEstadoNube, leerEstadoNube } from './db';
+import { almacenSincronizacion, borrarDatosDelTelefono, db, desvincularNube, guardarEstadoNube, leerEstadoNube, registrarEliminacion } from './db';
 import { apiNube, ErrorNube, sesionVencida, type EstadoNube } from './nube';
 import { TABLAS_NUBE } from './protocoloNube';
 import { sincronizar, type ResultadoSincronizacion } from './sincronizacion';
@@ -13,27 +13,31 @@ export type FaseSincronizacion =
   | { fase: 'lista'; resultado: ResultadoSincronizacion; fecha: string }
   | { fase: 'error'; error: ErrorNube; fecha: string };
 
-let fase: FaseSincronizacion = { fase: 'inactiva' };
+interface EstadoExterno {
+  fase: FaseSincronizacion;
+  /** Hubo cambios en el teléfono después de la última sincronización. */
+  cambiosLocales: boolean;
+}
+
+let estado: EstadoExterno = { fase: { fase: 'inactiva' }, cambiosLocales: false };
 const oyentes = new Set<() => void>();
 
-function cambiarFase(nueva: FaseSincronizacion) {
-  fase = nueva;
+function actualizar(cambios: Partial<EstadoExterno>) {
+  estado = { ...estado, ...cambios };
   oyentes.forEach(f => f());
 }
 
 /** Para `useSyncExternalStore`. */
 export const sincronizacionExterna = {
   suscribir: (f: () => void) => { oyentes.add(f); return () => { oyentes.delete(f); }; },
-  leer: () => fase
+  leer: () => estado
 };
 
 const conSesion = (e: EstadoNube | undefined): e is EstadoNube => !!e?.token && !sesionVencida(e);
 
-let enCurso: Promise<void> | null = null;
-/** Cambios hechos por la propia sincronización: no deben programar otra. */
+/** Cambios hechos por la propia sincronización: no deben programar otra ni registrarse como eliminaciones del usuario. */
 let aplicando = false;
 
-/** Mientras se aplican los cambios de la nube, los ganchos de Dexie no programan otra sincronización. */
 const almacenPropio: typeof almacenSincronizacion = {
   ...almacenSincronizacion,
   transaccion: async fn => {
@@ -46,18 +50,34 @@ const almacenPropio: typeof almacenSincronizacion = {
   }
 };
 
-/** Sincroniza ahora (si hay sesión). Si ya hay una en curso, espera a esa. */
+/**
+ * Una sola sincronización a la vez, también entre pestañas (Web Locks). Sin soporte de Web Locks,
+ * solo dentro de la pestaña.
+ */
+let cola: Promise<unknown> = Promise.resolve();
+function exclusivo<T>(fn: () => Promise<T>): Promise<T> {
+  const locks = typeof navigator !== 'undefined' ? navigator.locks : undefined;
+  const ejecutar = (): Promise<T> => (locks ? locks.request('agroferti-sincronizacion', fn) as Promise<T> : fn());
+  const resultado = cola.then(ejecutar, ejecutar);
+  cola = resultado.catch(() => undefined);
+  return resultado;
+}
+
+let enCurso: Promise<void> | null = null;
+
+/** Sincroniza ahora (si hay sesión). Si ya hay una en curso en esta pestaña, espera a esa. */
 export function sincronizarAhora(): Promise<void> {
-  enCurso ??= (async () => {
-    const estado = await leerEstadoNube();
-    if (!conSesion(estado)) return;
-    cambiarFase({ fase: 'sincronizando' });
+  enCurso ??= exclusivo(async () => {
+    const inicio = await leerEstadoNube();
+    if (!conSesion(inicio)) return;
+    actualizar({ fase: { fase: 'sincronizando' }, cambiosLocales: false });
     try {
-      const resultado = await sincronizar(almacenPropio, solicitud => apiNube.sincronizar(estado.token, solicitud), estado.cursor);
-      const actual = await leerEstadoNube();
+      const resultado = await sincronizar(almacenPropio, solicitud => apiNube.sincronizar(inicio.token, solicitud),
+        { cursor: inicio.cursor, epoca: inicio.epoca ?? '' });
       const fecha = new Date().toISOString();
-      if (actual?.vinculado === estado.vinculado) await guardarEstadoNube({ ...actual, cursor: resultado.cursor, ultimaSincronizacion: fecha });
-      cambiarFase({ fase: 'lista', resultado, fecha });
+      const actual = await leerEstadoNube();
+      if (actual?.vinculado === inicio.vinculado) await guardarEstadoNube({ ...actual, ultimaSincronizacion: fecha });
+      actualizar({ fase: { fase: 'lista', resultado, fecha } });
     } catch (e) {
       const error = e instanceof ErrorNube ? e : new ErrorNube('error-interno', 'No se pudo sincronizar. Tus datos siguen guardados en este teléfono.');
       // Sesión vencida o cuenta borrada: hay que volver a iniciar sesión (los datos del teléfono no cambian).
@@ -65,9 +85,9 @@ export function sincronizarAhora(): Promise<void> {
         const actual = await leerEstadoNube();
         if (actual) await guardarEstadoNube({ ...actual, token: '' });
       }
-      cambiarFase({ fase: 'error', error, fecha: new Date().toISOString() });
+      actualizar({ fase: { fase: 'error', error, fecha: new Date().toISOString() } });
     }
-  })().finally(() => { enCurso = null; });
+  }).finally(() => { enCurso = null; });
   return enCurso;
 }
 
@@ -81,39 +101,59 @@ export class OtraCuenta extends Error {
 /** Inicia sesión con la credencial de Google y sincroniza. */
 export async function iniciarSesion(credencial: string, consentimiento: boolean): Promise<void> {
   const previo = await leerEstadoNube();
-  const sesion = await apiNube.iniciarSesion(credencial, consentimiento);
-  if (previo && previo.vinculado !== sesion.usuario.sub) throw new OtraCuenta(previo.usuario.email);
+  let sesion;
+  try {
+    // La nube no crea ni modifica nada si el teléfono está vinculado a otra cuenta.
+    sesion = await apiNube.iniciarSesion(credencial, consentimiento, previo?.vinculado);
+  } catch (e) {
+    if (e instanceof ErrorNube && e.codigo === 'otra-cuenta' && previo) throw new OtraCuenta(previo.usuario.email);
+    throw e;
+  }
   await guardarEstadoNube({
     token: sesion.token,
     vence: sesion.vence,
     usuario: sesion.usuario,
     vinculado: sesion.usuario.sub,
     cursor: previo?.cursor ?? 0,
+    // Se conserva la época anterior: si la cuenta se borró y se volvió a crear, la sincronización lo
+    // detecta y vuelve a subir todo. Un teléfono que nunca sincronizó empieza con la época actual.
+    epoca: previo ? previo.epoca ?? '' : sesion.epoca,
     ultimaSincronizacion: previo?.ultimaSincronizacion
   });
   await sincronizarAhora();
 }
 
-/** Cierra la sesión. Los datos siguen en el teléfono y en la nube; al volver a entrar con la misma cuenta, se continúa. */
+/** Cierra la sesión en este teléfono. Los datos siguen en el teléfono y en la nube. */
 export async function cerrarSesion(): Promise<void> {
-  const estado = await leerEstadoNube();
-  if (estado) await guardarEstadoNube({ ...estado, token: '' });
-  cambiarFase({ fase: 'inactiva' });
+  await exclusivo(async () => {
+    const actual = await leerEstadoNube();
+    if (actual) await guardarEstadoNube({ ...actual, token: '' });
+  });
+  actualizar({ fase: { fase: 'inactiva' } });
 }
 
 /** Borra los datos de la cuenta en la nube (Ley 1581: supresión). El teléfono conserva los suyos. */
 export async function borrarCuentaNube(): Promise<void> {
-  const estado = await leerEstadoNube();
-  if (!conSesion(estado)) throw new ErrorNube('no-autorizado', 'Inicia sesión para borrar tus datos de la nube.');
-  await apiNube.borrarCuenta(estado.token);
-  await desvincularNube();
-  cambiarFase({ fase: 'inactiva' });
+  await exclusivo(async () => {
+    const actual = await leerEstadoNube();
+    if (!conSesion(actual)) throw new ErrorNube('no-autorizado', 'Inicia sesión para borrar tus datos de la nube.');
+    await apiNube.borrarCuenta(actual.token);
+    await desvincularNube();
+  });
+  actualizar({ fase: { fase: 'inactiva' } });
 }
 
 /** Para usar el teléfono con otra cuenta: borra sus datos y la vinculación. */
 export async function borrarTelefonoYDesvincular(): Promise<void> {
-  await borrarDatosDelTelefono();
-  cambiarFase({ fase: 'inactiva' });
+  await exclusivo(async () => {
+    aplicando = true;
+    try {
+      await borrarDatosDelTelefono();
+    } finally {
+      aplicando = false;
+    }
+  });
+  actualizar({ fase: { fase: 'inactiva' }, cambiosLocales: false });
 }
 
 const ESPERA_CAMBIOS_MS = 15_000;
@@ -122,7 +162,7 @@ let iniciada = false;
 
 /**
  * Sincroniza al abrir la app, al recuperar internet, cada 5 minutos con la app visible y 15 segundos
- * después del último cambio. Con pocos productores esto queda muy por debajo del límite gratuito.
+ * después del último cambio. Registra la hora real de cada eliminación del usuario.
  */
 export function iniciarSincronizacionAutomatica(): void {
   if (iniciada) return;
@@ -130,14 +170,19 @@ export function iniciarSincronizacionAutomatica(): void {
   let espera: ReturnType<typeof setTimeout> | undefined;
   const programar = () => {
     if (aplicando) return;
+    if (!estado.cambiosLocales) actualizar({ cambiosLocales: true });
     clearTimeout(espera);
     espera = setTimeout(() => void sincronizarAhora(), ESPERA_CAMBIOS_MS);
   };
   for (const tabla of TABLAS_NUBE) {
     const t = db.table(tabla);
-    t.hook('creating', programar);
-    t.hook('updating', programar);
-    t.hook('deleting', programar);
+    t.hook('creating', () => { programar(); });
+    t.hook('updating', () => { programar(); });
+    t.hook('deleting', clave => {
+      if (aplicando) return;
+      if (typeof clave === 'string') registrarEliminacion(`${tabla}/${clave}`);
+      programar();
+    });
   }
   window.addEventListener('online', () => void sincronizarAhora());
   setInterval(() => { if (document.visibilityState === 'visible') void sincronizarAhora(); }, INTERVALO_MS);

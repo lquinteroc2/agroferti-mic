@@ -1,4 +1,4 @@
-import Dexie, { type EntityTable } from 'dexie';
+import Dexie, { type EntityTable, type Table } from 'dexie';
 import type { AnalisisSuelo, CicloCultivo, Lote, PlanFertilizacion, ProductoFertilizante, RegistroSeguimiento } from '../types';
 import { crearRepositorioAnalisis, ErrorPersistencia } from './repositorioAnalisis';
 import { crearRepositorioCiclos } from './repositorioCiclos';
@@ -6,8 +6,8 @@ import { crearRepositorioPlanes, crearRepositorioProductos } from './repositorio
 import { crearRepositorioRespaldo, type IdsExistentes } from './respaldo';
 import { crearRepositorioSeguimiento } from './repositorioSeguimiento';
 import type { EstadoNube } from './nube';
-import { TABLAS_NUBE } from './protocoloNube';
-import type { AlmacenSincronizacion, TablasNube } from './sincronizacion';
+import { TABLAS_NUBE, type TablaNube } from './protocoloNube';
+import type { AlmacenSincronizacion, TablasNube, VersionApartada } from './sincronizacion';
 
 export const db = new Dexie('AgroFertiMIC') as Dexie & {
   lotes: EntityTable<Lote, 'id'>;
@@ -18,6 +18,7 @@ export const db = new Dexie('AgroFertiMIC') as Dexie & {
   ciclos: EntityTable<CicloCultivo, 'id'>;
   sincronizado: EntityTable<{ clave: string; texto: string }, 'clave'>;
   ajustes: EntityTable<{ clave: string; valor: unknown }, 'clave'>;
+  apartadas: EntityTable<VersionApartada & { n?: number }, 'n'>;
 };
 
 // Mantener versiones e índices estables. Cada cambio de esquema añade una versión nueva.
@@ -45,6 +46,12 @@ db.version(3).stores({
 db.version(4).stores({
   sincronizado: 'clave',
   ajustes: 'clave'
+});
+
+// Nube (revisión): versiones de registros que la sincronización dejó de lado (conflictos perdidos o
+// datos de la nube que no se pudieron aplicar), para que el usuario las descargue. Nada se pierde en silencio.
+db.version(5).stores({
+  apartadas: '++n, fecha'
 });
 
 // Fase 2: el esquema v1 ya indexa analisisSuelos por loteId y fechaAnalisis; los campos nuevos
@@ -173,9 +180,41 @@ export async function eliminarLoteYRelacionados(id: string): Promise<void> {
 // ---- Nube: almacén de la sincronización y estado de la sesión ----
 
 const tablasNube = () => TABLAS_NUBE.map(t => db.table(t));
+const CLAVE_NUBE = 'nube';
+
+/**
+ * Hora real de cada eliminación (clave "tabla/id" → ISO), para que la nube compare con la hora en que
+ * el usuario eliminó y no con la de la sincronización. Se guarda en localStorage porque los ganchos
+ * de Dexie no pueden escribir en otra tabla de la misma transacción. Si se pierde, se usa la hora de
+ * la sincronización.
+ */
+const CLAVE_ELIMINADOS = 'agroferti-eliminados';
+const VIGENCIA_ELIMINADOS_MS = 180 * 24 * 60 * 60 * 1000;
+
+function leerEliminados(): Record<string, string> {
+  try {
+    const valor = JSON.parse(localStorage.getItem(CLAVE_ELIMINADOS) ?? '{}');
+    return valor && typeof valor === 'object' && !Array.isArray(valor) ? valor : {};
+  } catch {
+    return {};
+  }
+}
+
+function guardarEliminados(eliminados: Record<string, string>): void {
+  try {
+    localStorage.setItem(CLAVE_ELIMINADOS, JSON.stringify(eliminados));
+  } catch { /* sin almacenamiento: se usará la hora de la sincronización */ }
+}
+
+export function registrarEliminacion(clave: string, ahora: Date = new Date()): void {
+  const limite = ahora.getTime() - VIGENCIA_ELIMINADOS_MS;
+  const eliminados = Object.fromEntries(Object.entries(leerEliminados()).filter(([, f]) => Date.parse(f) > limite));
+  eliminados[clave] ??= ahora.toISOString();
+  guardarEliminados(eliminados);
+}
 
 export const almacenSincronizacion: AlmacenSincronizacion = {
-  transaccion: fn => db.transaction('rw', [...tablasNube(), db.sincronizado], fn),
+  transaccion: fn => db.transaction('rw', [...tablasNube(), db.sincronizado, db.ajustes, db.apartadas] as Table[], fn),
   leerTodo: () => db.transaction('r', tablasNube(), async () =>
     Object.fromEntries(await Promise.all(TABLAS_NUBE.map(async t => [t, await db.table(t).toArray()]))) as TablasNube),
   obtener: (tabla, id) => db.table(tabla).get(id),
@@ -186,10 +225,22 @@ export const almacenSincronizacion: AlmacenSincronizacion = {
   ponerInstantanea: async (clave, texto) => {
     if (texto === null) await db.sincronizado.delete(clave);
     else await db.sincronizado.put({ clave, texto });
+  },
+  vaciarInstantanea: async () => { await db.sincronizado.clear(); },
+  fechaEliminacion: clave => leerEliminados()[clave],
+  olvidarEliminacion: clave => {
+    const eliminados = leerEliminados();
+    if (clave in eliminados) {
+      delete eliminados[clave];
+      guardarEliminados(eliminados);
+    }
+  },
+  apartar: async version => { await db.apartadas.add(version); },
+  guardarAvance: async (cursor, epoca) => {
+    const fila = await db.ajustes.get(CLAVE_NUBE);
+    if (fila) await db.ajustes.put({ clave: CLAVE_NUBE, valor: { ...(fila.valor as EstadoNube), cursor, epoca } });
   }
 };
-
-const CLAVE_NUBE = 'nube';
 
 export async function leerEstadoNube(): Promise<EstadoNube | undefined> {
   return (await db.ajustes.get(CLAVE_NUBE))?.valor as EstadoNube | undefined;
@@ -206,13 +257,47 @@ export async function desvincularNube(): Promise<void> {
     await db.sincronizado.clear();
     await db.ajustes.delete(CLAVE_NUBE);
   });
+  guardarEliminados({});
 }
 
 /** Borra todos los datos de este teléfono (para usarlo con otra cuenta). Pide confirmación antes. */
 export async function borrarDatosDelTelefono(): Promise<void> {
-  await db.transaction('rw', [...tablasNube(), db.sincronizado, db.ajustes], async () => {
+  await db.transaction('rw', [...tablasNube(), db.sincronizado, db.ajustes, db.apartadas] as Table[], async () => {
     for (const t of tablasNube()) await t.clear();
     await db.sincronizado.clear();
+    await db.apartadas.clear();
     await db.ajustes.delete(CLAVE_NUBE);
   });
+  guardarEliminados({});
 }
+
+/** Versiones apartadas por la sincronización, para descargarlas o descartarlas. */
+export const versionesApartadas = {
+  listar: () => db.apartadas.orderBy('fecha').toArray(),
+  contar: () => db.apartadas.count(),
+  descartar: () => db.apartadas.clear()
+};
+
+/** Registros sin lote (p. ej. el lote se eliminó en otro teléfono), para descargarlos o eliminarlos. */
+export const registrosSinLote = {
+  async listar(): Promise<{ tabla: TablaNube; registro: unknown }[]> {
+    return db.transaction('r', tablasNube(), async () => {
+      const lotes = new Set(await db.lotes.toCollection().primaryKeys());
+      const resultado: { tabla: TablaNube; registro: unknown }[] = [];
+      for (const tabla of ['analisisSuelos', 'planes', 'registros', 'ciclos'] as const) {
+        for (const r of await db.table(tabla).toArray()) {
+          if (typeof r?.loteId === 'string' && !lotes.has(r.loteId)) resultado.push({ tabla, registro: r });
+        }
+      }
+      return resultado;
+    });
+  },
+  async eliminar(): Promise<void> {
+    await db.transaction('rw', tablasNube(), async () => {
+      const lotes = new Set(await db.lotes.toCollection().primaryKeys());
+      for (const tabla of ['analisisSuelos', 'planes', 'registros', 'ciclos'] as const) {
+        await db.table(tabla).filter(r => typeof r?.loteId === 'string' && !lotes.has(r.loteId)).delete();
+      }
+    });
+  }
+};

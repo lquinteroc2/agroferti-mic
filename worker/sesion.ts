@@ -2,14 +2,18 @@
  * Sesión propia de la app: después de verificar el token de Google, la API entrega un token firmado
  * con HMAC-SHA256 (secreto `SESION_SECRETO` del Worker) que dura 30 días. Así el productor no tiene
  * que volver a iniciar sesión cada hora, y la API no consulta a Google en cada sincronización.
+ *
+ * El token incluye la época de la cuenta: si la cuenta se borra y se vuelve a crear, las sesiones
+ * anteriores dejan de servir.
  */
 import { base64urlABytes } from './google.ts';
 
 export const DURACION_SESION_MS = 30 * 24 * 60 * 60 * 1000;
-const VERSION = 'v1';
+const VERSION = 'v2';
 
 export interface Sesion {
   sub: string;
+  epoca: string;
   /** Milisegundos desde 1970 en que vence. */
   vence: number;
 }
@@ -25,9 +29,9 @@ async function clave(secreto: string): Promise<CryptoKey> {
   return crypto.subtle.importKey('raw', new TextEncoder().encode(secreto), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify']);
 }
 
-export async function crearSesion(sub: string, secreto: string, ahora: number = Date.now()): Promise<{ token: string; vence: number }> {
+export async function crearSesion(sub: string, epoca: string, secreto: string, ahora: number = Date.now()): Promise<{ token: string; vence: number }> {
   const vence = ahora + DURACION_SESION_MS;
-  const carga = bytesABase64url(new TextEncoder().encode(JSON.stringify({ sub, vence })));
+  const carga = bytesABase64url(new TextEncoder().encode(JSON.stringify({ sub, epoca, vence })));
   const firma = new Uint8Array(await crypto.subtle.sign('HMAC', await clave(secreto), new TextEncoder().encode(`${VERSION}.${carga}`)));
   return { token: `${VERSION}.${carga}.${bytesABase64url(firma)}`, vence };
 }
@@ -41,8 +45,8 @@ export async function verificarSesion(token: string, secreto: string, ahora: num
       new TextEncoder().encode(`${partes[0]}.${partes[1]}`));
     if (!valida) return null;
     const carga = JSON.parse(new TextDecoder().decode(base64urlABytes(partes[1]))) as Partial<Sesion>;
-    if (typeof carga.sub !== 'string' || typeof carga.vence !== 'number' || carga.vence <= ahora) return null;
-    return { sub: carga.sub, vence: carga.vence };
+    if (typeof carga.sub !== 'string' || typeof carga.epoca !== 'string' || typeof carga.vence !== 'number' || carga.vence <= ahora) return null;
+    return { sub: carga.sub, epoca: carga.epoca, vence: carga.vence };
   } catch {
     return null;
   }
