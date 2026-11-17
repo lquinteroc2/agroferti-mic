@@ -52,7 +52,7 @@ La app ya está publicada, así que la cuenta existe. Para encontrar el correo:
 
 ### 3.3 Crear la base de datos D1
 
-1. Menú izquierdo → **Storage & databases → D1 SQL database** → **Create database** (o "Create").
+1. Menú izquierdo → **Storage & databases → D1 SQLite Database** (en versiones anteriores del panel decía "D1 SQL database") → **Create database** (o "Create"). No elijas "Postgres & MySQL (Hyperdrive)", "R2" ni "Workers KV".
 2. Nombre: **`agroferti-db`**.
 3. Ubicación (location / jurisdiction): déjala en automático. No elijas opciones de pago.
 4. Pulsa **Create**.
@@ -90,7 +90,11 @@ Nota: si un cliente OAuth pasa seis meses sin usarse, Google lo borra (se puede 
 
 Antes de subir datos a la nube, la app pedirá la autorización del productor con un texto claro: qué datos se guardan (correo de Google, nombre y los datos de sus lotes), para qué (respaldo y uso en varios dispositivos), quién es el responsable (Grupo 1 SENA, prototipo académico) y cómo pedir que se borren. Sin esa autorización, los datos se quedan solo en el teléfono.
 
-## 6. Lo que hará el asistente después de recibir el Database ID y el Client ID
+## 6. Estado (17 de noviembre de 2026)
+
+Hecho: base `agroferti-db` creada y con sus tablas, Client ID de Google configurado, secreto de sesión guardado en Cloudflare y la API publicada. Lo siguiente es probar el inicio de sesión real en la app publicada y en un teléfono.
+
+### Lo que se construyó
 
 1. `wrangler.jsonc` en el repositorio: el Worker sirve la app y la API, y se conecta a D1.
 2. Tablas en D1 con migraciones versionadas y pruebas.

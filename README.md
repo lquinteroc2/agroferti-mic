@@ -103,6 +103,15 @@ Aplicación web progresiva (PWA) **multicultivo** para preparar el cálculo, la 
 ✅ 174 pruebas automáticas al cerrar el historial (10 del historial, más 15 de la validación manual de la fase 6). Recorrido en Edge headless: 23 comprobaciones, incluida la migración de una base v2 con datos previos, el cierre, la edición de notas, la recarga, el ancho de teléfono (390 px) y la eliminación del lote.
 ✅ Una revisión de código del historial (17 de noviembre de 2026) encontró 10 puntos; todos están corregidos. 181 pruebas automáticas; recorrido en Edge headless de las correcciones: 10 comprobaciones.
 
+**Guardar en la nube (sección "Guardar en la nube" en Mis lotes) — sin costo**
+✅ **Iniciar sesión con Google** después de aceptar la autorización de tratamiento de datos (Ley 1581 de 2012). Sin sesión, la app funciona exactamente como antes, solo en el teléfono.
+✅ **Funciona sin internet:** todo se guarda primero en el teléfono. Con sesión, la app sincroniza al abrirse, al recuperar internet, 15 segundos después de cada cambio y cada 5 minutos, o con **Sincronizar ahora**. Muestra cuántos cambios faltan por subir.
+✅ Varios dispositivos con la misma cuenta ven los mismos lotes, análisis, productos, planes, seguimiento e historial. Ediciones y eliminaciones también se propagan. En un conflicto gana la versión más reciente; un cambio sin subir nunca se pisa con lo que llega de la nube.
+✅ Los datos viajan tal como están guardados (incluidos los dañados, NaN y campos de otras versiones), con la misma codificación de la copia de seguridad. Un lote que rompería la lista no se aplica.
+✅ **Cerrar sesión** conserva los datos. **Borrar mis datos de la nube** los elimina del servidor (derecho de supresión). Un teléfono con datos de una cuenta no se mezcla con otra: hay que entrar con esa cuenta o borrar los datos del teléfono.
+✅ Backend: API en el mismo Worker (`worker/`), base **Cloudflare D1** (`migrations/`), token de Google verificado en el servidor (firma, `aud`, `iss`, `exp`, correo verificado) y sesión propia de 30 días firmada con `SESION_SECRETO`. Todo en planes gratuitos: al superar un límite diario, la nube deja de responder hasta el día siguiente y la app sigue con los datos del teléfono. Detalles y costos en [`docs/NUBE_CLOUDFLARE.md`](./docs/NUBE_CLOUDFLARE.md).
+✅ 190 pruebas automáticas (9 de la nube: token de Google, sesión, protocolo y sincronización entre dos teléfonos simulados). Prueba de la API con `wrangler dev` y D1 local: 15 comprobaciones. Recorrido con dos navegadores contra la API local: 10 comprobaciones (crear en uno, ver en otro, eliminar, cerrar sesión).
+
 **Fase 6 (validación) — kit preparado, falta ejecutarlo con datos reales**
 ✅ Protocolo en [`docs/VALIDACION_FASE6.md`](./docs/VALIDACION_FASE6.md): roles, datos reales que reunir, carga en la app publicada, fórmulas, dos casos completos de EJEMPLO calculados a mano (papa y arveja), casos límite, registro de discrepancias y pruebas en un Android real.
 ✅ Hoja para el equipo: [`docs/hoja-comparacion-fase6.csv`](./docs/hoja-comparacion-fase6.csv) (separador `;`, abre en Excel). Pruebas automáticas de los casos manuales en `tests/validacionManual.test.ts`.
@@ -256,8 +265,12 @@ agroferti-mic/
 │  │  ├─ repositorioSeguimiento.ts # Fase 4: persistencia del seguimiento (solo planes aprobados)
 │  │  ├─ historial.ts           # Historial: verificación de ciclos, validación del cierre y agrupación por fechas
 │  │  ├─ repositorioCiclos.ts   # Historial: cerrar ciclo (ciclo y lote en una transacción), notas y quitar
+│  │  ├─ protocoloNube.ts       # Nube: formato y validación de las solicitudes (lo usan la app y el Worker)
+│  │  ├─ sincronizacion.ts      # Nube: qué subir, qué aplicar al bajar y conflictos (reglas puras)
+│  │  ├─ nube.ts                # Nube: cliente de la API y Client ID de Google
+│  │  ├─ cuentaNube.ts          # Nube: sesión y sincronización automática
 │  │  ├─ formato.ts             # Números y fechas en es-CO
-│  │  └─ db.ts                  # IndexedDB mediante Dexie (esquema v3)
+│  │  └─ db.ts                  # IndexedDB mediante Dexie (esquema v4)
 │  ├─ types.ts           # Modelo de lotes, análisis, productos y planes
 │  ├─ App.tsx            # Navegación e interfaz principal
 │  ├─ main.tsx
@@ -274,7 +287,11 @@ agroferti-mic/
 │  ├─ seguimiento.test.ts   # Fase 4: registros, avance del plan y persistencia
 │  ├─ historial.test.ts     # Historial: ciclos, agrupación por fechas, cierre atómico y copia
 │  ├─ validacionManual.test.ts # Fase 6: casos de EJEMPLO calculados a mano frente a la app
+│  ├─ nube.test.ts          # Nube: token de Google, sesión, protocolo y sincronización
 │  └─ informe.test.ts       # Fase 5: qué plan, análisis y seguimiento muestra el informe
+├─ worker/               # API de la nube: index.ts (rutas y SQL), google.ts (token), sesion.ts
+├─ migrations/           # Tablas de D1 (cada cambio, una migración nueva)
+├─ wrangler.jsonc        # Worker publicado: archivos estáticos, API y conexión a D1
 ├─ vite.config.ts        # Configuración de PWA
 ├─ tsconfig.json
 └─ package.json
@@ -318,7 +335,7 @@ Todo queda en **IndexedDB del navegador**, que depende de la dirección de la ap
 
 La dirección es `<nombre del Worker>.<subdominio de la cuenta>.workers.dev`. El subdominio de la cuenta (`senaedu`) se cambia en el panel de Cloudflare (Workers & Pages); al cambiarlo, la dirección anterior deja de funcionar y los datos guardados en el navegador no pasan a la nueva, porque dependen de la dirección.
 
-Está conectada al repositorio de GitHub: **cada push a `main` se compila y se publica sola** (Workers Builds, plan gratuito). El resultado aparece como check "Workers Builds: agroferti-mic" en el commit de GitHub. La configuración del Worker la genera Cloudflare en su entorno de compilación; no hay `wrangler.jsonc` en el repositorio.
+Está conectada al repositorio de GitHub: **cada push a `main` se compila y se publica sola** (Workers Builds, plan gratuito). El resultado aparece como check "Workers Builds: agroferti-mic" en el commit de GitHub. Desde el 17 de noviembre de 2026 la configuración del Worker está en `wrangler.jsonc` (archivos estáticos, API y conexión a D1); la compilación usa `npm run build` y la publicación `npx wrangler deploy`.
 
 - **No agregues `public/_redirects`.** Workers rechaza la regla `/* /index.html 200` por bucle infinito y el deploy falla. La app no tiene rutas propias y el service worker ya usa `index.html` sin conexión.
 - Tras un push, recarga la app una o dos veces para que el navegador tome la versión nueva (actualización automática de la PWA).
@@ -371,7 +388,9 @@ No inventar resultados de campo. Etiquetar todos los datos simulados como **EJEM
 ## Para retomar (estado al 17 de noviembre de 2026)
 
 - Historial del lote (ciclos de cultivo) publicado y revisado: los 10 puntos de la revisión de código están corregidos (181 pruebas, build correcto).
-- Aprobado el 17 de noviembre de 2026: guardar los datos en la nube (API en el mismo Worker + Cloudflare D1) con Sign in with Google y sincronización, todo en planes gratuitos y sin registrar métodos de pago. `AGENTS.md` ya está actualizado. Siguiente paso: hacer los pasos de [`docs/NUBE_CLOUDFLARE.md`](./docs/NUBE_CLOUDFLARE.md) en los paneles de Cloudflare y Google y entregar al asistente el Database ID de D1 y el Client ID de Google.
+- **Nube publicada (17 de noviembre de 2026):** Worker + D1 (`agroferti-db`, migración aplicada) + Sign in with Google, en planes gratuitos y sin métodos de pago. La cuenta de Cloudflare es la de `leonardoquintero222@gmail.com`; el secreto `SESION_SECRETO` está guardado en Cloudflare (no en el repositorio). Falta la prueba con un inicio de sesión real de Google en la app publicada y en un teléfono.
+- Para trabajar con la API en local: `npm run db:migrar:local` (una vez), crear `.dev.vars` con `SESION_SECRETO=<texto de 32+ caracteres>` y luego `npm run dev:api` (app + API en http://localhost:8787). En Windows PowerShell usa `npm.cmd` y `npx.cmd`.
+- Si cambia el esquema de D1: nueva migración en `migrations/` y `npm run db:migrar:nube` antes de publicar el código que la usa.
 - Kit de la fase 6 listo en `docs/`. Falta que el equipo consiga datos reales y llene la hoja de comparación.
 - Corregido al preparar la fase 6: en el análisis de suelo, el valor de un nutriente o la profundidad escritos `1.500` se guardaban como 1,5. Ahora se rechazan como en el área, las metas y los kg, y se pide `1500` (caso L7 del protocolo).
 - Los formularios ya no dicen "opcional" junto a los campos que se pueden dejar vacíos (pedido del equipo).
@@ -422,6 +441,15 @@ No inventar resultados de campo. Etiquetar todos los datos simulados como **EJEM
 - Muestra solo el análisis de suelo más reciente y el plan aprobado más recientemente (si hay varios, lo indica).
 - El PDF lo genera el navegador: el aspecto puede variar un poco entre navegadores; se probó con Chrome.
 - La recomendación es la del plan aprobado; para que la app propusiera metas a partir del análisis harían falta tablas agronómicas validadas con su fuente (decisión pendiente, fuera del alcance actual).
+
+## Limitaciones conocidas de la nube
+
+- En un conflicto gana la versión con la fecha de actualización más reciente; depende del reloj de cada teléfono.
+- La autorización de datos no indica un correo de contacto del responsable: el equipo debe agregarlo antes de usar datos reales de productores.
+- El inicio de sesión necesita internet la primera vez en cada dispositivo. La sesión dura 30 días; después hay que volver a entrar (los datos del teléfono no se pierden).
+- Un teléfono queda vinculado a una cuenta. Para usar otra, hay que borrar los datos del teléfono.
+- En plan gratuito: 100.000 solicitudes y 100.000 escrituras por día. Al superarlo, la nube no responde hasta las 00:00 UTC (19:00 en Colombia); no se cobra.
+- Google borra el ID de cliente si pasa seis meses sin usarse (se puede restaurar durante 30 días).
 
 ## Limitaciones conocidas del historial del lote
 

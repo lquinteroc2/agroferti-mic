@@ -46,13 +46,21 @@ const ETIQUETA = '$agroferti';
  * para que la copia sea exactamente lo guardado (incluidos los datos dañados).
  */
 export function serializarRespaldo(respaldo: Respaldo): string {
-  return JSON.stringify(respaldo, function (this: Record<string, unknown>, clave: string, valor: unknown) {
-    const original = this[clave];
-    if (typeof original === 'number' && !Number.isFinite(original)) return { [ETIQUETA]: 'numero', valor: String(original) };
-    if (original instanceof Date) return { [ETIQUETA]: 'fecha', valor: Number.isNaN(original.getTime()) ? 'Invalid Date' : original.toISOString() };
-    return valor;
-  }, 2);
+  return JSON.stringify(respaldo, etiquetar, 2);
 }
+
+function etiquetar(this: Record<string, unknown>, clave: string, valor: unknown): unknown {
+  const original = this[clave];
+  if (typeof original === 'number' && !Number.isFinite(original)) return { [ETIQUETA]: 'numero', valor: String(original) };
+  if (original instanceof Date) return { [ETIQUETA]: 'fecha', valor: Number.isNaN(original.getTime()) ? 'Invalid Date' : original.toISOString() };
+  return valor;
+}
+
+/** Un registro como texto, sin perder NaN, ±Infinity ni fechas (lo mismo que la copia de seguridad). */
+export const codificarRegistro = (registro: unknown): string => JSON.stringify(registro, etiquetar);
+
+/** Inverso de `codificarRegistro`. Lanza un error si el texto no es JSON. */
+export const decodificarRegistro = (texto: string): unknown => JSON.parse(texto, revivir);
 
 function revivir(_clave: string, valor: unknown): unknown {
   if (esObjeto(valor) && Object.keys(valor).length === 2 && typeof valor.valor === 'string') {

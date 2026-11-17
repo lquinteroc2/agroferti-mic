@@ -5,6 +5,9 @@ import { crearRepositorioCiclos } from './repositorioCiclos';
 import { crearRepositorioPlanes, crearRepositorioProductos } from './repositorioPlanes';
 import { crearRepositorioRespaldo, type IdsExistentes } from './respaldo';
 import { crearRepositorioSeguimiento } from './repositorioSeguimiento';
+import type { EstadoNube } from './nube';
+import { TABLAS_NUBE } from './protocoloNube';
+import type { AlmacenSincronizacion, TablasNube } from './sincronizacion';
 
 export const db = new Dexie('AgroFertiMIC') as Dexie & {
   lotes: EntityTable<Lote, 'id'>;
@@ -13,6 +16,8 @@ export const db = new Dexie('AgroFertiMIC') as Dexie & {
   registros: EntityTable<RegistroSeguimiento, 'id'>;
   productos: EntityTable<ProductoFertilizante, 'id'>;
   ciclos: EntityTable<CicloCultivo, 'id'>;
+  sincronizado: EntityTable<{ clave: string; texto: string }, 'clave'>;
+  ajustes: EntityTable<{ clave: string; valor: unknown }, 'clave'>;
 };
 
 // Mantener versiones e índices estables. Cada cambio de esquema añade una versión nueva.
@@ -33,6 +38,13 @@ db.version(2).stores({
 // sus datos no cambian; los análisis, planes y registros se agrupan por fecha al leerlos.
 db.version(3).stores({
   ciclos: 'id, loteId, fechaCierre'
+});
+
+// Nube: solo se agregan la instantánea de la última sincronización (clave "tabla/id" → texto del
+// registro) y los ajustes de la sesión. Las tablas de datos no cambian.
+db.version(4).stores({
+  sincronizado: 'clave',
+  ajustes: 'clave'
 });
 
 // Fase 2: el esquema v1 ya indexa analisisSuelos por loteId y fechaAnalisis; los campos nuevos
@@ -155,5 +167,52 @@ export async function eliminarLoteYRelacionados(id: string): Promise<void> {
     await db.registros.where('loteId').equals(id).delete();
     await db.ciclos.where('loteId').equals(id).delete();
     await db.lotes.delete(id);
+  });
+}
+
+// ---- Nube: almacén de la sincronización y estado de la sesión ----
+
+const tablasNube = () => TABLAS_NUBE.map(t => db.table(t));
+
+export const almacenSincronizacion: AlmacenSincronizacion = {
+  transaccion: fn => db.transaction('rw', [...tablasNube(), db.sincronizado], fn),
+  leerTodo: () => db.transaction('r', tablasNube(), async () =>
+    Object.fromEntries(await Promise.all(TABLAS_NUBE.map(async t => [t, await db.table(t).toArray()]))) as TablasNube),
+  obtener: (tabla, id) => db.table(tabla).get(id),
+  poner: async (tabla, registro) => { await db.table(tabla).put(registro); },
+  borrar: (tabla, id) => db.table(tabla).delete(id),
+  leerInstantanea: async () => new Map((await db.sincronizado.toArray()).map(f => [f.clave, f.texto])),
+  obtenerInstantanea: async clave => (await db.sincronizado.get(clave))?.texto,
+  ponerInstantanea: async (clave, texto) => {
+    if (texto === null) await db.sincronizado.delete(clave);
+    else await db.sincronizado.put({ clave, texto });
+  }
+};
+
+const CLAVE_NUBE = 'nube';
+
+export async function leerEstadoNube(): Promise<EstadoNube | undefined> {
+  return (await db.ajustes.get(CLAVE_NUBE))?.valor as EstadoNube | undefined;
+}
+
+export async function guardarEstadoNube(estado: EstadoNube | undefined): Promise<void> {
+  if (estado) await db.ajustes.put({ clave: CLAVE_NUBE, valor: estado });
+  else await db.ajustes.delete(CLAVE_NUBE);
+}
+
+/** Olvida la sincronización (instantánea y sesión) sin tocar los datos del teléfono. */
+export async function desvincularNube(): Promise<void> {
+  await db.transaction('rw', db.sincronizado, db.ajustes, async () => {
+    await db.sincronizado.clear();
+    await db.ajustes.delete(CLAVE_NUBE);
+  });
+}
+
+/** Borra todos los datos de este teléfono (para usarlo con otra cuenta). Pide confirmación antes. */
+export async function borrarDatosDelTelefono(): Promise<void> {
+  await db.transaction('rw', [...tablasNube(), db.sincronizado, db.ajustes], async () => {
+    for (const t of tablasNube()) await t.clear();
+    await db.sincronizado.clear();
+    await db.ajustes.delete(CLAVE_NUBE);
   });
 }

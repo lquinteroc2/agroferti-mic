@@ -194,3 +194,14 @@
 .historial-contenido h4{margin:0 0 4px;font-size:.86rem;color:#2e5236}
 .historial-contenido ul{margin:0;padding-left:18px;display:grid;gap:3px}
 .historial-ciclo .registro-acciones{margin-top:12px}
+
+/* Guardar en la nube */
+.nube{margin-top:28px}
+.nube-estado{font-size:.86rem;font-weight:700;color:#2c6739;margin:10px 0 0}
+.nube-estado-error{color:#9d332d}
+.nube-check{margin:14px 0 6px}
+.nube-autorizacion{font-size:.84rem;margin:4px 0 12px}
+.nube-autorizacion summary{cursor:pointer;color:#27503c;font-weight:700;text-decoration:underline}
+.nube-autorizacion ul{padding-left:18px;margin:6px 0 0}
+.nube-google{min-height:44px;margin:6px 0 4px}
+.nube .danger-link{margin-top:0}

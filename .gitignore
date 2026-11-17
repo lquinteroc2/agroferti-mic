@@ -16,3 +16,4 @@ coverage/
 credentials*.json
 secrets*.json
 .wrangler/
+.dev.vars

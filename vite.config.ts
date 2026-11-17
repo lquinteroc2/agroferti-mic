@@ -3,6 +3,8 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+  // En desarrollo, /api va al Worker local (`npm run dev:api`, puerto 8787).
+  server: { proxy: { '/api': 'http://localhost:8787' } },
   plugins: [
     react(),
     VitePWA({
@@ -24,7 +26,9 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
-        navigateFallback: '/index.html'
+        navigateFallback: '/index.html',
+        // La API de la nube nunca se responde desde la caché del service worker.
+        navigateFallbackDenylist: [/^\/api\//]
       }
     })
   ]

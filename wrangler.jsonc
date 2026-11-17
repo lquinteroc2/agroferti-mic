@@ -1,0 +1,27 @@
+// Configuración del Worker publicado en Cloudflare (plan gratuito). Cada push a `main` se compila
+// (`npm run build`) y se publica (`npx wrangler deploy`) con este archivo.
+// Nada aquí es secreto: SESION_SECRETO se guarda aparte con `npx wrangler secret put SESION_SECRETO`.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "agroferti-mic",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-11-17",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    // Solo la API pasa por el Worker; la app se sirve directo como archivos estáticos.
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "agroferti-db",
+      "database_id": "ce3253c0-b088-4459-ae53-fd057a140f05",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "vars": {
+    // Client ID de "Sign in with Google" (no es secreto). Vacío: la API responde "no configurada".
+    "GOOGLE_CLIENT_ID": "329265720632-bf4ig6n7s7d3guq9s269bbuoo0773m6q.apps.googleusercontent.com"
+  }
+}

@@ -6,6 +6,7 @@ import { InformeLote } from './components/InformeLote';
 import { LoteForm, type DatosLote } from './components/LoteForm';
 import { PlanesSeccion } from './components/PlanesSeccion';
 import { ProductosSeccion } from './components/ProductosSeccion';
+import { NubeSeccion } from './components/NubeSeccion';
 import { RespaldoSeccion } from './components/RespaldoSeccion';
 import { SeguimientoSeccion } from './components/SeguimientoSeccion';
 import { actualizarLote, db, eliminarLoteYRelacionados } from './lib/db';
@@ -117,6 +118,7 @@ export default function App() {
             : <div className="lots-grid">{lotes.map(l => <button key={l.id} className="lot-card" onClick={() => { setLoteId(l.id); ir('detalle'); }}>
               <span className="crop-icon" aria-hidden="true">{l.cultivo === 'papa' ? '●' : '✳'}</span><span className="lot-card-content"><strong>{l.nombre}</strong><span>{nombreCultivo(l.cultivo)} · {formatearNumero(l.areaM2)} m²</span><small>Siembra: {fechaLegible(l.fechaSiembra)}</small></span><span className="arrow" aria-hidden="true">›</span>
             </button>)}</div>}
+          <NubeSeccion />
           <RespaldoSeccion />
         </>}
 

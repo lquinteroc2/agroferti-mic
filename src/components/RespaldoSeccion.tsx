@@ -105,7 +105,7 @@ export function RespaldoSeccion() {
   return (
     <section className="respaldo" aria-labelledby="titulo-respaldo">
       <h2 id="titulo-respaldo">Copia de seguridad</h2>
-      <p>Tus datos se guardan <strong>solo en este navegador</strong>; no hay sincronización automática. Si se borran los datos del sitio o cambias de teléfono, se pierden. Descarga una copia con frecuencia y guárdala fuera del dispositivo. Con ese archivo puedes recuperarlos aquí o en otro dispositivo.</p>
+      <p>Si no usas «Guardar en la nube», tus datos se guardan <strong>solo en este navegador</strong>: si se borran los datos del sitio o cambias de teléfono, se pierden. Descarga una copia con frecuencia y guárdala fuera del dispositivo. Con ese archivo puedes recuperarlos aquí o en otro dispositivo.</p>
       <div className="respaldo-acciones">
         <button type="button" className="btn btn-primary" disabled={trabajando} onClick={() => void descargar()}>Descargar copia (JSON)</button>
         <button type="button" className="btn btn-outline" disabled={trabajando} onClick={() => entradaArchivo.current?.click()}>Restaurar desde un archivo</button>
