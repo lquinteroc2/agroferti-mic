@@ -2,8 +2,8 @@
  * Reglas de persistencia del historial del lote (ciclos de cultivo), independientes de Dexie para
  * probarlas en Node con un almacén en memoria. `db.ts` aporta el almacén real.
  */
-import { MOTIVOS_CIERRE, type CicloCultivo, type CicloVerificado, type Lote, type MotivoCierre } from '../types.ts';
-import { MAX_NOTAS_CICLO, ordenarCiclos, validarDatosCierre, verificarCiclo } from './historial.ts';
+import type { CicloCultivo, CicloVerificado, Lote } from '../types.ts';
+import { ordenarCiclos, validarDatosCierre, validarNotasCiclo, verificarCiclo } from './historial.ts';
 import { ErrorPersistencia } from './repositorioAnalisis.ts';
 import { esObjeto, problemaLote } from './validacion.ts';
 
@@ -18,16 +18,9 @@ export interface AlmacenCiclos {
   transaccion<T>(fn: () => Promise<T>): Promise<T>;
 }
 
-/** Lo único que se corrige de un ciclo cerrado: sus fechas y cultivo ordenan el historial. */
-export interface DatosNotasCiclo {
-  motivo: MotivoCierre;
-  notas?: string;
-  esEjemplo: boolean;
-}
-
 export function crearRepositorioCiclos(almacen: AlmacenCiclos) {
   async function listar(loteId: string): Promise<CicloVerificado[]> {
-    return ordenarCiclos((await almacen.listarPorLote(loteId)).map(verificarCiclo).filter(v => v.loteId === loteId));
+    return ordenarCiclos((await almacen.listarPorLote(loteId)).map(r => verificarCiclo(r)).filter(v => v.loteId === loteId));
   }
 
   /** Lee el ciclo y comprueba que pertenece al lote; nunca opera sobre otro lote. */
@@ -84,21 +77,18 @@ export function crearRepositorioCiclos(almacen: AlmacenCiclos) {
     },
 
     /** Corrige cómo terminó, las notas y el origen de un ciclo sano. Un ciclo dañado solo se elimina. */
-    async editarNotas(loteId: string, id: string, datos: DatosNotasCiclo, { ahora = new Date() }: { ahora?: Date } = {}): Promise<void> {
+    async editarNotas(loteId: string, id: string, datos: unknown, { ahora = new Date() }: { ahora?: Date } = {}): Promise<void> {
       await almacen.transaccion(async () => {
         const { crudo, verificado } = await obtenerDelLote(loteId, id);
         if (!verificado.ciclo) throw new ErrorPersistencia('El ciclo tiene datos guardados dañados; solo se puede eliminar.');
-        const errores: string[] = [];
-        if (!MOTIVOS_CIERRE.some(m => m.value === datos.motivo)) errores.push('Cómo terminó: elige una opción de la lista.');
-        if (datos.notas !== undefined && (typeof datos.notas !== 'string' || datos.notas.length > MAX_NOTAS_CICLO)) errores.push(`Resultado y notas: tiene más de ${MAX_NOTAS_CICLO} caracteres.`);
-        if (typeof datos.esEjemplo !== 'boolean') errores.push('Indica si es un dato real o de EJEMPLO.');
-        if (errores.length) throw new ErrorPersistencia('Los datos del ciclo no son válidos.', errores);
+        const validado = validarNotasCiclo(datos);
+        if (!validado.ok) throw new ErrorPersistencia('Los datos del ciclo no son válidos.', validado.errores);
         const { notas: _n, ...sinNotas } = crudo;
         await almacen.guardar({
           ...sinNotas,
-          motivo: datos.motivo,
-          ...(datos.notas?.trim() ? { notas: datos.notas.trim() } : {}),
-          esEjemplo: datos.esEjemplo,
+          motivo: validado.datos.motivo,
+          ...(validado.datos.notas ? { notas: validado.datos.notas } : {}),
+          esEjemplo: validado.datos.esEjemplo,
           updatedAt: ahora.toISOString()
         } as unknown as CicloCultivo);
       });

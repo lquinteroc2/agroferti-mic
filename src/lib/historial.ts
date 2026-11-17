@@ -11,8 +11,11 @@ export const MAX_NOTAS_CICLO = 500;
 const esCultivo = (v: unknown): v is Cultivo => CULTIVOS.some(c => c.value === v);
 const esMotivo = (v: unknown): v is MotivoCierre => MOTIVOS_CIERRE.some(m => m.value === v);
 
-/** Verifica un ciclo leído de IndexedDB sin lanzar errores ni modificarlo. */
-export function verificarCiclo(registro: unknown): CicloVerificado {
+/**
+ * Verifica un ciclo leído de IndexedDB sin lanzar errores ni modificarlo. Las opciones van en un
+ * objeto para que `lista.map(verificarCiclo)` (que pasa el índice) siga funcionando.
+ */
+export function verificarCiclo(registro: unknown, { hoy = new Date() }: { hoy?: Date } = {}): CicloVerificado {
   try {
     const problemas: ProblemaDato[] = [];
     const r = esObjeto(registro) ? registro : {};
@@ -29,6 +32,8 @@ export function verificarCiclo(registro: unknown): CicloVerificado {
     const fechaSiembra = l.fecha('fechaSiembra', 'Fecha de siembra');
     const fechaCierre = l.fecha('fechaCierre', 'Fecha de cierre', true);
     if (fechaSiembra && fechaCierre && fechaSiembra > fechaCierre) l.nota('fechaSiembra', 'Fecha de siembra', 'Es posterior a la fecha de cierre.');
+    // Un cierre futuro (p. ej. de una copia editada) bloquearía los cierres siguientes.
+    if (fechaCierre && fechaCierre > fechaLocalISO(hoy)) l.nota('fechaCierre', 'Fecha de cierre', 'Es una fecha futura.');
     const areaM2 = l.numero('areaM2', 'Área del lote (m²)', { requerido: true, positivo: true });
     const motivo = esMotivo(r.motivo) ? r.motivo : undefined;
     if (!motivo) l.nota('motivo', 'Cómo terminó', 'No es cosechado, perdido ni otro.');
@@ -46,11 +51,15 @@ export function verificarCiclo(registro: unknown): CicloVerificado {
   }
 }
 
-/** Más reciente primero por fecha de cierre; desempate por id. Sin fecha válida, al final. */
+/** Momento en que se cerró el ciclo: desempata cierres del mismo día (guardados antes de exigir días distintos). */
+const creadoCiclo = (v: CicloVerificado) => v.ciclo?.createdAt ?? '';
+
+/** Más reciente primero por fecha de cierre; desempate por creación e id. Sin fecha válida, al final. */
 export function ordenarCiclos(lista: CicloVerificado[]): CicloVerificado[] {
   return [...lista].sort((a, b) =>
     Number(!a.fechaCierre) - Number(!b.fechaCierre)
     || (b.fechaCierre ?? '').localeCompare(a.fechaCierre ?? '')
+    || creadoCiclo(b).localeCompare(creadoCiclo(a))
     || a.id.localeCompare(b.id));
 }
 
@@ -95,7 +104,11 @@ export function validarDatosCierre(datos: unknown, { fechaSiembraActual, ultimoC
     if (fechaCierre) {
       if (fechaCierre > fechaLocalISO(hoy)) errores.push('Fecha de cierre: no puede ser una fecha futura.');
       if (fechaSiembraActual && fechaCierre < fechaSiembraActual) errores.push('Fecha de cierre: no puede ser anterior a la siembra del cultivo que se cierra.');
-      if (ultimoCierre && fechaCierre < ultimoCierre) errores.push('Fecha de cierre: no puede ser anterior al cierre del ciclo anterior.');
+      // Días distintos: si dos ciclos cerraran el mismo día, no se sabría a cuál pertenece lo de ese día.
+      if (ultimoCierre && fechaCierre <= ultimoCierre) errores.push(`Fecha de cierre: debe ser posterior al cierre del ciclo anterior (${ultimoCierre}).`);
+      if (ultimoCierre && fechaSiembraActual && fechaSiembraActual <= ultimoCierre) {
+        errores.push(`La fecha de siembra del lote (${fechaSiembraActual}) no es posterior al cierre del ciclo anterior (${ultimoCierre}): corrígela en «Editar información» antes de cerrar.`);
+      }
       if (nuevaFechaSiembra && nuevaFechaSiembra < fechaCierre) errores.push('Siembra del nuevo cultivo: no puede ser anterior a la fecha de cierre.');
     }
     if (errores.length || !fechaCierre || !motivo || esEjemplo === undefined || !nuevoCultivo) return { ok: false, errores };
@@ -103,6 +116,26 @@ export function validarDatosCierre(datos: unknown, { fechaSiembraActual, ultimoC
   } catch {
     return { ok: false, errores: ['Los datos del cierre no tienen la estructura esperada.'] };
   }
+}
+
+/** Lo único que se corrige de un ciclo cerrado: su cultivo y sus fechas ordenan el historial. */
+export interface DatosNotasCiclo {
+  motivo: MotivoCierre;
+  notas?: string;
+  esEjemplo: boolean;
+}
+
+/** Valida las notas de un ciclo (formulario y antes de guardar). Las notas vacías se quitan. Nunca lanza errores. */
+export function validarNotasCiclo(datos: unknown): ResultadoValidacion<DatosNotasCiclo> {
+  if (!esObjeto(datos)) return { ok: false, errores: ['Los datos del ciclo no tienen la estructura esperada.'] };
+  const errores: string[] = [];
+  if (!esMotivo(datos.motivo)) errores.push('Cómo terminó: elige una opción de la lista.');
+  if (datos.notas !== undefined && typeof datos.notas !== 'string') errores.push('Resultado y notas: no es un texto.');
+  const notas = typeof datos.notas === 'string' ? datos.notas.trim() : '';
+  if (notas.length > MAX_NOTAS_CICLO) errores.push(`Resultado y notas: tiene más de ${MAX_NOTAS_CICLO} caracteres.`);
+  if (typeof datos.esEjemplo !== 'boolean') errores.push('Indica si es un dato real o de EJEMPLO.');
+  if (errores.length) return { ok: false, errores };
+  return { ok: true, datos: { motivo: datos.motivo as MotivoCierre, notas: notas || undefined, esEjemplo: datos.esEjemplo as boolean } };
 }
 
 // ---- Formulario de cierre: texto tal como lo escribe el usuario ----
@@ -167,10 +200,11 @@ export function fechaPlan(plan: Pick<PlanVerificado, 'createdAt'>): string | und
 }
 
 /**
- * Ubica cada análisis (fecha del análisis), plan (día de creación) y registro (fecha, o fecha
- * prevista de una tarea) en el ciclo cuyo periodo contiene su fecha: desde el día siguiente al
- * cierre anterior hasta su cierre, inclusive. Lo posterior al último cierre es del cultivo actual.
- * Los ciclos con datos dañados no agrupan nada. Ningún registro se repite ni se pierde.
+ * Ubica cada análisis (fecha del análisis), plan (día de creación) y registro (fecha; en una tarea
+ * hecha, el día en que se hizo; en una pendiente, la fecha prevista) en el ciclo cuyo periodo
+ * contiene su fecha: desde el día siguiente al cierre anterior hasta su cierre, inclusive. Lo
+ * posterior al último cierre es del cultivo actual. Los ciclos con datos dañados no agrupan nada.
+ * Ningún registro se repite ni se pierde.
  */
 export function agruparHistorial(datos: {
   ciclos: CicloVerificado[];
@@ -178,8 +212,9 @@ export function agruparHistorial(datos: {
   planes: PlanVerificado[];
   registros: RegistroVerificado[];
 }): HistorialLote {
+  // Cierres del mismo día (anteriores a exigir días distintos): primero el que se cerró antes.
   const cerrados = datos.ciclos.flatMap(v => v.ciclo ? [v.ciclo] : [])
-    .sort((a, b) => a.fechaCierre.localeCompare(b.fechaCierre) || a.id.localeCompare(b.id));
+    .sort((a, b) => a.fechaCierre.localeCompare(b.fechaCierre) || a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id));
   const periodos: PeriodoHistorial[] = cerrados.map((ciclo, i) => ({ ciclo, desdeCierre: cerrados[i - 1]?.fechaCierre, analisis: [], planes: [], registros: [] }));
   const actual: PeriodoHistorial = { desdeCierre: cerrados.at(-1)?.fechaCierre, analisis: [], planes: [], registros: [] };
   const sinFecha: HistorialLote['sinFecha'] = { analisis: [], planes: [], registros: [] };
@@ -189,8 +224,27 @@ export function agruparHistorial(datos: {
     const fecha = fechaPlan(p);
     (fecha ? periodoDe(fecha).planes : sinFecha.planes).push(p);
   }
-  for (const r of datos.registros) (r.fechaOrden ? periodoDe(r.fechaOrden).registros : sinFecha.registros).push(r);
+  for (const r of datos.registros) {
+    const fecha = r.registro?.tipo === 'tarea' && r.registro.fechaRealizada ? r.registro.fechaRealizada : r.fechaOrden;
+    (fecha ? periodoDe(fecha).registros : sinFecha.registros).push(r);
+  }
   return { periodos: [actual, ...periodos.reverse()], sinFecha };
+}
+
+/**
+ * Lo que corresponde al cultivo actual (posterior al último cierre) más lo que no tiene fecha
+ * válida, para que sus avisos de datos dañados no desaparezcan. Lo usa el informe del productor.
+ */
+export function datosCultivoActual(datos: Parameters<typeof agruparHistorial>[0]): {
+  analisis: AnalisisVerificado[]; planes: PlanVerificado[]; registros: RegistroVerificado[]; desdeCierre?: string;
+} {
+  const { periodos: [actual], sinFecha } = agruparHistorial(datos);
+  return {
+    analisis: [...actual.analisis, ...sinFecha.analisis],
+    planes: [...actual.planes, ...sinFecha.planes],
+    registros: [...actual.registros, ...sinFecha.registros],
+    desdeCierre: actual.desdeCierre
+  };
 }
 
 /** Días entre la siembra y el cierre (ambas AAAA-MM-DD válidas), o undefined. */

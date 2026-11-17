@@ -1,6 +1,6 @@
 import Dexie, { type EntityTable } from 'dexie';
 import type { AnalisisSuelo, CicloCultivo, Lote, PlanFertilizacion, ProductoFertilizante, RegistroSeguimiento } from '../types';
-import { crearRepositorioAnalisis } from './repositorioAnalisis';
+import { crearRepositorioAnalisis, ErrorPersistencia } from './repositorioAnalisis';
 import { crearRepositorioCiclos } from './repositorioCiclos';
 import { crearRepositorioPlanes, crearRepositorioProductos } from './repositorioPlanes';
 import { crearRepositorioRespaldo, type IdsExistentes } from './respaldo';
@@ -122,6 +122,31 @@ export const repositorioRespaldo = crearRepositorioRespaldo({
   },
   transaccion: fn => db.transaction('rw', [db.lotes, db.analisisSuelos, db.productos, db.planes, db.registros, db.ciclos], fn)
 });
+
+export type DatosEdicionLote = Pick<Lote, 'nombre' | 'cultivo' | 'areaM2' | 'fechaSiembra' | 'ubicacion'>;
+
+/**
+ * Guarda la edición de un lote sin pisar cambios hechos mientras el formulario estaba abierto (p. ej.
+ * un cierre de ciclo en otra pestaña) y conservando los campos que el formulario no edita.
+ */
+export async function actualizarLote(id: string, datos: DatosEdicionLote, versionInicial?: string): Promise<void> {
+  await db.transaction('rw', db.lotes, async () => {
+    const actual = await db.lotes.get(id);
+    if (!actual) throw new ErrorPersistencia('El lote ya no existe en este dispositivo.');
+    if (versionInicial !== undefined && actual.updatedAt !== versionInicial) {
+      throw new ErrorPersistencia('El lote cambió mientras lo editabas (por ejemplo, se cerró un ciclo en otra pestaña). No se guardó nada: vuelve al lote y abre de nuevo «Editar información».');
+    }
+    // Los campos que el formulario puede dejar vacíos no se heredan del lote guardado.
+    const { fechaSiembra: _f, ubicacion: _u, ...resto } = actual;
+    await db.lotes.put({
+      ...resto,
+      ...datos,
+      id,
+      createdAt: actual.createdAt,
+      updatedAt: new Date().toISOString()
+    });
+  });
+}
 
 export async function eliminarLoteYRelacionados(id: string): Promise<void> {
   await db.transaction('rw', [db.lotes, db.analisisSuelos, db.planes, db.registros, db.ciclos], async () => {

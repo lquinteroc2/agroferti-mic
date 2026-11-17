@@ -8,6 +8,7 @@ import {
   duracionDias,
   fechaPlan,
   validarCierreFormulario,
+  validarNotasCiclo,
   type EntradaCierre,
   type ErroresCierre,
   type HistorialLote,
@@ -25,6 +26,13 @@ type Lectura = { ok: true; historial: HistorialLote; ciclos: CicloVerificado[] }
 
 const NOMBRE_ESTADO_PLAN: Record<string, string> = { propuesta: 'Propuesta', revisado: 'Revisado', aprobado: 'Aprobado' };
 const nombreMotivo = (m: MotivoCierre) => MOTIVOS_CIERRE.find(x => x.value === m)?.label ?? m;
+
+/** Día siguiente a una fecha AAAA-MM-DD (mínimo del nuevo cierre: debe ser posterior al anterior). */
+function diaSiguiente(fecha: string): string {
+  const d = new Date(`${fecha}T12:00:00`);
+  d.setDate(d.getDate() + 1);
+  return fechaLocalISO(d);
+}
 
 function CierreForm({ lote, ultimoCierre, onGuardar, onCancelar }: {
   lote: Lote;
@@ -77,7 +85,7 @@ function CierreForm({ lote, ultimoCierre, onGuardar, onCancelar }: {
       </p>
       <div className="fields">
         <label>Fecha de cierre (cosecha o fin del cultivo)
-          <input type="date" value={entrada.fechaCierre} min={lote.fechaSiembra ?? ultimoCierre} max={fechaLocalISO()} onChange={e => cambiar('fechaCierre', e.target.value)} aria-invalid={!!errores.fechaCierre} />
+          <input type="date" value={entrada.fechaCierre} min={[lote.fechaSiembra, ultimoCierre && diaSiguiente(ultimoCierre)].filter((f): f is string => !!f).sort().at(-1)} max={fechaLocalISO()} onChange={e => cambiar('fechaCierre', e.target.value)} aria-invalid={!!errores.fechaCierre} />
           {error('fechaCierre')}
         </label>
         <label>Cómo terminó
@@ -132,9 +140,12 @@ function NotasForm({ ciclo, onGuardar, onCancelar }: {
 
   async function enviar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    // Misma comprobación que se hace antes de guardar.
+    const validado = validarNotasCiclo({ motivo, notas, esEjemplo: origen === 'ejemplo' });
+    if (!validado.ok) return setError(validado.errores);
     setGuardando(true);
     try {
-      await onGuardar({ motivo, notas: notas.trim() || undefined, esEjemplo: origen === 'ejemplo' });
+      await onGuardar(validado.datos);
     } catch (e) {
       setError(e instanceof ErrorPersistencia ? [e.message, ...e.detalles] : ['No se pudo guardar. Vuelve a intentarlo.']);
     } finally {
@@ -219,6 +230,9 @@ export function HistorialLoteSeccion({ lote }: { lote: Lote }) {
   const danados = ciclos.filter(v => !v.ciclo);
   const ultimoCierre = ciclos.find(v => v.fechaCierre)?.fechaCierre;
   const editando = modo.tipo === 'notas' ? ciclos.find(v => v.id === modo.id)?.ciclo : undefined;
+  // Si el ciclo que se editaba ya no existe (p. ej. se quitó en otra pestaña), se vuelve a la lista.
+  const perdido = modo.tipo === 'notas' && lectura?.ok === true && !editando;
+  const enLista = modo.tipo === 'lista' || perdido;
 
   function abrir(m: Modo) {
     setAviso(null);
@@ -284,7 +298,7 @@ export function HistorialLoteSeccion({ lote }: { lote: Lote }) {
           <h2 id="titulo-historial">Historial del lote</h2>
           <p>Los cultivos que ha tenido este lote y lo registrado en cada uno, para comparar con cultivos anteriores. Al cosechar, cierra el ciclo y empieza el siguiente cultivo.</p>
         </div>
-        {modo.tipo === 'lista' && lectura?.ok && <button className="btn btn-outline" onClick={() => abrir({ tipo: 'cerrar' })}>Cerrar ciclo y empezar otro cultivo</button>}
+        {enLista && lectura?.ok && <button className="btn btn-outline" onClick={() => abrir({ tipo: 'cerrar' })}>Cerrar ciclo y empezar otro cultivo</button>}
       </div>
 
       {aviso && <div role={aviso.tipo === 'error' ? 'alert' : 'status'} className={`notice ${aviso.tipo === 'error' ? 'notice-error' : 'notice-ok'}`}>
@@ -312,7 +326,9 @@ export function HistorialLoteSeccion({ lote }: { lote: Lote }) {
         }}
         onCancelar={() => abrir({ tipo: 'lista' })} />}
 
-      {(modo.tipo === 'lista' || (modo.tipo === 'notas' && !editando)) && (
+      {perdido && <div role="status" className="notice notice-error"><span aria-hidden="true">!</span>El ciclo que estabas editando ya no existe; no se guardó ningún cambio.</div>}
+
+      {enLista && (
         lectura === undefined ? <div className="empty"><p>Cargando historial…</p></div>
           : !lectura.ok ? null
           : <>

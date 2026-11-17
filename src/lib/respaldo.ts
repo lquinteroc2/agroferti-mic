@@ -182,6 +182,11 @@ export function planearRestauracion(datos: TablasRespaldo, ids: IdsExistentes): 
   revisar('lotes', problemaLote);
   for (const tabla of DEPENDEN_DE_LOTE) {
     revisar(tabla, r => {
+      // Un ciclo cerrado cambia el cultivo actual de su lote. Si el lote ya estaba en el dispositivo
+      // (y por eso no se modifica), agregarle el ciclo dejaría un historial que no cuadra con su cultivo.
+      if (tabla === 'ciclos' && typeof r.loteId === 'string' && ids.lotes.has(r.loteId)) {
+        return 'Su lote ya está en este dispositivo y no se modifica; agregar este cultivo anterior desordenaría su historial.';
+      }
       if (typeof r.loteId === 'string' && lotesDisponibles.has(r.loteId)) return null;
       const motivoLote = typeof r.loteId === 'string' ? lotesOmitidos.get(r.loteId) : undefined;
       return motivoLote ? `Su lote se omitió: ${motivoLote}` : 'Su lote no está en la copia ni en este dispositivo.';

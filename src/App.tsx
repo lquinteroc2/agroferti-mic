@@ -8,7 +8,7 @@ import { PlanesSeccion } from './components/PlanesSeccion';
 import { ProductosSeccion } from './components/ProductosSeccion';
 import { RespaldoSeccion } from './components/RespaldoSeccion';
 import { SeguimientoSeccion } from './components/SeguimientoSeccion';
-import { db, eliminarLoteYRelacionados } from './lib/db';
+import { actualizarLote, db, eliminarLoteYRelacionados } from './lib/db';
 import { areaM2AHa } from './lib/calculos';
 import { fechaLegible, formatearNumero, nombreCultivo } from './lib/formato';
 import type { Lote } from './types';
@@ -41,19 +41,20 @@ export default function App() {
     setVista(v);
   }
 
-  async function guardarLote(datos: DatosLote) {
+  async function guardarLote(datos: DatosLote, versionInicial?: string) {
     if (guardando) return;
     setGuardando(true);
     try {
       const ahora = new Date().toISOString();
-      const id = vista === 'editar' && activo ? activo.id : crypto.randomUUID();
-      const lote: Lote = {
-        ...datos,
-        id,
-        createdAt: vista === 'editar' && activo ? activo.createdAt : ahora,
-        updatedAt: ahora
-      };
-      await db.lotes.put(lote);
+      let id: string;
+      if (vista === 'editar' && activo) {
+        id = activo.id;
+        await actualizarLote(id, datos, versionInicial);
+      } else {
+        id = crypto.randomUUID();
+        const lote: Lote = { ...datos, id, createdAt: ahora, updatedAt: ahora };
+        await db.lotes.put(lote);
+      }
       setLoteId(id);
       setMensaje(vista === 'editar' ? 'Los cambios del lote se guardaron.' : 'El lote se guardó en este dispositivo.');
       setVista('detalle');

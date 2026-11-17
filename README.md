@@ -92,12 +92,16 @@ Aplicación web progresiva (PWA) **multicultivo** para preparar el cálculo, la 
 
 **Historial del lote (sección "Historial del lote" en la ficha; pedido del instructor)**
 ✅ Ciclos de cultivo: al cosechar (o perder el cultivo), **"Cerrar ciclo y empezar otro cultivo"** guarda en el historial el cultivo actual con su siembra, la fecha de cierre, el área del lote, cómo terminó (se cosechó, se perdió, otro motivo), resultado y notas escritos por el productor (p. ej. lo cosechado) y la marca real/EJEMPLO. El lote sigue con el nuevo cultivo y, si se indica, su fecha de siembra.
-✅ El historial muestra el cultivo actual y cada cultivo anterior con su duración en días y lo registrado en su periodo: análisis de suelo, planes, aplicaciones, observaciones y tareas. Cada registro se ubica por su fecha (análisis: fecha del análisis; plan: día de creación; seguimiento: fecha o fecha prevista) entre el día siguiente al cierre anterior y su cierre, inclusive. Un análisis tomado antes de sembrar queda con el cultivo siguiente.
+✅ El historial muestra el cultivo actual y cada cultivo anterior con su duración en días y lo registrado en su periodo: análisis de suelo, planes, aplicaciones, observaciones y tareas. Cada registro se ubica por su fecha (análisis: fecha del análisis; plan: día de creación; seguimiento: fecha; tarea hecha: día en que se hizo; tarea pendiente: fecha prevista) entre el día siguiente al cierre anterior y su cierre, inclusive. Un análisis tomado antes de sembrar queda con el cultivo siguiente.
 ✅ **No se mueve, borra ni modifica ningún registro:** los análisis, planes y registros siguen en sus secciones; el historial solo los agrupa al leerlos. La app no calcula rendimientos ni interpreta las notas.
-✅ Fechas validadas: el cierre no es futuro, no es anterior a la siembra del cultivo que se cierra ni al cierre anterior, y la nueva siembra no es anterior al cierre. El cierre se guarda en una sola transacción (ciclo y lote juntos).
+✅ Fechas validadas: el cierre no es futuro, no es anterior a la siembra del cultivo que se cierra y es **posterior** al cierre anterior (dos cierres el mismo día no se aceptan); la siembra del lote debe ser posterior al último cierre y la nueva siembra no es anterior al cierre. El cierre se guarda en una sola transacción (ciclo y lote juntos).
+✅ **El informe para el productor muestra solo el cultivo actual** (lo posterior al último cierre) y lo avisa; los cultivos anteriores se consultan en el historial.
+✅ **Editar información** no pisa cambios hechos en otra pestaña (por ejemplo, un cierre de ciclo): si el lote cambió mientras el formulario estaba abierto, no guarda y lo avisa. También conserva los campos de otras versiones del lote.
+✅ Al restaurar una copia, los ciclos de un lote que ya está en el dispositivo se omiten con su motivo (el lote no se modifica y su historial quedaría incoherente).
 ✅ En un ciclo cerrado se corrigen cómo terminó, las notas y el origen; el cultivo y las fechas no se editan (ordenan el historial): si están mal, se quita el ciclo y se cierra de nuevo. Quitar un ciclo no cambia el lote ni borra registros. Los ciclos con datos dañados se muestran con su valor original y solo se pueden quitar.
 ✅ Base de datos versión 3 (`db.version(3)`): solo agrega la tabla `ciclos`. La copia de seguridad incluye los ciclos (dependen de su lote) y las copias anteriores, sin ciclos, se siguen restaurando. Eliminar un lote elimina sus ciclos.
 ✅ 174 pruebas automáticas al cerrar el historial (10 del historial, más 15 de la validación manual de la fase 6). Recorrido en Edge headless: 23 comprobaciones, incluida la migración de una base v2 con datos previos, el cierre, la edición de notas, la recarga, el ancho de teléfono (390 px) y la eliminación del lote.
+✅ Una revisión de código del historial (17 de noviembre de 2026) encontró 10 puntos; todos están corregidos. 181 pruebas automáticas; recorrido en Edge headless de las correcciones: 10 comprobaciones.
 
 **Fase 6 (validación) — kit preparado, falta ejecutarlo con datos reales**
 ✅ Protocolo en [`docs/VALIDACION_FASE6.md`](./docs/VALIDACION_FASE6.md): roles, datos reales que reunir, carga en la app publicada, fórmulas, dos casos completos de EJEMPLO calculados a mano (papa y arveja), casos límite, registro de discrepancias y pruebas en un Android real.
@@ -364,9 +368,10 @@ No inventar resultados de campo. Etiquetar todos los datos simulados como **EJEM
 - Las listas de resultados con más de 500 posiciones no se revisan una por una: se informan como dañadas y solo pueden descartarse con confirmación.
 - Todo se guarda solo en este navegador; no hay respaldo hasta la fase 5.
 
-## Para retomar (estado al 11 de noviembre de 2026)
+## Para retomar (estado al 17 de noviembre de 2026)
 
-- Historial del lote (ciclos de cultivo) terminado a pedido del instructor: 175 pruebas al día de hoy, build correcto y recorrido en Edge headless (23 comprobaciones). Falta publicarlo y que Codex lo revise.
+- Historial del lote (ciclos de cultivo) publicado y revisado: los 10 puntos de la revisión de código están corregidos (181 pruebas, build correcto).
+- Decisión pendiente del equipo: guardar los datos en la nube (Cloudflare Workers + D1, plan gratuito) con inicio de sesión y sincronización, en lugar de depender de la copia JSON. Requiere cambiar la regla de `AGENTS.md` que prohíbe backend y autenticación.
 - Kit de la fase 6 listo en `docs/`. Falta que el equipo consiga datos reales y llene la hoja de comparación.
 - Corregido al preparar la fase 6: en el análisis de suelo, el valor de un nutriente o la profundidad escritos `1.500` se guardaban como 1,5. Ahora se rechazan como en el área, las metas y los kg, y se pide `1500` (caso L7 del protocolo).
 - Los formularios ya no dicen "opcional" junto a los campos que se pueden dejar vacíos (pedido del equipo).
@@ -423,7 +428,8 @@ No inventar resultados de campo. Etiquetar todos los datos simulados como **EJEM
 - Los registros se ubican en un ciclo por su fecha, no por un vínculo guardado: si se corrige la fecha de un análisis o un registro, puede pasar a otro ciclo. Un plan se ubica por el día en que se creó, no por el de su aprobación.
 - Cambiar el cultivo con **Editar información** no guarda el cultivo anterior en el historial; el formulario lo advierte.
 - El historial no compara rendimientos ni costos entre ciclos: las notas son texto libre y la app no las interpreta.
-- El informe para el productor todavía no incluye los cultivos anteriores.
+- El informe para el productor muestra solo el cultivo actual; no incluye un resumen de los cultivos anteriores.
+- Las secciones de planes y seguimiento muestran todos los registros del lote, también los de cultivos cerrados: por ejemplo, se pueden seguir registrando aplicaciones de un plan aprobado de un cultivo anterior.
 
 ## Próximo trabajo: fase 6 (validación)
 

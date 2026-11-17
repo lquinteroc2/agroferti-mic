@@ -4,7 +4,7 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { agruparHistorial, duracionDias, ordenarCiclos, validarCierreFormulario, validarDatosCierre, verificarCiclo, type EntradaCierre } from '../src/lib/historial.ts';
+import { agruparHistorial, datosCultivoActual, duracionDias, ordenarCiclos, validarCierreFormulario, validarDatosCierre, validarNotasCiclo, verificarCiclo, type EntradaCierre } from '../src/lib/historial.ts';
 import { ErrorPersistencia } from '../src/lib/repositorioAnalisis.ts';
 import { crearRepositorioCiclos, type AlmacenCiclos } from '../src/lib/repositorioCiclos.ts';
 import { planearRestauracion, TABLAS_RESPALDO, type IdsExistentes } from '../src/lib/respaldo.ts';
@@ -234,4 +234,69 @@ test('copia de seguridad: los ciclos dependen de su lote', () => {
   }, vacio);
   assert.deepEqual(plan.agregar.ciclos.map(c => (c as CicloCultivo).id), ['c1']);
   assert.ok(plan.omitidos.some(o => o.tabla === 'ciclos' && o.id === 'huerfano'));
+});
+
+// ---- Correcciones de la revisión del historial ----
+
+test('revisión: dos cierres el mismo día no se aceptan; la siembra del lote debe ser posterior al último cierre', () => {
+  const r = validarDatosCierre(cierre({ fechaCierre: '2026-07-15' }), { ultimoCierre: '2026-07-15', hoy: HOY });
+  assert.ok(!r.ok && r.errores.some(e => /posterior al cierre del ciclo anterior \(2026-07-15\)/.test(e)));
+  assert.ok(validarDatosCierre(cierre({ fechaCierre: '2026-07-16', nuevaFechaSiembra: undefined }), { ultimoCierre: '2026-07-15', hoy: HOY }).ok);
+  const siembra = validarDatosCierre(cierre({ fechaCierre: '2026-10-01' }), { ultimoCierre: '2026-07-15', fechaSiembraActual: '2026-07-15', hoy: HOY });
+  assert.ok(!siembra.ok && siembra.errores.some(e => /Editar información/.test(e)));
+});
+
+test('revisión: cierres del mismo día ya guardados se ordenan por el momento del cierre, no por el id', () => {
+  const papa = cicloEjemplo({ id: 'zzz', cultivo: 'papa', fechaCierre: '2026-11-10', createdAt: '2026-11-10T10:00:00.000Z' });
+  const maiz = cicloEjemplo({ id: 'aaa', cultivo: 'otro', fechaSiembra: undefined, fechaCierre: '2026-11-10', createdAt: '2026-11-10T11:00:00.000Z' });
+  const h = agruparHistorial({ ciclos: [maiz, papa].map(c => verificarCiclo(c, { hoy: HOY })), analisis: [analisis('a', '2026-09-01')], planes: [], registros: [] });
+  assert.deepEqual(h.periodos.map(p => p.ciclo?.id ?? 'actual'), ['actual', 'aaa', 'zzz']);
+  assert.deepEqual(h.periodos[2].analisis.map(a => a.id), ['a'], 'el análisis queda con papa, el primero que se cerró');
+  assert.deepEqual(ordenarCiclos([papa, maiz].map(c => verificarCiclo(c, { hoy: HOY }))).map(v => v.id), ['aaa', 'zzz']);
+});
+
+test('revisión: una tarea hecha se ubica por el día en que se hizo; un cierre futuro es un dato dañado', () => {
+  const tarea = verificarRegistro({
+    id: 't', loteId: 'lote-a', tipo: 'tarea', descripcion: 'Tarea EJEMPLO', fechaPrevista: '2026-07-10', estado: 'hecha', fechaRealizada: '2026-07-20',
+    esEjemplo: true, createdAt: '2026-07-01T00:00:00Z', updatedAt: '2026-07-01T00:00:00Z'
+  });
+  const h = agruparHistorial({ ciclos: [verificarCiclo(cicloEjemplo(), { hoy: HOY })], analisis: [], planes: [], registros: [tarea] });
+  assert.deepEqual(h.periodos[0].registros.map(r => r.id), ['t'], 'hecha el 20, después del cierre del 15');
+  const futuro = verificarCiclo(cicloEjemplo({ fechaCierre: '2026-11-12' }), { hoy: HOY });
+  assert.equal(futuro.ciclo, undefined);
+  assert.equal(futuro.fechaCierre, '2026-11-12');
+});
+
+test('revisión: el informe usa solo el cultivo actual y conserva lo que no tiene fecha', () => {
+  const actual = datosCultivoActual({
+    ciclos: [verificarCiclo(cicloEjemplo(), { hoy: HOY })],
+    analisis: [analisis('viejo', '2026-05-01'), analisis('nuevo', '2026-09-01'), analisis('sin', 'mal')],
+    planes: [plan('p-viejo', '2026-04-01T15:00:00'), plan('p-nuevo', '2026-08-01T15:00:00')],
+    registros: [observacion('o-viejo', '2026-06-01'), observacion('o-nuevo', '2026-10-01')]
+  });
+  assert.deepEqual(actual.analisis.map(a => a.id), ['nuevo', 'sin']);
+  assert.deepEqual(actual.planes.map(p => p.id), ['p-nuevo']);
+  assert.deepEqual(actual.registros.map(r => r.id), ['o-nuevo']);
+  assert.equal(actual.desdeCierre, '2026-07-15');
+  assert.equal(datosCultivoActual({ ciclos: [], analisis: [], planes: [], registros: [] }).desdeCierre, undefined);
+});
+
+test('revisión: notas del ciclo con datos no confiables dan mensajes claros, sin lanzar errores', async () => {
+  assert.deepEqual(validarNotasCiclo({ motivo: 'otro', notas: '  ', esEjemplo: true }), { ok: true, datos: { motivo: 'otro', notas: undefined, esEjemplo: true } });
+  const raro = validarNotasCiclo({ motivo: 'otro', notas: 42, esEjemplo: true });
+  assert.ok(!raro.ok && raro.errores.includes('Resultado y notas: no es un texto.'));
+  assert.equal(validarNotasCiclo(null).ok, false);
+  const { almacen } = crearAlmacen([loteEjemplo()], [cicloEjemplo()]);
+  await assert.rejects(crearRepositorioCiclos(almacen).editarNotas('lote-a', 'c1', null), (e: unknown) => e instanceof ErrorPersistencia);
+});
+
+test('revisión: restaurar no agrega ciclos a un lote que ya está en el dispositivo', () => {
+  const ids = Object.fromEntries(TABLAS_RESPALDO.map(t => [t, new Set<string>()])) as unknown as Record<string, Set<string>>;
+  ids.lotes.add('lote-a');
+  const plan = planearRestauracion({
+    lotes: [loteEjemplo({ cultivo: 'arveja' }), loteEjemplo({ id: 'lote-b' })], analisisSuelos: [], productos: [], planes: [], registros: [],
+    ciclos: [cicloEjemplo(), cicloEjemplo({ id: 'c-b', loteId: 'lote-b' })]
+  }, ids as unknown as IdsExistentes);
+  assert.deepEqual(plan.agregar.ciclos.map(c => (c as CicloCultivo).id), ['c-b'], 'el ciclo del lote nuevo sí entra');
+  assert.ok(plan.omitidos.some(o => o.tabla === 'ciclos' && o.id === 'c1' && /ya está en este dispositivo/.test(o.motivo)));
 });

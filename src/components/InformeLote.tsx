@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { repositorioAnalisis, repositorioPlanes, repositorioSeguimiento } from '../lib/db';
+import { repositorioAnalisis, repositorioCiclos, repositorioPlanes, repositorioSeguimiento } from '../lib/db';
 import { areaM2AHa, type Calculo } from '../lib/calculos';
 import {
   fechaHoraDeMarca,
@@ -10,11 +10,12 @@ import {
   nombreCultivo,
   textoCostoRegistrado
 } from '../lib/formato';
+import { datosCultivoActual } from '../lib/historial';
 import { armarInforme, type DatosInforme } from '../lib/informe';
 import { tareaVencida } from '../lib/validacionSeguimiento';
 import type { Lote } from '../types';
 
-type Lectura = { ok: true; informe: DatosInforme } | { ok: false };
+type Lectura = { ok: true; informe: DatosInforme; desdeCierre?: string } | { ok: false };
 
 const kg = (n: number) => formatearResultado(n, 2);
 const sinDato = <span className="missing">No registrado</span>;
@@ -175,10 +176,12 @@ function SeccionSeguimiento({ d }: { d: DatosInforme }) {
 export function InformeLote({ lote, onVolver }: { lote: Lote; onVolver: () => void }) {
   const lectura = useLiveQuery<Lectura>(async () => {
     try {
-      const [analisis, planes, registros] = await Promise.all([
-        repositorioAnalisis.listar(lote.id), repositorioPlanes.listar(lote.id), repositorioSeguimiento.listar(lote.id)
+      const [ciclos, analisis, planes, registros] = await Promise.all([
+        repositorioCiclos.listar(lote.id), repositorioAnalisis.listar(lote.id), repositorioPlanes.listar(lote.id), repositorioSeguimiento.listar(lote.id)
       ]);
-      return { ok: true, informe: armarInforme({ lote, analisis, planes, registros }) };
+      // Solo el cultivo actual: los análisis, planes y registros de cultivos cerrados quedan en el historial.
+      const actual = datosCultivoActual({ ciclos, analisis, planes, registros });
+      return { ok: true, informe: armarInforme({ lote, ...actual }), desdeCierre: actual.desdeCierre };
     } catch {
       return { ok: false };
     }
@@ -210,6 +213,7 @@ export function InformeLote({ lote, onVolver }: { lote: Lote; onVolver: () => vo
               <div><dt>Fecha de siembra</dt><dd>{fechaLegible(lote.fechaSiembra)}</dd></div>
               <div><dt>Ubicación</dt><dd>{lote.ubicacion || 'No registrada'}</dd></div>
             </dl>
+            {lectura.desdeCierre && <p className="informe-nota">Este informe muestra solo el cultivo actual: lo registrado después del cierre del cultivo anterior ({fechaLegible(lectura.desdeCierre)}). Los cultivos anteriores están en el historial del lote.</p>}
           </section>
 
           <section>

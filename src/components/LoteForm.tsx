@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { areaM2AHa } from '../lib/calculos';
 import { formatearExacto, formatearNumero } from '../lib/formato';
+import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import { areaLoteATexto, validarAreaLote } from '../lib/validacion';
 import { CULTIVOS, type Cultivo, type Lote } from '../types';
 
@@ -14,11 +15,13 @@ export interface DatosLote {
 
 interface Props {
   inicial?: Lote;
-  onGuardar: (datos: DatosLote) => Promise<void>;
+  /** `versionInicial`: updatedAt del lote al abrir el formulario, para no pisar cambios hechos en otra pestaña. */
+  onGuardar: (datos: DatosLote, versionInicial?: string) => Promise<void>;
   onCancelar: () => void;
 }
 
 export function LoteForm({ inicial, onGuardar, onCancelar }: Props) {
+  const [versionInicial] = useState(inicial?.updatedAt);
   const [nombre, setNombre] = useState(inicial?.nombre ?? '');
   const [cultivo, setCultivo] = useState<Cultivo>(inicial?.cultivo ?? 'papa');
   const [area, setArea] = useState(inicial ? areaLoteATexto(inicial.areaM2) : '');
@@ -42,9 +45,9 @@ export function LoteForm({ inicial, onGuardar, onCancelar }: Props) {
         areaM2: lecturaArea.valor,
         fechaSiembra: fecha || undefined,
         ubicacion: ubicacion.trim() || undefined
-      });
-    } catch {
-      setError('No se pudo guardar. Verifica que tu navegador permita almacenamiento local.');
+      }, versionInicial);
+    } catch (e) {
+      setError(e instanceof ErrorPersistencia ? e.message : 'No se pudo guardar. Verifica que tu navegador permita almacenamiento local.');
     } finally {
       setGuardando(false);
     }
