@@ -371,7 +371,7 @@ No inventar resultados de campo. Etiquetar todos los datos simulados como **EJEM
 ## Para retomar (estado al 17 de noviembre de 2026)
 
 - Historial del lote (ciclos de cultivo) publicado y revisado: los 10 puntos de la revisión de código están corregidos (181 pruebas, build correcto).
-- Decisión pendiente del equipo: guardar los datos en la nube (Cloudflare Workers + D1, plan gratuito) con inicio de sesión y sincronización, en lugar de depender de la copia JSON. Requiere cambiar la regla de `AGENTS.md` que prohíbe backend y autenticación.
+- Aprobado el 17 de noviembre de 2026: guardar los datos en la nube (API en el mismo Worker + Cloudflare D1) con Sign in with Google y sincronización, todo en planes gratuitos y sin registrar métodos de pago. `AGENTS.md` ya está actualizado. Siguiente paso: hacer los pasos de [`docs/NUBE_CLOUDFLARE.md`](./docs/NUBE_CLOUDFLARE.md) en los paneles de Cloudflare y Google y entregar al asistente el Database ID de D1 y el Client ID de Google.
 - Kit de la fase 6 listo en `docs/`. Falta que el equipo consiga datos reales y llene la hoja de comparación.
 - Corregido al preparar la fase 6: en el análisis de suelo, el valor de un nutriente o la profundidad escritos `1.500` se guardaban como 1,5. Ahora se rechazan como en el área, las metas y los kg, y se pide `1500` (caso L7 del protocolo).
 - Los formularios ya no dicen "opcional" junto a los campos que se pueden dejar vacíos (pedido del equipo).

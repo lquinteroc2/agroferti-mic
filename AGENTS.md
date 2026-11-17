@@ -4,8 +4,10 @@ Contexto: AgroFerti MIC es un prototipo académico SENA del Grupo 1, multicultiv
 
 ## Stack que no debes cambiar sin justificar
 - React + Vite + TypeScript + CSS nativo; Dexie/IndexedDB; PWA; Cloudflare Workers con archivos estáticos (cada push a `main` se publica; no usar `public/_redirects`).
-- Sin servidor propio, autenticación, servicios cloud con tarjeta, IA API de pago ni aplicaciones nativas durante la hackatón.
-- Mantén UI en español, prioriza Android de gama media, diseño accesible y sin registro de usuario.
+- **Decisión del 17 de noviembre de 2026 (aprobada por el equipo):** se permite guardar datos en la nube con un Worker (API) y **Cloudflare D1** en el **plan gratuito** de Cloudflare, e iniciar sesión con **Google** (solo los alcances `openid`, `email` y `profile`). Plan y pasos en `docs/NUBE_CLOUDFLARE.md`.
+- **Costo cero obligatorio:** ningún servicio que pida tarjeta o método de pago, aunque sea un plan de $0 (por eso no se usa Cloudflare Zero Trust/Access). Nada de Workers Paid, Durable Objects, R2, KV, colas ni otros productos que no estén en este documento. Al superar un límite gratuito, la app debe fallar y avisar, nunca pasar a pago.
+- La app sigue funcionando sin conexión: Dexie/IndexedDB es la copia local y la nube se sincroniza cuando hay internet. Sin IA API de pago ni aplicaciones nativas.
+- Mantén UI en español, prioriza Android de gama media y diseño accesible. Datos personales en la nube solo con la autorización del titular (Ley 1581 de 2012).
 
 ## Seguridad agronómica
 - No inventes dosis, umbrales de deficiencia, intervalos de aplicación, aprobación técnica o mediciones de campo.
