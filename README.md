@@ -445,7 +445,7 @@ No inventar resultados de campo. Etiquetar todos los datos simulados como **EJEM
 ## Limitaciones conocidas de la nube
 
 - En un conflicto gana la versión con la fecha de actualización más reciente; depende del reloj de cada teléfono.
-- La autorización de datos no indica un correo de contacto del responsable: el equipo debe agregarlo antes de usar datos reales de productores.
+- La autorización de datos indica como contacto del responsable leonardoquintero222@gmail.com.
 - El inicio de sesión necesita internet la primera vez en cada dispositivo. La sesión dura 30 días; después hay que volver a entrar (los datos del teléfono no se pierden).
 - Un teléfono queda vinculado a una cuenta. Para usar otra, hay que borrar los datos del teléfono.
 - En plan gratuito: 100.000 solicitudes y 100.000 escrituras por día. Al superarlo, la nube no responde hasta las 00:00 UTC (19:00 en Colombia); no se cobra.

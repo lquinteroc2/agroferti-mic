@@ -69,6 +69,7 @@ function TextoAutorizacion() {
       <li><strong>Finalidad:</strong> únicamente respaldar mis datos y permitirme usarlos en mis dispositivos. No se venden ni se comparten con terceros, y no se usan para publicidad.</li>
       <li><strong>Dónde:</strong> en los servidores de Cloudflare, que pueden estar fuera de Colombia.</li>
       <li><strong>Mis derechos:</strong> puedo conocer, actualizar y corregir mis datos en la app, y borrarlos de la nube cuando quiera con «Borrar mis datos de la nube».</li>
+      <li><strong>Contacto del responsable</strong> para consultas, reclamos o para revocar esta autorización: <a href="mailto:leonardoquintero222@gmail.com">leonardoquintero222@gmail.com</a>.</li>
       <li>Es un prototipo académico: no lo use como único registro de un cultivo real.</li>
     </ul>
   </details>;
