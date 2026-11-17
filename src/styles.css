@@ -166,7 +166,8 @@
 @media print{
   @page{margin:14mm}
   :root,body,.app-shell,.main-content{background:white!important}
-  .topbar,.footer,.no-imprimir,.notice{display:none!important}
+  .topbar,.footer,.barra-usuario,.no-imprimir,.notice{display:none!important}
+  .informe-lote{break-before:page}
   .main-content{padding:0}
   .container{width:100%}
   .informe{border:0;border-radius:0;padding:0;max-width:none;font-size:11pt}
@@ -203,6 +204,34 @@
 .nube-autorizacion ul{padding-left:18px;margin:6px 0 0}
 .nube-google{min-height:44px;margin:6px 0 4px}
 .nube .danger-link{margin-top:0}
-.ingreso{padding-top:10px}
-.ingreso h1{font-size:clamp(1.6rem,4vw,2.1rem);margin-bottom:10px}
-.ingreso .form-card .muted{margin-bottom:18px}
+
+/* Pantalla de ingreso: presentación de la app y tarjeta con el botón de Google siempre visible */
+.ingreso{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:24px;align-items:stretch;padding-top:6px}
+.ingreso-presentacion{background:linear-gradient(107deg,#153e2e 5%,#235b3d 70%,#2a6947 100%);color:white;border-radius:20px;padding:36px 38px}
+.ingreso-presentacion h1{margin-bottom:12px}
+.ingreso-presentacion>p{color:#ddede2;font-size:.96rem;max-width:560px}
+.ingreso-ventajas{list-style:none;padding:0;margin:22px 0 0;display:grid;gap:14px}
+.ingreso-ventajas li{display:flex;gap:12px;align-items:flex-start}
+.ingreso-ventajas li>span{flex-shrink:0;width:28px;height:28px;border-radius:9px;background:#ffffff1f;color:#b8dfa7;display:grid;place-items:center;font-weight:800}
+.ingreso-ventajas strong{display:block;font-size:.95rem}
+.ingreso-ventajas small{display:block;color:#cfe3d4;font-size:.84rem;line-height:1.5}
+.ingreso-tarjeta{background:white;border:1px solid #e3e9df;border-radius:20px;padding:32px 30px;box-shadow:0 5px 25px #243c2610;display:flex;flex-direction:column;justify-content:center}
+.ingreso-tarjeta h2{margin-bottom:6px}
+.ingreso-tarjeta .nube-google{margin:16px 0 6px;min-height:46px}
+.ingreso-aviso{font-size:.8rem;color:#5f7468;margin:12px 0 4px}
+@media(max-width:820px){.ingreso{grid-template-columns:1fr}.ingreso-presentacion{padding:28px 22px}.ingreso-tarjeta{padding:24px 18px;order:-1}}
+
+/* Usuario que ingresó: foto o inicial, saludo y cerrar sesión */
+.barra-usuario{background:#f0f5ed;border-bottom:1px solid #dfe8da}
+.barra-usuario-interior{display:flex;align-items:center;gap:12px;padding:10px 0}
+.avatar{border-radius:50%;flex-shrink:0;object-fit:cover;background:#dcebd6}
+.avatar-inicial{display:grid;place-items:center;background:#194c3b;color:white;font-weight:800;font-family:Manrope,'DM Sans',sans-serif}
+.barra-usuario-texto{display:flex;flex-direction:column;min-width:0;flex:1}
+.barra-usuario-texto strong{color:#194c3b;font-size:.95rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.barra-usuario-texto small{color:#6b7f72;font-size:.78rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.barra-usuario-salir{padding:8px 14px;font-size:.84rem}
+
+/* Informe de todos los lotes */
+.informe-titulo-lote{font-size:1.5rem!important;color:#153e2e!important;border-bottom:2px solid #194c3b!important;margin-top:8px}
+.informe-lote{margin-top:34px}
+.informe-resumen td,.informe-resumen th{font-size:.84rem}

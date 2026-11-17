@@ -20,6 +20,19 @@ export interface UsuarioGoogle {
   sub: string;
   email: string;
   nombre?: string;
+  /** Foto de perfil de Google (solo direcciones https de Google). */
+  foto?: string;
+}
+
+/** La foto solo se acepta si es una dirección https de las imágenes de perfil de Google. */
+function fotoDe(valor: unknown): string | undefined {
+  if (typeof valor !== 'string' || valor.length > 500) return undefined;
+  try {
+    const url = new URL(valor);
+    return url.protocol === 'https:' && url.hostname.endsWith('.googleusercontent.com') ? url.href : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 /** El token no es válido (se responde 401). */
@@ -90,7 +103,7 @@ async function verificar(
   if (typeof carga.exp !== 'number' || carga.exp + MARGEN_S < ahora / 1000) throw new ErrorToken('El token venció; inicia sesión de nuevo.');
   if (typeof carga.sub !== 'string' || !carga.sub) throw new ErrorToken('El token no identifica al usuario.');
   if (typeof carga.email !== 'string' || carga.email_verified !== true) throw new ErrorToken('La cuenta de Google no tiene un correo verificado.');
-  return { sub: carga.sub, email: carga.email, nombre: typeof carga.name === 'string' ? carga.name : undefined };
+  return { sub: carga.sub, email: carga.email, nombre: typeof carga.name === 'string' ? carga.name : undefined, foto: fotoDe(carga.picture) };
 }
 
 /**

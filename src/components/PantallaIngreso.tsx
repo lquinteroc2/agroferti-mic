@@ -61,12 +61,19 @@ function TextoAutorizacion() {
   </details>;
 }
 
+const VENTAJAS: ReadonlyArray<[titulo: string, texto: string]> = [
+  ['Tus lotes en un solo lugar', 'Área, cultivo, siembra, análisis de suelo e historial de cultivos anteriores.'],
+  ['Plan de fertilización explicado', 'Cantidad y costo de producto para las metas de tu fuente técnica, con cada operación paso a paso.'],
+  ['Funciona sin internet', 'Registra en el campo; se sincroniza solo cuando hay conexión.'],
+  ['Informes en PDF', 'Imprime o guarda en PDF el informe de un lote o de todos tus lotes.']
+];
+
 /**
  * Primera pantalla: sin iniciar sesión con Google no se puede usar la app. Después de ingresar, la
- * app funciona también sin internet y sincroniza cuando hay conexión.
+ * app funciona también sin internet y sincroniza cuando hay conexión. Ingresar con el botón, después
+ * del aviso que lo explica, es la autorización de tratamiento de datos (Ley 1581 de 2012).
  */
 export function PantallaIngreso({ estado, enLinea }: { estado?: EstadoNube; enLinea: boolean }) {
-  const [acepto, setAcepto] = useState(false);
   const [error, setError] = useState('');
   const [otraCuenta, setOtraCuenta] = useState<string | null>(null);
   const [trabajando, setTrabajando] = useState(false);
@@ -77,7 +84,7 @@ export function PantallaIngreso({ estado, enLinea }: { estado?: EstadoNube; enLi
     setOtraCuenta(null);
     setTrabajando(true);
     try {
-      await iniciarSesion(credencial, acepto);
+      await iniciarSesion(credencial, true);
     } catch (e) {
       if (e instanceof OtraCuenta) setOtraCuenta(e.emailVinculado);
       setError(e instanceof ErrorNube || e instanceof OtraCuenta ? e.message : 'No se pudo iniciar sesión. Vuelve a intentarlo.');
@@ -101,32 +108,36 @@ export function PantallaIngreso({ estado, enLinea }: { estado?: EstadoNube; enLi
   }
 
   return (
-    <div className="page-narrow ingreso">
-      <div className="form-card">
-        <div className="section-kicker">GRUPO 1 · PROTOTIPO ACADÉMICO</div>
-        <h1>Ingresa para usar AgroFerti MIC</h1>
-        <p className="muted">Tus lotes, análisis de suelo, planes y seguimiento quedan guardados en tu cuenta y puedes verlos en cualquier dispositivo. Después de ingresar, la app funciona también <strong>sin internet</strong> y se sincroniza cuando hay conexión.</p>
+    <div className="ingreso">
+      <section className="ingreso-presentacion">
+        <div className="eyebrow">GRUPO 1 · SENA · PROTOTIPO ACADÉMICO</div>
+        <h1>Tu cultivo, más organizado.</h1>
+        <p>AgroFerti MIC te ayuda a registrar tus lotes, el análisis de suelo y tus fertilizantes, y a preparar el plan de fertilización con cada cálculo explicado. Para papa y otros cultivos.</p>
+        <ul className="ingreso-ventajas">
+          {VENTAJAS.map(([titulo, texto]) => <li key={titulo}><span aria-hidden="true">✓</span><div><strong>{titulo}</strong><small>{texto}</small></div></li>)}
+        </ul>
+      </section>
 
-        {vencida && <p className="hint">Tu sesión venció. Vuelve a ingresar con tu cuenta de Google; tus datos siguen guardados en este teléfono.</p>}
+      <section className="ingreso-tarjeta" aria-labelledby="titulo-ingreso">
+        <h2 id="titulo-ingreso">Ingresa a tu cuenta</h2>
+        <p className="muted">Usa tu cuenta de Google. Es gratis y no necesitas crear una contraseña.</p>
+
+        {vencida && <p className="hint">Tu sesión venció. Vuelve a ingresar; tus datos siguen guardados en este teléfono.</p>}
         {estado?.vinculado && !vencida && <p className="hint">Este teléfono tiene datos de <strong>{estado.usuario.email}</strong>. Ingresa con esa cuenta para verlos.</p>}
 
-        {!enLinea ? <p className="error">Necesitas conexión a internet para ingresar la primera vez. Conéctate y vuelve a intentarlo.</p> : <>
-          <label className="check nube-check">
-            <input type="checkbox" checked={acepto} onChange={e => setAcepto(e.target.checked)} />
-            <span>Autorizo el tratamiento de mis datos personales para guardarlos en la nube, según la Ley 1581 de 2012.</span>
-          </label>
-          <TextoAutorizacion />
-          {acepto
-            ? (trabajando ? <p className="hint">Ingresando…</p> : <BotonGoogle onCredencial={c => void entrar(c)} />)
-            : <p className="hint">Marca la autorización para ver el botón «Iniciar sesión con Google».</p>}
-        </>}
+        {!enLinea
+          ? <p className="error">Necesitas conexión a internet para ingresar. Conéctate y vuelve a intentarlo.</p>
+          : trabajando ? <p className="hint">Ingresando…</p> : <BotonGoogle onCredencial={c => void entrar(c)} />}
+
+        <p className="ingreso-aviso">Al ingresar con Google autorizas el tratamiento de tus datos personales (nombre, correo y los datos que registres) para guardarlos en la nube, según la Ley 1581 de 2012.</p>
+        <TextoAutorizacion />
 
         {otraCuenta && <div className="error-box">
           <strong>Este teléfono tiene datos de otra cuenta ({otraCuenta}).</strong> Para no mezclar datos de dos personas, ingresa con esa cuenta o borra los datos de este teléfono.
           <div className="respaldo-acciones"><button type="button" className="btn btn-outline" disabled={trabajando} onClick={() => void borrarTelefono()}>Borrar los datos de este teléfono</button></div>
         </div>}
         {error && !otraCuenta && <p role="alert" className="error">{error}</p>}
-      </div>
+      </section>
     </div>
   );
 }

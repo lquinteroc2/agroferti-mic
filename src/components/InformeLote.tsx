@@ -172,16 +172,70 @@ function SeccionSeguimiento({ d }: { d: DatosInforme }) {
   </>;
 }
 
+/** Datos del informe de un lote: solo el cultivo actual (los cultivos cerrados quedan en el historial). */
+export async function leerInformeLote(lote: Lote): Promise<{ informe: DatosInforme; desdeCierre?: string }> {
+  const [ciclos, analisis, planes, registros] = await Promise.all([
+    repositorioCiclos.listar(lote.id), repositorioAnalisis.listar(lote.id), repositorioPlanes.listar(lote.id), repositorioSeguimiento.listar(lote.id)
+  ]);
+  const actual = datosCultivoActual({ ciclos, analisis, planes, registros });
+  return { informe: armarInforme({ lote, ...actual }), desdeCierre: actual.desdeCierre };
+}
+
+/** Secciones 1 a 5 de un lote. Las usan el informe del lote y el informe de todos los lotes. */
+export function SeccionesLote({ lote, d, desdeCierre }: { lote: Lote; d: DatosInforme; desdeCierre?: string }) {
+  return <>
+    <section>
+      <h2>1. El lote</h2>
+      <dl className="data-list">
+        <div><dt>Cultivo</dt><dd>{nombreCultivo(lote.cultivo)}</dd></div>
+        <div><dt>Área</dt><dd>{formatearExacto(lote.areaM2)} m² ({hectareas(lote.areaM2)})</dd></div>
+        <div><dt>Fecha de siembra</dt><dd>{fechaLegible(lote.fechaSiembra)}</dd></div>
+        <div><dt>Ubicación</dt><dd>{lote.ubicacion || 'No registrada'}</dd></div>
+      </dl>
+      {desdeCierre && <p className="informe-nota">Este informe muestra solo el cultivo actual: lo registrado después del cierre del cultivo anterior ({fechaLegible(desdeCierre)}). Los cultivos anteriores están en el historial del lote.</p>}
+    </section>
+
+    <section>
+      <h2>2. Análisis de suelo</h2>
+      <SeccionAnalisis d={d} />
+    </section>
+
+    <section className="informe-recomendacion">
+      <h2>3. Recomendación de fertilización</h2>
+      <SeccionRecomendacion d={d} />
+    </section>
+
+    <section>
+      <h2>4. Lo aplicado frente a lo recomendado</h2>
+      <SeccionAvance d={d} />
+    </section>
+
+    <section>
+      <h2>5. Seguimiento</h2>
+      <SeccionSeguimiento d={d} />
+    </section>
+  </>;
+}
+
+/** Advertencias en lenguaje claro al final del informe. */
+export function AdvertenciasInforme({ hayEjemplo, aprobadoPor }: { hayEjemplo: boolean; aprobadoPor?: string }) {
+  return <section className="informe-advertencias">
+    <h2>Importante</h2>
+    <ul>
+      <li>La recomendación es la del <strong>plan aprobado</strong>{aprobadoPor ? ` por ${aprobadoPor}` : ''}. Sus metas vienen de la fuente técnica indicada; <strong>la app no calcula dosis por su cuenta</strong> ni a partir del análisis de suelo.</li>
+      <li>Antes de aplicar, revise la recomendación con su asistente técnico: la dosis adecuada depende del suelo, la variedad, el rendimiento esperado y el clima.</li>
+      <li>El nombre de quien aprobó lo escribió el usuario de la app; la app no verifica identidades.</li>
+      <li>El seguimiento es un registro manual, no una medición de campo. Los valores con “≈” están redondeados.</li>
+      {hayEjemplo && <li>Los datos marcados EJEMPLO son ficticios.</li>}
+    </ul>
+  </section>;
+}
+
 /** Informe del lote para el productor, listo para imprimir o guardar como PDF desde el navegador. */
 export function InformeLote({ lote, onVolver }: { lote: Lote; onVolver: () => void }) {
   const lectura = useLiveQuery<Lectura>(async () => {
     try {
-      const [ciclos, analisis, planes, registros] = await Promise.all([
-        repositorioCiclos.listar(lote.id), repositorioAnalisis.listar(lote.id), repositorioPlanes.listar(lote.id), repositorioSeguimiento.listar(lote.id)
-      ]);
-      // Solo el cultivo actual: los análisis, planes y registros de cultivos cerrados quedan en el historial.
-      const actual = datosCultivoActual({ ciclos, analisis, planes, registros });
-      return { ok: true, informe: armarInforme({ lote, ...actual }), desdeCierre: actual.desdeCierre };
+      return { ok: true, ...(await leerInformeLote(lote)) };
     } catch {
       return { ok: false };
     }
@@ -204,49 +258,8 @@ export function InformeLote({ lote, onVolver }: { lote: Lote; onVolver: () => vo
             <p>Generado el {fechaHoraDeMarca(d.generado)}</p>
           </header>
           {d.hayEjemplo && <p className="informe-aviso-ejemplo"><strong>Contiene datos de EJEMPLO (ficticios).</strong> No los use para decidir sobre un cultivo real.</p>}
-
-          <section>
-            <h2>1. El lote</h2>
-            <dl className="data-list">
-              <div><dt>Cultivo</dt><dd>{nombreCultivo(lote.cultivo)}</dd></div>
-              <div><dt>Área</dt><dd>{formatearExacto(lote.areaM2)} m² ({hectareas(lote.areaM2)})</dd></div>
-              <div><dt>Fecha de siembra</dt><dd>{fechaLegible(lote.fechaSiembra)}</dd></div>
-              <div><dt>Ubicación</dt><dd>{lote.ubicacion || 'No registrada'}</dd></div>
-            </dl>
-            {lectura.desdeCierre && <p className="informe-nota">Este informe muestra solo el cultivo actual: lo registrado después del cierre del cultivo anterior ({fechaLegible(lectura.desdeCierre)}). Los cultivos anteriores están en el historial del lote.</p>}
-          </section>
-
-          <section>
-            <h2>2. Análisis de suelo</h2>
-            <SeccionAnalisis d={d} />
-          </section>
-
-          <section className="informe-recomendacion">
-            <h2>3. Recomendación de fertilización</h2>
-            <SeccionRecomendacion d={d} />
-          </section>
-
-          <section>
-            <h2>4. Lo aplicado frente a lo recomendado</h2>
-            <SeccionAvance d={d} />
-          </section>
-
-          <section>
-            <h2>5. Seguimiento</h2>
-            <SeccionSeguimiento d={d} />
-          </section>
-
-          <section className="informe-advertencias">
-            <h2>6. Importante</h2>
-            <ul>
-              <li>La recomendación es la del <strong>plan aprobado</strong>{d.recomendacion?.aprobadoPor ? ` por ${d.recomendacion.aprobadoPor}` : ''}. Sus metas vienen de la fuente técnica indicada; <strong>la app no calcula dosis por su cuenta</strong> ni a partir del análisis de suelo.</li>
-              <li>Antes de aplicar, revise la recomendación con su asistente técnico: la dosis adecuada depende del suelo, la variedad, el rendimiento esperado y el clima.</li>
-              <li>El nombre de quien aprobó lo escribió el usuario de la app; la app no verifica identidades.</li>
-              <li>El seguimiento es un registro manual, no una medición de campo. Los valores con “≈” están redondeados.</li>
-              {d.hayEjemplo && <li>Los datos marcados EJEMPLO son ficticios.</li>}
-            </ul>
-          </section>
-
+          <SeccionesLote lote={lote} d={d} desdeCierre={lectura.desdeCierre} />
+          <AdvertenciasInforme hayEjemplo={d.hayEjemplo} aprobadoPor={d.recomendacion?.aprobadoPor} />
           <footer className="informe-pie">Generado con AgroFerti MIC · Prototipo académico · Grupo 1 · SENA</footer>
         </article>;
       })()}

@@ -92,7 +92,7 @@ export interface RespuestaSesion {
   /** Fecha ISO en que vence la sesión. */
   vence: string;
   epoca: string;
-  usuario: { sub: string; email: string; nombre?: string };
+  usuario: { sub: string; email: string; nombre?: string; foto?: string };
 }
 
 /** Respuesta de error de la API: `codigo` permite a la app decidir qué mostrar. */

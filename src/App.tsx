@@ -2,6 +2,8 @@ import { useState, useSyncExternalStore } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { AnalisisSueloSeccion } from './components/AnalisisSueloSeccion';
 import { HistorialLoteSeccion } from './components/HistorialLoteSeccion';
+import { BarraUsuario, saludoDe } from './components/BarraUsuario';
+import { InformeGeneral } from './components/InformeGeneral';
 import { InformeLote } from './components/InformeLote';
 import { LoteForm, type DatosLote } from './components/LoteForm';
 import { PlanesSeccion } from './components/PlanesSeccion';
@@ -24,7 +26,7 @@ function useEnLinea(): boolean {
   }, () => navigator.onLine);
 }
 
-type Vista = 'inicio' | 'nuevo' | 'editar' | 'detalle' | 'informe' | 'productos' | 'ayuda';
+type Vista = 'inicio' | 'nuevo' | 'editar' | 'detalle' | 'informe' | 'informe-general' | 'productos' | 'ayuda';
 
 function Logo() {
   return <span className="brand-symbol" aria-hidden="true">
@@ -125,6 +127,7 @@ export default function App() {
           </nav>
         </div>
       </header>
+      <BarraUsuario estado={estadoNube} />
 
       <main className="container main-content">
         {vencida && <div role="status" className="notice notice-error"><span aria-hidden="true">!</span>Tu sesión venció. Puedes seguir trabajando sin internet; cuando tengas conexión tendrás que ingresar de nuevo para sincronizar.</div>}
@@ -145,7 +148,7 @@ export default function App() {
             <div className="stat"><span>Área total</span><strong>{lotes ? formatearNumero(totalArea) : '—'} <em>m²</em></strong><small>{lotes ? formatearNumero(totalArea / 10_000, 4) : '—'} ha</small></div>
             <div className="stat"><span>Cultivos diferentes</span><strong>{lotes ? totalCultivos : '—'}</strong><small>Estructura multicultivo</small></div>
           </section>
-          <section className="section-header"><div><div className="section-kicker">TU UNIDAD PRODUCTIVA</div><h2>Mis lotes</h2><p>Crea un lote para comenzar a organizar la información de tu cultivo.</p></div><button className="btn btn-outline" onClick={() => ir('nuevo')}>+ Nuevo lote</button></section>
+          <section className="section-header"><div><div className="section-kicker">TU UNIDAD PRODUCTIVA</div><h2>Mis lotes</h2><p>Crea un lote para comenzar a organizar la información de tu cultivo.</p></div><div className="detalle-botones">{!!lotes?.length && <button className="btn btn-outline" onClick={() => ir('informe-general')}>Informe de todos los lotes (PDF)</button>}<button className="btn btn-outline" onClick={() => ir('nuevo')}>+ Nuevo lote</button></div></section>
           {lotes === undefined ? <div className="empty"><p>Cargando tus lotes…</p></div>
             : lotes.length === 0 ? <div className="empty"><div className="empty-icon" aria-hidden="true">◎</div><h3>Aún no tienes lotes registrados</h3><p>Comienza con tu cultivo de papa o el que estés trabajando. Puedes añadir más cultivos después.</p><button className="btn btn-primary" onClick={() => ir('nuevo')}>Crear mi primer lote</button></div>
             : <div className="lots-grid">{lotes.map(l => <button key={l.id} className="lot-card" onClick={() => { setLoteId(l.id); ir('detalle'); }}>
@@ -174,6 +177,7 @@ export default function App() {
         </>}
 
         {vista === 'informe' && activo && <InformeLote lote={activo} onVolver={() => ir('detalle')} />}
+        {vista === 'informe-general' && <InformeGeneral usuario={estadoNube.usuario.nombre ? `${estadoNube.usuario.nombre} (${estadoNube.usuario.email})` : saludoDe(estadoNube.usuario)} onVolver={() => ir('inicio')} />}
         {vista === 'productos' && <ProductosSeccion key={visita} />}
 
         {vista === 'ayuda' && <div className="page-narrow help"><div className="section-kicker">GUÍA PARA EL PRODUCTOR</div><h1>Cómo funciona AgroFerti MIC</h1><p className="muted">El objetivo es que productores de distintos cultivos comprendan sus datos de fertilización y puedan registrar lo que realmente ocurre en el lote.</p>

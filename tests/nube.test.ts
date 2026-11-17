@@ -43,7 +43,13 @@ test('Google: un token válido devuelve el usuario por sub; se rechazan firma, e
   const { publica, firmar } = await clavesDePrueba();
   const claves = async () => [publica];
   const usuario = await verificarTokenGoogle(await firmar(cargaValida()), CLIENT_ID, claves, AHORA);
-  assert.deepEqual(usuario, { sub: '1234567890', email: 'productor.ejemplo@gmail.com', nombre: 'Productor EJEMPLO' });
+  assert.deepEqual(usuario, { sub: '1234567890', email: 'productor.ejemplo@gmail.com', nombre: 'Productor EJEMPLO', foto: undefined });
+  const conFoto = await verificarTokenGoogle(await firmar(cargaValida({ picture: 'https://lh3.googleusercontent.com/a/foto-EJEMPLO=s96-c' })), CLIENT_ID, claves, AHORA);
+  assert.equal(conFoto.foto, 'https://lh3.googleusercontent.com/a/foto-EJEMPLO=s96-c');
+  for (const picture of ['http://lh3.googleusercontent.com/a/x', 'https://evil.example/x.png', 'javascript:alert(1)', 42]) {
+    const u = await verificarTokenGoogle(await firmar(cargaValida({ picture })), CLIENT_ID, claves, AHORA);
+    assert.equal(u.foto, undefined, `foto rechazada: ${String(picture)}`);
+  }
 
   const rechaza = async (token: string, patron: RegExp) =>
     assert.rejects(verificarTokenGoogle(token, CLIENT_ID, claves, AHORA), (e: unknown) => e instanceof ErrorToken && patron.test(e.message));

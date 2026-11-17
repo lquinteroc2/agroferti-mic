@@ -218,12 +218,13 @@ Las pruebas de persistencia (`tests/persistencia.test.ts`) usan un almacén en m
 ### Pruebas manuales en navegador (ingreso y nube)
 
 1. Abre la app en una ventana privada: solo debe verse **Ingresa para usar AgroFerti MIC**, sin menú ni lotes.
-2. El botón **Iniciar sesión con Google** aparece solo después de marcar la autorización de datos. Ingresa con una cuenta de prueba.
+2. La página de ingreso muestra qué hace la app y el botón **Iniciar sesión con Google** siempre visible, con el aviso de la autorización de datos junto a él. Ingresa con una cuenta de prueba.
+2b. Arriba debe verse la foto de perfil (o un círculo con la inicial), **Hola, nombre** (o el correo si la cuenta no tiene nombre) y **Cerrar sesión**.
 3. Crea un lote de EJEMPLO: en **Mis lotes → Mi cuenta** debe decir que hay cambios por subir y, a los pocos segundos, **Todo sincronizado**.
 4. En otro dispositivo, ingresa con la misma cuenta: el lote debe aparecer. Elimínalo allí y sincroniza en el primero: debe desaparecer.
 5. **Cerrar sesión** vuelve a la pantalla de ingreso; al volver a entrar con la misma cuenta, los datos siguen ahí.
 6. Sin internet (modo avión), con la sesión iniciada, la app sigue funcionando; al volver la conexión se sincroniza sola.
-7. Para tener los datos en papel o PDF: ficha del lote → **Informe para el productor** → **Imprimir o guardar como PDF**.
+7. Para tener los datos en papel o PDF: ficha del lote → **Informe para el productor**, o en Mis lotes → **Informe de todos los lotes (PDF)** (un resumen y cada lote en su propia página) → **Imprimir o guardar como PDF**.
 
 ### Pruebas manuales en navegador (historial del lote)
 
@@ -259,6 +260,8 @@ agroferti-mic/
 │  │  ├─ PlanDetalle.tsx           # Fase 3c: cálculo del plan explicado paso a paso
 │  │  ├─ PlanEstado.tsx            # Fase 3d: estados del plan e historial
 │  │  ├─ PantallaIngreso.tsx       # Ingreso obligatorio con Google y autorización de datos (Ley 1581)
+│  │  ├─ BarraUsuario.tsx          # Foto o inicial, "Hola, nombre" y cerrar sesión
+│  │  ├─ InformeGeneral.tsx        # Informe de todos los lotes para imprimir o guardar en PDF
 │  │  ├─ NubeSeccion.tsx           # Mi cuenta: estado de la sincronización, cerrar sesión, borrar datos de la nube
 │  │  ├─ AplicacionesPlan.tsx      # Fase 4b: lo aplicado frente a un plan aprobado
 │  │  ├─ SeguimientoSeccion.tsx    # Fase 4c: observaciones, tareas y lista del seguimiento
@@ -401,7 +404,7 @@ No inventar resultados de campo. Etiquetar todos los datos simulados como **EJEM
 ## Para retomar (estado al 17 de noviembre de 2026)
 
 - Historial del lote (ciclos de cultivo) publicado y revisado: los 10 puntos de la revisión de código están corregidos (181 pruebas, build correcto).
-- **Ingreso obligatorio (17 de noviembre de 2026):** sin iniciar sesión con Google solo se ve la pantalla de ingreso. Con la sesión vencida y sin internet se puede seguir trabajando; al volver la conexión hay que ingresar de nuevo. La copia de seguridad JSON se retiró: la nube la reemplaza y el informe de cada lote se imprime o se guarda en PDF.
+- **Ingreso obligatorio (17 de noviembre de 2026):** sin iniciar sesión con Google solo se ve la página de ingreso (presentación de la app y botón de Google siempre visible; ingresar después del aviso es la autorización de datos, Ley 1581). Con sesión se ve arriba la foto de perfil o la inicial, "Hola, nombre" y Cerrar sesión. **Informe de todos los lotes (PDF)** en Mis lotes. Con la sesión vencida y sin internet se puede seguir trabajando; al volver la conexión hay que ingresar de nuevo. La copia de seguridad JSON se retiró: la nube la reemplaza y el informe de cada lote se imprime o se guarda en PDF.
 - **Nube publicada y revisada (17 de noviembre de 2026):** Worker + D1 (`agroferti-db`, migraciones 0001 y 0002 aplicadas) + Sign in with Google, en planes gratuitos y sin métodos de pago. La cuenta de Cloudflare es la de `leonardoquintero222@gmail.com`; el secreto `SESION_SECRETO` está guardado en Cloudflare (no en el repositorio). Falta la prueba con un inicio de sesión real de Google en la app publicada y en un teléfono.
 - Para trabajar con la API en local: `npm run db:migrar:local` (una vez), crear `.dev.vars` con `SESION_SECRETO=<texto de 32+ caracteres>` y luego `npm run dev:api` (app + API en http://localhost:8787). En Windows PowerShell usa `npm.cmd` y `npx.cmd`.
 - Si cambia el esquema de D1: nueva migración en `migrations/` y `npm run db:migrar:nube` antes de publicar el código que la usa.
