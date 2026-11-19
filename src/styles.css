@@ -300,3 +300,11 @@
 .sugerencias-no{margin-top:10px;font-size:.84rem}
 .sugerencias-no summary{cursor:pointer;color:#27503c;font-weight:700;min-height:44px;display:flex;align-items:center}
 @media(max-width:720px){.sugerencias-lista li{flex-direction:column;align-items:stretch}}
+/* Leer el análisis desde un PDF o una foto */
+.lectura-analisis{background:#f6faf3;border:1px solid #cfe2c6;border-radius:12px;padding:14px 16px}
+.lectura-boton{cursor:pointer;min-height:44px}
+.lectura-revision ul{list-style:none;padding:0;margin:10px 0;display:grid;gap:10px}
+.lectura-revision li{display:grid;grid-template-columns:1fr minmax(90px,140px);gap:6px 10px;align-items:center;background:white;border:1px solid #e0e7dd;border-radius:10px;padding:10px 12px}
+.lectura-revision li .check{margin:0}
+.lectura-revision li input:not([type=checkbox]){border:1px solid #d7e0d6;border-radius:8px;padding:10px;min-width:0}
+.lectura-revision li small{grid-column:1 / -1;color:#5f7468;font-size:.78rem;overflow-wrap:anywhere}

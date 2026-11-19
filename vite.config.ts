@@ -26,6 +26,8 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
+        // La lectura de PDF solo se descarga cuando se usa (pesa más que el resto de la app).
+        globIgnores: ['**/pdf-*.js', '**/pdf.worker*'],
         navigateFallback: '/index.html',
         // La API de la nube nunca se responde desde la caché del service worker.
         navigateFallbackDenylist: [/^\/api\//]

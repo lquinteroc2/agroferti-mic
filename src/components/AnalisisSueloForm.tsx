@@ -14,6 +14,8 @@ import {
   type ErroresAnalisis
 } from '../lib/validacion';
 import type { AnalisisVerificado, NutrienteLeido, ProblemaDato } from '../types';
+import type { DatoLeido } from '../lib/lecturaAnalisis';
+import { LecturaAnalisis } from './LecturaAnalisis';
 
 export interface OpcionesFormulario {
   actualizarArea: boolean;
@@ -100,6 +102,36 @@ export function AnalisisSueloForm({ inicial, areaActualM2, onGuardar, onCancelar
   const problemasGenerales = problemas.filter(p => !problemasFila.has(p.campo));
 
   const cambiar = (campo: CampoSimple, valor: string) => setEntrada(e => ({ ...e, [campo]: valor }));
+
+  /** Pasa al formulario los datos leídos del archivo que el usuario confirmó. Después se revisan y guardan como siempre. */
+  function aplicarLectura(datos: DatoLeido[]) {
+    setEntrada(e => {
+      const nueva = { ...e, nutrientes: [...e.nutrientes] };
+      for (const d of datos) {
+        if (d.campo === 'fecha') nueva.fechaAnalisis = d.valor;
+        else if (d.campo === 'laboratorio') nueva.laboratorio = d.valor;
+        else if (d.campo === 'profundidad') nueva.profundidadCm = d.valor;
+        else if (d.campo === 'densidad') nueva.densidadGcm3 = d.valor;
+        else if (d.campo === 'ph') nueva.ph = d.valor;
+        else if (d.campo === 'metodo') nueva.metodoLaboratorio = d.valor;
+        else if (d.nutriente) {
+          const el = CATALOGO_NUTRIENTES.find(x => x.nombre === d.nutriente!.elemento);
+          const fila: FilaNutriente = {
+            ...filaVacia(), elemento: d.nutriente.elemento, forma: d.nutriente.forma, valor: d.valor, unidad: d.nutriente.unidad,
+            elementoLibre: !el, formaLibre: !el || !el.formas.includes(d.nutriente.forma)
+          };
+          const igual = nueva.nutrientes.findIndex(n => n.elemento === fila.elemento && n.forma === fila.forma);
+          const vacia = nueva.nutrientes.findIndex(n => !n.existente && !n.elemento && !n.valor);
+          if (igual >= 0) nueva.nutrientes[igual] = { ...nueva.nutrientes[igual], valor: fila.valor, unidad: fila.unidad };
+          else if (vacia >= 0) nueva.nutrientes[vacia] = fila;
+          else nueva.nutrientes.push(fila);
+        }
+      }
+      return nueva;
+    });
+    setErrores({});
+    setErrorGeneral([]);
+  }
   const cambiarFila = (indice: number, cambios: Partial<FilaNutriente>) =>
     setEntrada(e => ({ ...e, nutrientes: e.nutrientes.map((n, i) => (i === indice ? { ...n, ...cambios } : n)) }));
   const confirmar = (campo: string, si: boolean) => setConfirmados(c => {
@@ -178,6 +210,8 @@ export function AnalisisSueloForm({ inicial, areaActualM2, onGuardar, onCancelar
       <div className="section-kicker">ANÁLISIS DE SUELO</div>
       <h2 id="titulo-form-suelo">{inicial ? 'Editar análisis de suelo' : 'Registrar un análisis de suelo'}</h2>
       <p className="muted">Copia los datos tal como aparecen en el informe del laboratorio. Puedes usar coma o punto para los decimales (1,2 o 1.2). Los campos con <span className="required">*</span> son obligatorios.</p>
+
+      {!inicial && <LecturaAnalisis onAplicar={aplicarLectura} />}
 
       {problemasGenerales.length > 0 && <div className="error-box" role="group" aria-labelledby="titulo-danados">
         <strong id="titulo-danados">Este análisis tiene datos guardados que deben corregirse.</strong>
