@@ -18,7 +18,7 @@ import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import { fechaLocalISO } from '../lib/validacion';
 import { useCapaAtras } from '../lib/navegacion';
 import { resumenErrores } from '../lib/validacionPlan';
-import { CULTIVOS, MOTIVOS_CIERRE, type CicloCultivo, type CicloVerificado, type Lote, type MotivoCierre } from '../types';
+import { MOTIVOS_CIERRE, opcionesCultivo, type CicloCultivo, type CicloVerificado, type Lote, type MotivoCierre } from '../types';
 import { OrigenBadge } from './ProductoDetalle';
 
 type Modo = { tipo: 'lista' } | { tipo: 'cerrar' } | { tipo: 'notas'; id: string };
@@ -42,7 +42,7 @@ function CierreForm({ lote, ultimoCierre, onGuardar, onCancelar }: {
   onCancelar: () => void;
 }) {
   const [entrada, setEntrada] = useState<EntradaCierre>({
-    fechaCierre: fechaLocalISO(), motivo: '', notas: '', origen: '', nuevoCultivo: lote.cultivo, nuevaFechaSiembra: ''
+    fechaCierre: fechaLocalISO(), motivo: '', notas: '', origen: '', nuevoCultivo: opcionesCultivo().some(c => c.value === lote.cultivo) ? lote.cultivo : 'papa', nuevaFechaSiembra: ''
   });
   const [errores, setErrores] = useState<ErroresCierre>({});
   const [errorGeneral, setErrorGeneral] = useState<string[]>([]);
@@ -109,12 +109,12 @@ function CierreForm({ lote, ultimoCierre, onGuardar, onCancelar }: {
           </select>
           {error('origen')}
         </label>
-        <label>Nuevo cultivo del lote
+        <label>Cultivo del nuevo ciclo
           <select value={entrada.nuevoCultivo} onChange={e => cambiar('nuevoCultivo', e.target.value)}>
-            {CULTIVOS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+            {opcionesCultivo().map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
           </select>
         </label>
-        <label>Siembra del nuevo cultivo
+        <label>Siembra del nuevo ciclo
           <input type="date" value={entrada.nuevaFechaSiembra} min={entrada.fechaCierre || undefined} onChange={e => cambiar('nuevaFechaSiembra', e.target.value)} aria-invalid={!!errores.nuevaFechaSiembra} />
           {error('nuevaFechaSiembra')}
         </label>
@@ -314,7 +314,7 @@ export function HistorialLoteSeccion({ lote }: { lote: Lote }) {
           <h2 id="titulo-historial">Historial del lote</h2>
           <p>Los cultivos que ha tenido este lote y lo registrado en cada uno, para comparar con cultivos anteriores. Al cosechar, cierra el ciclo y empieza el siguiente cultivo.</p>
         </div>
-        {enLista && lectura?.ok && <button className="btn btn-outline" onClick={() => abrir({ tipo: 'cerrar' })}>Cerrar ciclo y empezar otro cultivo</button>}
+        {enLista && lectura?.ok && <button className="btn btn-outline" onClick={() => abrir({ tipo: 'cerrar' })}>Cerrar ciclo y empezar uno nuevo</button>}
       </div>
 
       {aviso && <div role={aviso.tipo === 'error' ? 'alert' : 'status'} className={`notice ${aviso.tipo === 'error' ? 'notice-error' : 'notice-ok'}`}>
@@ -331,7 +331,7 @@ export function HistorialLoteSeccion({ lote }: { lote: Lote }) {
         onGuardar={async datos => {
           await repositorioCiclos.cerrarCiclo(lote.id, datos);
           setModo({ tipo: 'lista' });
-          setAviso({ tipo: 'ok', texto: 'El ciclo se cerró y quedó en el historial. El lote sigue con el nuevo cultivo.' });
+          setAviso({ tipo: 'ok', texto: 'El ciclo se cerró y quedó en el historial. El lote sigue con el nuevo ciclo.' });
         }}
         onCancelar={() => abrir({ tipo: 'lista' })} />}
       {modo.tipo === 'notas' && editando && <NotasForm key={editando.id} ciclo={editando}
@@ -348,7 +348,7 @@ export function HistorialLoteSeccion({ lote }: { lote: Lote }) {
         lectura === undefined ? <div className="empty"><p>Cargando historial…</p></div>
           : !lectura.ok ? null
           : <>
-            {lectura.historial.periodos.length === 1 && <p className="muted">Este lote aún no tiene cultivos anteriores. Cuando coseches, usa «Cerrar ciclo y empezar otro cultivo» para guardarlo en el historial.</p>}
+            {lectura.historial.periodos.length === 1 && <p className="muted">Este lote aún no tiene cultivos anteriores. Cuando coseches, usa «Cerrar ciclo y empezar uno nuevo» para guardarlo en el historial.</p>}
             <div className="historial-lista">{lectura.historial.periodos.map(periodo)}</div>
             {danados.length > 0 && <div className="error-box">
               <strong>Hay ciclos guardados con datos dañados.</strong> No se usan para ordenar el historial; sus registros se muestran en el ciclo siguiente.

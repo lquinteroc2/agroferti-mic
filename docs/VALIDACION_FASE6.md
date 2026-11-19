@@ -29,7 +29,7 @@ Regla de oro: **quien hace el cálculo manual no mira la app hasta terminar**, y
 
 ## 2. Datos reales que hay que reunir
 
-Para cada cultivo (papa y el segundo cultivo, por ejemplo arveja):
+Para cada lote de papa (la app trabaja solo con papa desde el 19 de noviembre de 2026):
 
 ### 2.1 Lote
 - Nombre, cultivo y **área en m²** (escrita sin punto de miles: `2500`, no `2.500`).
@@ -177,10 +177,10 @@ La diferencia del N es solo aritmética: la app no dice si sobra o falta agronó
 | A26 | KCl: 62,5 − 62,5; 62,5 ÷ 62,5 × 100; 62,5 × 10.000 ÷ 2.500 × 0,60 | 0 · 100 · 150 | `0 kg (igual a lo planeado)` · `100 %` · `150 kg/ha de K₂O` |
 | A27 | Costo registrado del DAP: solo se suman los costos escritos | 87.000 | `87.000 COP (1 aplicación sin costo registrado)` |
 
-### Caso B — Arveja · **EJEMPLO**
+### Caso B — Segundo lote de papa · **EJEMPLO**
 
 **Datos de EJEMPLO**
-- Lote "Arveja EJEMPLO", **800 m²**.
+- Lote "Papa sur EJEMPLO", **800 m²**.
 - Análisis EJEMPLO: profundidad **15 cm**, densidad **1,3 g/cm³**; Fósforo **P 12,5 mg/kg**; Calcio **Ca²⁺ 2,1 cmol(+)/kg**.
 - Producto EJEMPLO: "Compuesto 10-30-10 EJEMPLO": N 10 %, P₂O₅ 30 %, K₂O 10 %; bulto de 50 kg a 152.000 COP.
 - Meta EJEMPLO (no real): P₂O₅ 60 kg/ha. No hay metas de N ni de K₂O.

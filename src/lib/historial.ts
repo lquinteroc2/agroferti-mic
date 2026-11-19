@@ -99,7 +99,7 @@ export function validarDatosCierre(datos: unknown, { fechaSiembraActual, ultimoC
     const esEjemplo = l.booleano('esEjemplo', 'Dato de EJEMPLO');
     const nuevoCultivo = esCultivo(datos.nuevoCultivo) ? datos.nuevoCultivo : undefined;
     if (!nuevoCultivo) l.nota('nuevoCultivo', 'Nuevo cultivo', 'No es un cultivo de la lista.');
-    const nuevaFechaSiembra = l.fecha('nuevaFechaSiembra', 'Siembra del nuevo cultivo');
+    const nuevaFechaSiembra = l.fecha('nuevaFechaSiembra', 'Siembra del nuevo ciclo');
     const errores = problemas.map(p => `${p.etiqueta}: ${p.detalle}`);
     if (fechaCierre) {
       if (fechaCierre > fechaLocalISO(hoy)) errores.push('Fecha de cierre: no puede ser una fecha futura.');
@@ -109,7 +109,7 @@ export function validarDatosCierre(datos: unknown, { fechaSiembraActual, ultimoC
       if (ultimoCierre && fechaSiembraActual && fechaSiembraActual <= ultimoCierre) {
         errores.push(`La fecha de siembra del lote (${fechaSiembraActual}) no es posterior al cierre del ciclo anterior (${ultimoCierre}): corrígela en «Editar información» antes de cerrar.`);
       }
-      if (nuevaFechaSiembra && nuevaFechaSiembra < fechaCierre) errores.push('Siembra del nuevo cultivo: no puede ser anterior a la fecha de cierre.');
+      if (nuevaFechaSiembra && nuevaFechaSiembra < fechaCierre) errores.push('Siembra del nuevo ciclo: no puede ser anterior a la fecha de cierre.');
     }
     if (errores.length || !fechaCierre || !motivo || esEjemplo === undefined || !nuevoCultivo) return { ok: false, errores };
     return { ok: true, datos: { fechaCierre, motivo, notas, esEjemplo, nuevoCultivo, nuevaFechaSiembra } };
@@ -159,7 +159,7 @@ export function validarCierreFormulario(entrada: EntradaCierre, contexto: Contex
   if (!entrada.motivo) errores.motivo = 'Indica cómo terminó el cultivo.';
   if (entrada.notas.trim().length > MAX_NOTAS_CICLO) errores.notas = `Resultado y notas: tiene más de ${MAX_NOTAS_CICLO} caracteres.`;
   if (!entrada.origen) errores.origen = 'Indica si es un dato real o de EJEMPLO.';
-  const siembra = entrada.nuevaFechaSiembra.trim() ? validarFecha(entrada.nuevaFechaSiembra, 'Siembra del nuevo cultivo') : undefined;
+  const siembra = entrada.nuevaFechaSiembra.trim() ? validarFecha(entrada.nuevaFechaSiembra, 'Siembra del nuevo ciclo') : undefined;
   if (siembra && !siembra.ok) errores.nuevaFechaSiembra = siembra.error;
   if (Object.keys(errores).length) return { ok: false, errores };
   const final = validarDatosCierre({

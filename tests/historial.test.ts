@@ -82,7 +82,7 @@ test('cierre: fechas no futuras y en orden; cultivo y motivo de la lista; EJEMPL
   assert.match(errores({ fechaCierre: '2026-11-12' }), /futura/);
   assert.match(errores({ fechaCierre: '2026-02-28' }), /anterior a la siembra/);
   assert.match(errores({ fechaCierre: '2025-11-30' }, { ...ctx, fechaSiembraActual: undefined }), /cierre del ciclo anterior/);
-  assert.match(errores({ nuevaFechaSiembra: '2026-07-14' }), /Siembra del nuevo cultivo/);
+  assert.match(errores({ nuevaFechaSiembra: '2026-07-14' }), /Siembra del nuevo ciclo/);
   assert.match(errores({ motivo: 'vendido' }), /Cómo terminó/);
   assert.match(errores({ nuevoCultivo: 'maíz' }), /Nuevo cultivo/);
   assert.match(errores({ esEjemplo: undefined }), /EJEMPLO/);

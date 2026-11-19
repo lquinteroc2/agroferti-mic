@@ -131,8 +131,6 @@ test('datos cargados: papa en el Altiplano con un análisis de EJEMPLO (Bray II)
   const r = sugerirMetas({ cultivo: 'papa', region: 'Altiplano Cundiboyacense, Nariño y Antioquia', analisis, reglas: cargadas });
   const rango = (forma: string) => r.sugerencias.filter(s => s.forma === forma).map(s => `${s.minKgHa}-${s.maxKgHa}`);
   assert.deepEqual([rango('P₂O₅'), rango('K₂O'), rango('N')], [['300-375'], ['100-125'], ['120-160']]);
-  // Una referencia con método Mehlich-3 no se usa con un análisis Bray II.
-  const kale = sugerirMetas({ cultivo: 'kale', region: 'Florida, EE. UU. (referencia internacional)', analisis, reglas: cargadas });
-  assert.deepEqual(kale.sugerencias.map(s => s.forma), ['N'], 'solo el N, que no depende del análisis');
-  assert.ok(kale.noAplican.some(n => /Mehlich-3/.test(n.motivo)));
+  // La app trabaja solo con papa (decisión del 19 de noviembre de 2026).
+  assert.ok(cargadas.every(r => r.cultivo === 'papa'));
 });

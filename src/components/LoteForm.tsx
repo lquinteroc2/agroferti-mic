@@ -3,7 +3,7 @@ import { areaM2AHa } from '../lib/calculos';
 import { formatearExacto, formatearNumero } from '../lib/formato';
 import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import { areaLoteATexto, UNIDADES_AREA, validarAreaEnUnidad, type UnidadArea } from '../lib/validacion';
-import { CULTIVOS, type Cultivo, type Lote } from '../types';
+import { opcionesCultivo, type Cultivo, type Lote } from '../types';
 
 export interface DatosLote {
   nombre: string;
@@ -23,8 +23,8 @@ interface Props {
 export function LoteForm({ inicial, onGuardar, onCancelar }: Props) {
   const [versionInicial] = useState(inicial?.updatedAt);
   const [nombre, setNombre] = useState(inicial?.nombre ?? '');
-  // Un lote nuevo empieza sin cultivo elegido: no se asume papa.
-  const [cultivo, setCultivo] = useState<Cultivo | ''>(inicial?.cultivo ?? '');
+  // Por ahora la app trabaja solo con papa; un lote guardado con otro cultivo lo conserva.
+  const [cultivo, setCultivo] = useState<Cultivo | ''>(inicial?.cultivo ?? 'papa');
   const [area, setArea] = useState(inicial ? areaLoteATexto(inicial.areaM2) : '');
   const [unidad, setUnidad] = useState<UnidadArea>('m2');
   const [fecha, setFecha] = useState(inicial?.fechaSiembra ?? '');
@@ -68,9 +68,9 @@ export function LoteForm({ inicial, onGuardar, onCancelar }: Props) {
         <label><span className="campo-titulo">Cultivo <span className="required" aria-hidden="true">*</span></span>
           <select value={cultivo} onChange={e => { setCultivo(e.target.value as Cultivo); setError(''); }} required>
             {!cultivo && <option value="">Elige…</option>}
-            {CULTIVOS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+            {opcionesCultivo(inicial?.cultivo).map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
           </select>
-          {inicial && <small>Para cambiar de cultivo sin perder el anterior, usa «Cerrar ciclo y empezar otro cultivo» en el historial del lote.</small>}
+          <small>Por ahora la app trabaja solo con papa.{inicial && ' Al cosechar, usa «Cerrar ciclo y empezar uno nuevo» en el historial del lote para no perder lo anterior.'}</small>
         </label>
         <label><span className="campo-titulo">Área del lote <span className="required" aria-hidden="true">*</span></span>
           <span className="area-unidad">

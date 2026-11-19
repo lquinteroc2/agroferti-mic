@@ -175,9 +175,9 @@ test('Caso A (papa EJEMPLO) · plan frente a lo aplicado (aplicaciones parciales
   assert.equal(textoCostoRegistrado(costo, 2), '87.000 COP (1 aplicación sin costo registrado)');
 });
 
-// ======================= CASO B — ARVEJA EJEMPLO (lote de 800 m²) =======================
+// ======================= CASO B — SEGUNDO LOTE DE PAPA EJEMPLO (lote de 800 m²) =======================
 
-test('Caso B (arveja EJEMPLO) · suelo: equivalencias y cmol(+)/kg sin convertir', () => {
+test('Caso B (segundo lote de papa EJEMPLO) · suelo: equivalencias y cmol(+)/kg sin convertir', () => {
   const eq = equivalenciasAnalisis({
     profundidadCm: 15, densidadGcm3: 1.3, areaM2AlRegistro: 800,
     nutrientes: [
@@ -202,7 +202,7 @@ const planB: EntradaPlan = {
   lineas: [{ id: 'l-c', metaId: 'mp', producto: COMPUESTO }]
 };
 
-test('Caso B (arveja EJEMPLO) · plan con un compuesto 10-30-10 y aportes acompañantes sin meta', () => {
+test('Caso B (segundo lote de papa EJEMPLO) · plan con un compuesto 10-30-10 y aportes acompañantes sin meta', () => {
   const c = calcularPlan(planB);
   const l = calculada(c.lineas[0]);
   igual(l.productoKgHa, 200, 'B5 kg/ha'); // 60 ÷ 0,30
@@ -222,7 +222,7 @@ test('Caso B (arveja EJEMPLO) · plan con un compuesto 10-30-10 y aportes acompa
   igual(valor(c.costoTotalCop), 48_640, 'B11 costo total');
 });
 
-test('Caso B (arveja EJEMPLO) · una aplicación igual a lo planeado', () => {
+test('Caso B (segundo lote de papa EJEMPLO) · una aplicación igual a lo planeado', () => {
   const [a] = avancePlan(planB, [{ lineaId: 'l-c', cantidadKg: 16 }]);
   assert.equal(valor(a.diferenciaKg!), 0);
   assert.equal(formatearDiferencia(valor(a.diferenciaKg!)).texto, '0');

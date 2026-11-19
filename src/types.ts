@@ -9,6 +9,17 @@ export const CULTIVOS: ReadonlyArray<{ value: Cultivo; label: string }> = [
   { value: 'otro', label: 'Otro cultivo' }
 ];
 
+/**
+ * Cultivos que se pueden elegir. Decisión del 19 de noviembre de 2026: solo papa, el único con
+ * referencias técnicas completas. La lista de arriba se conserva para leer y mostrar los lotes y
+ * ciclos ya guardados con otros cultivos.
+ */
+export const CULTIVOS_DISPONIBLES = CULTIVOS.filter(c => c.value === 'papa');
+
+/** Opciones para un selector: las disponibles y, si el registro ya tiene otro cultivo, ese también (para no cambiarlo en silencio). */
+export const opcionesCultivo = (actual?: Cultivo) =>
+  actual && !CULTIVOS_DISPONIBLES.some(c => c.value === actual) ? [...CULTIVOS_DISPONIBLES, ...CULTIVOS.filter(c => c.value === actual)] : CULTIVOS_DISPONIBLES;
+
 export interface Lote {
   id: string;
   nombre: string;

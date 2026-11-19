@@ -13,7 +13,7 @@ export default defineConfig({
       manifest: {
         name: 'AgroFerti MIC — Gestión de fertilización',
         short_name: 'AgroFerti',
-        description: 'Registra lotes y prepara el seguimiento de fertilización de varios cultivos.',
+        description: 'Registra lotes y prepara el seguimiento de fertilización de papa.',
         start_url: '/',
         scope: '/',
         display: 'standalone',

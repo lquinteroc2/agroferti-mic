@@ -1,6 +1,6 @@
 # Reglas para asistentes de programación (Claude Code / Codex)
 
-Contexto: AgroFerti MIC es un prototipo académico SENA del Grupo 1, multicultivo, con papa como piloto. Objetivo en 15 días: registro de lotes, cálculos dimensionales auditables, planificación usando objetivos validados, monitoreo manual y reporte comprensible para el productor.
+Contexto: AgroFerti MIC es un prototipo académico SENA del Grupo 1 para el cultivo de **papa** (desde el 19 de noviembre de 2026; antes era multicultivo con papa como piloto). Objetivo en 15 días: registro de lotes, cálculos dimensionales auditables, planificación usando objetivos validados, monitoreo manual y reporte comprensible para el productor.
 
 ## Stack que no debes cambiar sin justificar
 - React + Vite + TypeScript + CSS nativo; Dexie/IndexedDB; PWA; Cloudflare Workers con archivos estáticos (cada push a `main` se publica; no usar `public/_redirects`).
@@ -11,6 +11,7 @@ Contexto: AgroFerti MIC es un prototipo académico SENA del Grupo 1, multicultiv
 
 ## Seguridad agronómica
 - **Decisión del 19 de noviembre de 2026 (aprobada por el dueño del proyecto):** la app puede **sugerir** metas nutricionales y fertilizantes comerciales, pero **solo** a partir de referencias guardadas en la base de datos (tabla `referencias` de D1), cada una con su fuente publicada (título, entidad, año, URL, página y tabla), y marcadas "por verificar" hasta que las revise una persona. La sugerencia se muestra como **rango con su cita y la advertencia de revisarla con un agrónomo**; el usuario decide el valor y la app nunca la aplica sola. Si para un cultivo, método de laboratorio o unidad no hay referencia, la app no sugiere nada.
+- **Decisión del 19 de noviembre de 2026 (dueño del proyecto):** la app trabaja **solo con papa**, el único cultivo con referencias técnicas completas (Castro Franco, 2005). Los formularios ofrecen solo papa; los lotes y ciclos ya guardados con otros cultivos se siguen leyendo y mostrando sin cambiarlos. No agregar otro cultivo sin referencias publicadas y una decisión explícita.
 - No inventes dosis, umbrales de deficiencia, intervalos de aplicación, aprobación técnica o mediciones de campo.
 - No traduzcas automáticamente ppm del laboratorio en kg de fertilizante por hectárea. Ppm (mg/kg) a kg/ha es solo equivalencia dimensional condicionada por masa del suelo, no biodisponibilidad ni prescripción.
 - La cantidad de un fertilizante se calcula **solo si** existe una meta nutrimental validada, con fuente, fecha y nutriente/forma química inequívocos.

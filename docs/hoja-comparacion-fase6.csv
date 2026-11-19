@@ -33,21 +33,21 @@ A26;Papa;EJEMPLO;KCl aplicado − planeado;62,5 − 62,5;0 kg;;;;;;
 A26b;Papa;EJEMPLO;KCl avance;62,5 / 62,5 × 100;100 %;;;;;;
 A26c;Papa;EJEMPLO;KCl aplicado en forma K2O;62,5 × 10000 / 2500 × 60 / 100;150 kg K2O/ha;;;;;;Meta: 150
 A27;Papa;EJEMPLO;Costo registrado del DAP;suma de los costos escritos (87000 + sin costo);87.000 COP (1 aplicación sin costo registrado);;;;;;
-B1;Arveja;EJEMPLO;Área en hectáreas;800 / 10000;0,08 ha;;;;;;
-B2;Arveja;EJEMPLO;Masa de suelo;10000 × (15 / 100) × (1,3 × 1000);1.950.000 kg suelo/ha;;;;;;
-B3;Arveja;EJEMPLO;P mg/kg a kg/ha;12,5 × 1.950.000 / 1.000.000;24,375 kg P/ha;;;;;;Pantalla con 3 decimales
-B4;Arveja;EJEMPLO;P total del lote;24,375 × 800 / 10000;1,95 kg P;;;;;;
-B4b;Arveja;EJEMPLO;Ca2+ 2,1 cmol(+)/kg;no se convierte;No convertible;;;;;;
-B5;Arveja;EJEMPLO;Compuesto 10-30-10 kg/ha (meta 60 kg/ha P2O5 con etiqueta P2O5 30 %);60 / (30 / 100);200 kg/ha;;;;;;
-B6;Arveja;EJEMPLO;Compuesto kg en el lote;200 × 800 / 10000;16 kg;;;;;;
-B7;Arveja;EJEMPLO;Bultos de 50 kg;16 / 50;0,32 bultos;;;;;;
-B8;Arveja;EJEMPLO;Precio por kg;152000 / 50;3.040 COP/kg;;;;;;
-B9;Arveja;EJEMPLO;Costo (y costo total);16 × 3040;48.640 COP;;;;;;
-B10;Arveja;EJEMPLO;N acompañante;200 × 10 / 100;20 kg N/ha;;;;;;Sin meta de N: la diferencia se muestra —
-B10b;Arveja;EJEMPLO;K2O acompañante;200 × 10 / 100;20 kg K2O/ha;;;;;;Sin meta de K2O: la diferencia se muestra —
-B12;Arveja;EJEMPLO;Aplicado − planeado (una aplicación de 16 kg);16 − 16;0 kg;;;;;;Igual a lo planeado
-B12b;Arveja;EJEMPLO;Avance;16 / 16 × 100;100 %;;;;;;
-B13;Arveja;EJEMPLO;Aplicado en forma P2O5;16 × 10000 / 800 × 30 / 100;60 kg P2O5/ha;;;;;;Meta: 60
+B1;Papa (lote B);EJEMPLO;Área en hectáreas;800 / 10000;0,08 ha;;;;;;
+B2;Papa (lote B);EJEMPLO;Masa de suelo;10000 × (15 / 100) × (1,3 × 1000);1.950.000 kg suelo/ha;;;;;;
+B3;Papa (lote B);EJEMPLO;P mg/kg a kg/ha;12,5 × 1.950.000 / 1.000.000;24,375 kg P/ha;;;;;;Pantalla con 3 decimales
+B4;Papa (lote B);EJEMPLO;P total del lote;24,375 × 800 / 10000;1,95 kg P;;;;;;
+B4b;Papa (lote B);EJEMPLO;Ca2+ 2,1 cmol(+)/kg;no se convierte;No convertible;;;;;;
+B5;Papa (lote B);EJEMPLO;Compuesto 10-30-10 kg/ha (meta 60 kg/ha P2O5 con etiqueta P2O5 30 %);60 / (30 / 100);200 kg/ha;;;;;;
+B6;Papa (lote B);EJEMPLO;Compuesto kg en el lote;200 × 800 / 10000;16 kg;;;;;;
+B7;Papa (lote B);EJEMPLO;Bultos de 50 kg;16 / 50;0,32 bultos;;;;;;
+B8;Papa (lote B);EJEMPLO;Precio por kg;152000 / 50;3.040 COP/kg;;;;;;
+B9;Papa (lote B);EJEMPLO;Costo (y costo total);16 × 3040;48.640 COP;;;;;;
+B10;Papa (lote B);EJEMPLO;N acompañante;200 × 10 / 100;20 kg N/ha;;;;;;Sin meta de N: la diferencia se muestra —
+B10b;Papa (lote B);EJEMPLO;K2O acompañante;200 × 10 / 100;20 kg K2O/ha;;;;;;Sin meta de K2O: la diferencia se muestra —
+B12;Papa (lote B);EJEMPLO;Aplicado − planeado (una aplicación de 16 kg);16 − 16;0 kg;;;;;;Igual a lo planeado
+B12b;Papa (lote B);EJEMPLO;Avance;16 / 16 × 100;100 %;;;;;;
+B13;Papa (lote B);EJEMPLO;Aplicado en forma P2O5;16 × 10000 / 800 × 30 / 100;60 kg P2O5/ha;;;;;;Meta: 60
 L1;—;EJEMPLO;Meta en P con etiqueta en P2O5;no se calcula;Formas químicas distintas;;;;;;No debe aparecer ninguna cantidad (tampoco K frente a K2O)
 L2;—;EJEMPLO;Análisis sin densidad aparente;no se calcula;Falta un dato para calcular;;;;;;Se guarda pero sin kg/ha
 L3;—;EJEMPLO;Nutriente en cmol(+)/kg;no se convierte;No convertible;;;;;;
