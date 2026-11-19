@@ -17,6 +17,7 @@ import { sesionVencida } from './lib/nube';
 import { areaM2AHa } from './lib/calculos';
 import { fechaLegible, formatearNumero, nombreCultivo } from './lib/formato';
 import type { Lote } from './types';
+import { confirmar } from './components/Confirmacion';
 
 /** Conexión a internet del dispositivo, actualizada con los eventos online/offline. */
 function useEnLinea(): boolean {
@@ -114,7 +115,7 @@ export default function App() {
 
   async function borrarLote() {
     if (!activo) return;
-    if (!window.confirm(`¿Eliminar “${activo.nombre}” y todos los datos asociados? Esta acción no se puede deshacer.`)) return;
+    if (!(await confirmar({ titulo: 'Eliminar lote', mensaje: `¿Eliminar “${activo.nombre}” y todos los datos asociados? Esta acción no se puede deshacer.`, boton: 'Eliminar', peligro: true }))) return;
     try {
       await eliminarLoteYRelacionados(activo.id);
       ir('inicio', null, { aviso: { texto: 'El lote se eliminó.' } });

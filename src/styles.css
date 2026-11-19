@@ -308,3 +308,19 @@
 .lectura-revision li .check{margin:0}
 .lectura-revision li input:not([type=checkbox]){border:1px solid #d7e0d6;border-radius:8px;padding:10px;min-width:0}
 .lectura-revision li small{grid-column:1 / -1;color:#5f7468;font-size:.78rem;overflow-wrap:anywhere}
+/* Ventana de confirmación (reemplaza los avisos del navegador) */
+.confirmacion{border:0;border-radius:16px;padding:0;width:min(420px,calc(100% - 32px));box-shadow:0 18px 50px #10291d40;color:#253a32}
+.confirmacion::backdrop{background:#10291d66}
+.confirmacion-contenido{padding:24px 24px 20px}
+.confirmacion h2{font-size:1.2rem;margin-bottom:8px}
+.confirmacion p{color:#4b5f53;font-size:.93rem;margin-bottom:20px}
+.confirmacion-botones{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+.confirmacion-botones .btn{min-height:44px}
+.btn-peligro{background:#a8443d;color:white}
+.btn-peligro:hover{background:#8e3832}
+@media(max-width:480px){.confirmacion-botones .btn{flex:1}}
+.metodos-lab{grid-column:1 / -1;border:1px solid #e0e7dd;border-radius:12px;padding:14px 16px;margin:0;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.metodos-lab legend{font-weight:800;color:#344d3e;padding:0 6px}
+.metodos-lab .hint{grid-column:1 / -1;margin:0}
+.metodos-lab label.full{grid-column:1 / -1}
+@media(max-width:720px){.metodos-lab{grid-template-columns:1fr}}

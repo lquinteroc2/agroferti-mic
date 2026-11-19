@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import { DialogoConfirmacion } from './components/Confirmacion';
 import { iniciarSincronizacionAutomatica } from './lib/cuentaNube';
 import './styles.css';
 
@@ -8,5 +9,5 @@ import './styles.css';
 iniciarSincronizacionAutomatica();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode><App /></React.StrictMode>
+  <React.StrictMode><App /><DialogoConfirmacion /></React.StrictMode>
 );

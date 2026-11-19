@@ -19,6 +19,7 @@ import {
 } from '../lib/validacionSeguimiento';
 import type { Lote, RegistroSeguimiento, RegistroTarea, RegistroVerificado, TipoRegistro } from '../types';
 import { OrigenBadge } from './ProductoDetalle';
+import { confirmar } from './Confirmacion';
 
 type Clase = 'observacion' | 'tarea';
 type Modo = { tipo: 'lista' } | { tipo: 'nuevo'; clase: Clase } | { tipo: 'editar'; id: string };
@@ -235,10 +236,10 @@ export function SeguimientoSeccion({ lote }: { lote: Lote }) {
     setAviso({ tipo: 'ok', texto: 'La tarea quedó hecha con la fecha de hoy. Puedes editarla si se hizo otro día.' });
   }, 'No se pudo marcar la tarea. Vuelve a intentarlo.');
 
-  function eliminar(v: RegistroVerificado) {
+  async function eliminar(v: RegistroVerificado) {
     // La confirmación va primero: cancelar no cambia nada, ni siquiera el aviso que se estaba mostrando.
     const nombre = v.tipo ? `esta ${NOMBRE_TIPO[v.tipo].toLowerCase()}` : 'este registro';
-    if (!window.confirm(`¿Eliminar ${nombre}? Esta acción no se puede deshacer.`)) return;
+    if (!(await confirmar({ titulo: 'Eliminar registro', mensaje: `¿Eliminar ${nombre}? Esta acción no se puede deshacer.`, boton: 'Eliminar', peligro: true }))) return;
     void accion(async () => {
       await repositorioSeguimiento.eliminar(lote.id, v.id);
       setAviso({ tipo: 'ok', texto: 'El registro se eliminó.' });

@@ -20,6 +20,7 @@ import { useCapaAtras } from '../lib/navegacion';
 import { resumenErrores } from '../lib/validacionPlan';
 import { MOTIVOS_CIERRE, opcionesCultivo, type CicloCultivo, type CicloVerificado, type Lote, type MotivoCierre } from '../types';
 import { OrigenBadge } from './ProductoDetalle';
+import { confirmar } from './Confirmacion';
 
 type Modo = { tipo: 'lista' } | { tipo: 'cerrar' } | { tipo: 'notas'; id: string };
 type Aviso = { tipo: 'ok' | 'error'; texto: string } | null;
@@ -265,9 +266,9 @@ export function HistorialLoteSeccion({ lote }: { lote: Lote }) {
     }
   }
 
-  function eliminar(v: CicloVerificado) {
+  async function eliminar(v: CicloVerificado) {
     const nombre = v.ciclo ? `el ciclo de ${nombreCultivo(v.ciclo.cultivo).toLowerCase()} cerrado el ${fechaLegible(v.ciclo.fechaCierre)}` : 'este ciclo';
-    if (!window.confirm(`¿Quitar ${nombre} del historial? Los análisis, planes y registros no se borran: pasarán a mostrarse en el ciclo siguiente. El cultivo actual del lote no cambia.`)) return;
+    if (!(await confirmar({ titulo: 'Quitar del historial', mensaje: `¿Quitar ${nombre} del historial? Los análisis, planes y registros no se borran: pasarán a mostrarse en el ciclo siguiente. El cultivo actual del lote no cambia.`, boton: 'Quitar', peligro: true }))) return;
     void accion(async () => {
       await repositorioCiclos.eliminar(lote.id, v.id);
       setAviso({ tipo: 'ok', texto: 'El ciclo se quitó del historial.' });

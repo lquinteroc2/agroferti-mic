@@ -8,6 +8,7 @@ import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import { fechaLegible, formatearNumero } from '../lib/formato';
 import type { DatosAnalisis } from '../lib/validacion';
 import type { AnalisisVerificado, Lote } from '../types';
+import { confirmar } from './Confirmacion';
 
 type Aviso = { tipo: 'ok' | 'error'; texto: string } | null;
 type Lectura = { ok: true; analisis: AnalisisVerificado[] } | { ok: false };
@@ -40,7 +41,7 @@ export function AnalisisSueloSeccion({ lote }: { lote: Lote }) {
   }
 
   async function borrar(a: AnalisisVerificado) {
-    if (!window.confirm(`¿Eliminar el análisis del ${fechaLegible(a.fechaAnalisis)}? Esta acción no se puede deshacer.`)) return;
+    if (!(await confirmar({ titulo: 'Eliminar análisis', mensaje: `¿Eliminar el análisis del ${fechaLegible(a.fechaAnalisis)}? Esta acción no se puede deshacer.`, boton: 'Eliminar', peligro: true }))) return;
     try {
       await repositorioAnalisis.eliminar(lote.id, a.id);
       abrir('lista', null);

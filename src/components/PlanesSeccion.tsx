@@ -11,6 +11,7 @@ import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import type { DatosPlan } from '../lib/validacionPlan';
 import type { DatosRegistro } from '../lib/validacionSeguimiento';
 import type { AnalisisVerificado, EstadoPlan, Lote, PlanVerificado, ProductoFertilizante, RegistroAplicacion, RegistroVerificado } from '../types';
+import { confirmar } from './Confirmacion';
 
 type Aviso = { tipo: 'ok' | 'error'; texto: string } | null;
 type Lectura =
@@ -75,7 +76,7 @@ export function PlanesSeccion({ lote, onIrAProductos }: { lote: Lote; onIrAProdu
   }
 
   async function borrar(p: PlanVerificado) {
-    if (!window.confirm(`¿Eliminar el plan “${p.nombre || 'sin nombre'}”? Esta acción no se puede deshacer.`)) return;
+    if (!(await confirmar({ titulo: 'Eliminar plan', mensaje: `¿Eliminar el plan “${p.nombre || 'sin nombre'}”? Esta acción no se puede deshacer.`, boton: 'Eliminar', peligro: true }))) return;
     try {
       await repositorioPlanes.eliminar(lote.id, p.id);
       abrir('lista', null);
@@ -106,7 +107,7 @@ export function PlanesSeccion({ lote, onIrAProductos }: { lote: Lote; onIrAProdu
 
   // Los errores se muestran junto a la aplicación, en el detalle del plan.
   async function eliminarAplicacion(a: RegistroAplicacion) {
-    if (!window.confirm(`¿Eliminar la aplicación de ${a.productoNombre} del ${fechaLegible(a.fecha)} (${formatearExacto(a.cantidadKg)} kg)? El plan no cambia. Esta acción no se puede deshacer.`)) return;
+    if (!(await confirmar({ titulo: 'Eliminar aplicación', mensaje: `¿Eliminar la aplicación de ${a.productoNombre} del ${fechaLegible(a.fecha)} (${formatearExacto(a.cantidadKg)} kg)? El plan no cambia. Esta acción no se puede deshacer.`, boton: 'Eliminar', peligro: true }))) return;
     await repositorioSeguimiento.eliminar(lote.id, a.id);
   }
 

@@ -8,6 +8,7 @@ import { fechaLegible, formatearExacto } from '../lib/formato';
 import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import type { DatosProducto } from '../lib/validacionPlan';
 import type { ProductoVerificado } from '../types';
+import { confirmar } from './Confirmacion';
 
 type Aviso = { tipo: 'ok' | 'error'; texto: string } | null;
 type Lectura = { ok: true; productos: ProductoVerificado[] } | { ok: false };
@@ -51,7 +52,7 @@ export function ProductosSeccion() {
   }
 
   async function borrar(p: ProductoVerificado) {
-    if (!window.confirm(`¿Eliminar “${p.nombre || 'este producto'}” del catálogo? Los planes que ya lo usan conservan su propia copia. Esta acción no se puede deshacer.`)) return;
+    if (!(await confirmar({ titulo: 'Eliminar producto', mensaje: `¿Eliminar “${p.nombre || 'este producto'}” del catálogo? Los planes que ya lo usan conservan su propia copia. Esta acción no se puede deshacer.`, boton: 'Eliminar', peligro: true }))) return;
     try {
       await repositorioProductos.eliminar(p.id);
       abrir('lista', null);

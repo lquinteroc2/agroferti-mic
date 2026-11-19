@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { borrarTelefonoYDesvincular, iniciarSesion, OtraCuenta } from '../lib/cuentaNube';
 import { ErrorNube, GOOGLE_CLIENT_ID, type EstadoNube } from '../lib/nube';
+import { confirmar } from './Confirmacion';
 
 interface GoogleId {
   initialize(opciones: { client_id: string; callback: (r: { credential: string }) => void; ux_mode?: 'popup'; auto_select?: boolean }): void;
@@ -94,7 +95,7 @@ export function PantallaIngreso({ estado, enLinea }: { estado?: EstadoNube; enLi
   }
 
   async function borrarTelefono() {
-    if (!window.confirm(`¿Borrar TODOS los datos de este teléfono para usar otra cuenta? Lo que ya esté en la nube de ${otraCuenta ?? 'la cuenta anterior'} no se pierde, pero lo que no se haya sincronizado sí. Esta acción no se puede deshacer.`)) return;
+    if (!(await confirmar({ titulo: 'Usar otra cuenta', mensaje: `¿Borrar TODOS los datos de este teléfono para usar otra cuenta? Lo que ya esté en la nube de ${otraCuenta ?? 'la cuenta anterior'} no se pierde, pero lo que no se haya sincronizado sí. Esta acción no se puede deshacer.`, boton: 'Borrar y continuar', peligro: true }))) return;
     setTrabajando(true);
     try {
       await borrarTelefonoYDesvincular();

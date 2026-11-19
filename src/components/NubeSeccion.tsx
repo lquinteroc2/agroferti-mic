@@ -5,6 +5,7 @@ import { decodificarRegistro } from '../lib/codificacion';
 import { registrosSinLote, versionesApartadas } from '../lib/db';
 import { fechaHoraDeMarca } from '../lib/formato';
 import { ErrorNube, type EstadoNube } from '../lib/nube';
+import { confirmar } from './Confirmacion';
 
 type Aviso = { tipo: 'ok' | 'error'; texto: string } | null;
 
@@ -45,23 +46,23 @@ export function NubeSeccion({ estado }: { estado: EstadoNube }) {
     }
   }
 
-  function salir() {
-    if (!window.confirm('¿Cerrar sesión? Tus datos siguen guardados en este teléfono y en la nube. Para volver a verlos tendrás que ingresar de nuevo con la misma cuenta.')) return;
+  async function salir() {
+    if (!(await confirmar({ titulo: 'Cerrar sesión', mensaje: '¿Cerrar sesión? Tus datos siguen guardados en este teléfono y en la nube. Para volver a verlos tendrás que ingresar de nuevo con la misma cuenta.', boton: 'Cerrar sesión' }))) return;
     void accion(cerrarSesion);
   }
 
-  function borrarNube() {
-    if (!window.confirm('¿Borrar todos tus datos de la nube? Se borran de los servidores y los demás dispositivos dejarán de verlos. Los datos de ESTE teléfono no se borran. Esta acción no se puede deshacer.')) return;
+  async function borrarNube() {
+    if (!(await confirmar({ titulo: 'Borrar mis datos de la nube', mensaje: '¿Borrar todos tus datos de la nube? Se borran de los servidores y los demás dispositivos dejarán de verlos. Los datos de ESTE teléfono no se borran. Esta acción no se puede deshacer.', boton: 'Borrar de la nube', peligro: true }))) return;
     void accion(borrarCuentaNube);
   }
 
-  function descartarApartadas() {
-    if (!window.confirm('¿Descartar las versiones apartadas? Esta acción no se puede deshacer.')) return;
+  async function descartarApartadas() {
+    if (!(await confirmar({ titulo: 'Descartar versiones apartadas', mensaje: '¿Descartar las versiones apartadas? Esta acción no se puede deshacer.', boton: 'Descartar', peligro: true }))) return;
     void accion(versionesApartadas.descartar, 'Se descartaron las versiones apartadas.');
   }
 
-  function eliminarSinLote() {
-    if (!window.confirm('¿Eliminar los registros cuyo lote ya no existe? Esta acción no se puede deshacer.')) return;
+  async function eliminarSinLote() {
+    if (!(await confirmar({ titulo: 'Eliminar registros sin lote', mensaje: '¿Eliminar los registros cuyo lote ya no existe? Esta acción no se puede deshacer.', boton: 'Eliminar', peligro: true }))) return;
     void accion(registrosSinLote.eliminar, 'Se eliminaron los registros sin lote.');
   }
 

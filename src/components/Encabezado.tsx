@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { cerrarSesion } from '../lib/cuentaNube';
 import type { EstadoNube } from '../lib/nube';
+import { confirmar } from './Confirmacion';
 
 export function Logo() {
   return <span className="brand-symbol" aria-hidden="true">
@@ -58,7 +59,7 @@ export function Encabezado({ seccion, onIr, estado }: { seccion: Seccion; onIr: 
 
   async function salir() {
     setAbierto(false);
-    if (!window.confirm('¿Cerrar sesión? Tus datos siguen guardados en este teléfono y en la nube. Para volver a verlos tendrás que ingresar de nuevo con la misma cuenta.')) return;
+    if (!(await confirmar({ titulo: 'Cerrar sesión', mensaje: '¿Cerrar sesión? Tus datos siguen guardados en este teléfono y en la nube. Para volver a verlos tendrás que ingresar de nuevo con la misma cuenta.', boton: 'Cerrar sesión' }))) return;
     setSaliendo(true);
     try {
       await cerrarSesion();
