@@ -12,7 +12,38 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { leerFertilizante } from '../src/lib/referencias.ts';
 
-interface Fila { item?: string; registro?: string; nombre?: string; empresa?: string; estado?: string; uso?: string; comp?: string; present?: string; pagina?: number; c1?: string }
+interface Fila {
+  item?: string; registro?: string; nombre?: string; empresa?: string; estado?: string; uso?: string; comp?: string; present?: string; pagina?: number;
+  c1?: string; c2?: string; c3?: string; tipo?: string; cultivos?: string; dosis?: string; aplic?: string; productor?: string; importador?: string; distribuidor?: string; pais?: string; fini?: string;
+}
+
+/** Texto limpio y recortado (los campos largos, como los países de origen, se cortan con "…"). */
+const limpio = (t: string | undefined, max: number) => {
+  const s = (t ?? '').replace(/\s+/g, ' ').replace(/[;,.\s]+$/, '').trim();
+  return s.length > max ? s.slice(0, max - 1).trimEnd() + '…' : s || undefined;
+};
+
+/** Palabras del registro (en mayúsculas y sin tildes) escritas para leer: "COMPUESTO COMPLEJO NPK" → "compuesto complejo NPK". */
+const TILDES: Record<string, string> = { inorganico: 'inorgánico', organico: 'orgánico', aminoacidos: 'aminoácidos', humico: 'húmico', suspension: 'suspensión', liquido: 'líquido', granulos: 'gránulos', biologico: 'biológico' };
+const legible = (t: string | undefined) => {
+  const s = limpio(t, 80);
+  if (!s) return undefined;
+  const r = s.toLowerCase().replace(/\p{L}+/gu, w => /^(n|p|k|np|nk|pk|npk)$/.test(w) ? w.toUpperCase() : TILDES[w] ?? w);
+  return r[0].toUpperCase() + r.slice(1);
+};
+
+/** Datos del registro que ayudan a conocer el producto, tal como los publica el ICA. */
+function detalleDe(f: Fila) {
+  const clase = legible([f.c1, f.c2].filter(Boolean).join(' '));
+  const d: Record<string, string | undefined> = {
+    clase: clase ? clase + (f.c3 ? ` · ${legible(f.c3)!.toLowerCase().replace(/\b(npk|np|nk|pk|n|p|k)\b/g, x => x.toUpperCase())}` : '') : undefined,
+    tipo: legible(f.tipo), uso: legible(f.uso), cultivos: limpio(f.cultivos, 200), dosisRegistrada: limpio(f.dosis, 200),
+    aplicacion: limpio(f.aplic, 200), fabricante: limpio(f.productor, 120), importador: limpio(f.importador, 120),
+    distribuidor: limpio(f.distribuidor, 120), origen: limpio(f.pais, 120), fechaRegistro: limpio(f.fini, 12), presentaciones: limpio(f.present, 260)
+  };
+  for (const k of Object.keys(d)) if (!d[k]) delete d[k];
+  return d;
+}
 
 const FUENTE = 'ICA, Registros de productos fertilizantes de uso agrícola (actualizado 1 nov. 2026), www.ica.gov.co';
 
@@ -126,10 +157,20 @@ for (const f of filas) {
     presentacionKg: presentacionKg(f.present),
     precios: [],
     verificacion: dudas.length ? `por verificar: ${dudas.join('; ')}`.slice(0, 300) : 'ok',
-    fuente: `${FUENTE}, p. ${f.pagina}, ítem ${f.item}.`
+    fuente: `${FUENTE}, p. ${f.pagina}, ítem ${f.item}.`,
+    detalle: detalleDe(f)
   };
   if (!leerFertilizante(producto)) { omitidos++; continue; }
   salida.push(producto);
 }
 writeFileSync(new URL('../data/referencias/fertilizantes-ica.json', import.meta.url), JSON.stringify(salida) + '\n');
+
+// Los 26 productos con precio DANE (fertilizantes.json) reciben los mismos datos del registro.
+const rutaCurados = new URL('../data/referencias/fertilizantes.json', import.meta.url);
+const listaCurados = JSON.parse(readFileSync(rutaCurados, 'utf8')) as Array<{ registroIca: string; detalle?: unknown }>;
+for (const c of listaCurados) {
+  const fila = filas.find(f => f.registro === c.registroIca);
+  if (fila) c.detalle = detalleDe(fila);
+}
+writeFileSync(rutaCurados, JSON.stringify(listaCurados, null, 2) + '\n');
 console.log(`${salida.length} fertilizantes del ICA (${salida.filter(p => p.verificacion !== 'ok').length} por verificar); ${omitidos} omitidos sin composición en % legible.`);

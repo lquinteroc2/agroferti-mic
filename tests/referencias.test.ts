@@ -173,3 +173,9 @@ test('catálogo para explorar: filtra por texto, por nutrientes que aporta y por
   assert.deepEqual(filtrarCatalogo(lista, { soloConPrecio: true }).map(f => f.id), ['dap-ejemplo']);
   assert.deepEqual(filtrarCatalogo(lista, { texto: 'FÓSFORO asimilable' }).map(f => f.id), ['dap-ejemplo'], 'busca también en la composición garantizada');
 });
+
+test('catálogo: los datos del registro se conservan si son textos razonables; lo demás se descarta', () => {
+  const f = leerFertilizante(fertilizante({ detalle: { clase: 'Fertilizante inorgánico · simple N', tipo: 'Granulado', origen: 'x'.repeat(500), cultivos: 7, uso: '  ' } }))!;
+  assert.deepEqual(f.detalle, { clase: 'Fertilizante inorgánico · simple N', tipo: 'Granulado' });
+  assert.equal(leerFertilizante(fertilizante())!.detalle, undefined);
+});

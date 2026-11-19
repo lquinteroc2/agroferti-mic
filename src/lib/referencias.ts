@@ -34,6 +34,43 @@ export interface FertilizanteReferencia {
   verificacion: string;
   /** Cita de dónde salen los datos (registro ICA y precios DANE). */
   fuente: string;
+  /** Más datos del registro del ICA, tal como los publica (todos opcionales). */
+  detalle?: DetalleRegistro;
+}
+
+export interface DetalleRegistro {
+  /** "Fertilizante inorgánico · simple N". */
+  clase?: string;
+  /** Presentación física: granulado, polvo, líquido… */
+  tipo?: string;
+  /** Uso registrado: suelo, fertirriego, foliar. */
+  uso?: string;
+  cultivos?: string;
+  /** Dosis que el fabricante registró ante el ICA (la de la etiqueta). */
+  dosisRegistrada?: string;
+  aplicacion?: string;
+  fabricante?: string;
+  importador?: string;
+  distribuidor?: string;
+  /** País o países de origen. */
+  origen?: string;
+  /** Fecha del registro, como la publica el ICA (d/mm/aa). */
+  fechaRegistro?: string;
+  /** Empaques registrados. */
+  presentaciones?: string;
+}
+
+const CAMPOS_DETALLE: ReadonlyArray<keyof DetalleRegistro> = ['clase', 'tipo', 'uso', 'cultivos', 'dosisRegistrada', 'aplicacion', 'fabricante', 'importador', 'distribuidor', 'origen', 'fechaRegistro', 'presentaciones'];
+
+/** Solo textos no vacíos y de largo razonable; lo demás se descarta. */
+function leerDetalle(v: unknown): DetalleRegistro | undefined {
+  if (!esObjeto(v)) return undefined;
+  const detalle: DetalleRegistro = {};
+  for (const campo of CAMPOS_DETALLE) {
+    const valor = v[campo];
+    if (texto(valor) && valor.trim() && valor.length <= 400) detalle[campo] = valor.trim();
+  }
+  return Object.keys(detalle).length ? detalle : undefined;
 }
 
 export interface FuenteReferencia {
@@ -121,7 +158,8 @@ export function leerFertilizante(v: unknown): FertilizanteReferencia | null {
     id: id as string, nombre: nombre as string, empresa: empresa as string, registroIca: registroIca as string,
     estadoRegistro: estadoRegistro as string, composicionTexto: composicionTexto as string, contenido,
     presentacionKg: numero(v.presentacionKg) && v.presentacionKg > 0 ? v.presentacionKg : undefined,
-    precios, verificacion: verificacion as string, fuente: fuente as string
+    precios, verificacion: verificacion as string, fuente: fuente as string,
+    ...(leerDetalle(v.detalle) ? { detalle: leerDetalle(v.detalle) } : {})
   };
 }
 

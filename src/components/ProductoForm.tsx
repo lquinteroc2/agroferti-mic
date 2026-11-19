@@ -15,6 +15,7 @@ import {
   type ErroresProducto
 } from '../lib/validacionPlan';
 import { buscarFertilizantes, nombreMes, productoDesdeReferencia, resumenComposicion, type FertilizanteReferencia } from '../lib/referencias';
+import { DetalleRegistroVista } from './CatalogoFertilizantes';
 import type { ContenidoDeclarado, ProductoVerificado } from '../types';
 
 interface Props {
@@ -243,6 +244,7 @@ export function ProductoForm({ inicial, onGuardar, onCancelar, referencias = [] 
         {referencia && <div className="referencia-detalle">
           <p><strong>Registro ICA {referencia.registroIca}</strong> · {referencia.estadoRegistro} · {referencia.empresa}</p>
           <p>Composición garantizada: {referencia.composicionTexto}</p>
+          <DetalleRegistroVista detalle={referencia.detalle} />
           {referencia.verificacion !== 'ok' && <p className="hint hint-warn">Dato pendiente de verificación: {referencia.verificacion.replace(/^por verificar:\s*/, '')}</p>}
           <p className="referencia-fuente">Fuente: {referencia.fuente}</p>
           <button type="button" className="btn btn-outline btn-small" onClick={usarReferencia}>Usar estos datos</button>

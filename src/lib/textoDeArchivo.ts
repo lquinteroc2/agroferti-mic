@@ -39,9 +39,30 @@ async function ocr(imagenes: Array<Blob | HTMLCanvasElement>, alAvanzar: (texto:
   }
 }
 
+/** Tipos de archivo que se pueden adjuntar (para el selector de archivos). */
+export const FORMATOS_ADJUNTO = '.pdf,.jpg,.jpeg,.png,.webp,.bmp,.gif,.txt,.csv,application/pdf,image/jpeg,image/png,image/webp,image/bmp,image/gif,text/plain,text/csv';
+
+/** Formato no admitido, con un mensaje para el usuario. */
+export class FormatoNoAdmitido extends Error {}
+
+type Formato = 'pdf' | 'imagen' | 'texto' | 'heic' | 'otro';
+
+/** Qué es el archivo, por su tipo o, si el navegador no lo indica, por su extensión. */
+export function formatoDe(nombre: string, tipo: string): Formato {
+  const ext = /\.([a-z0-9]+)$/i.exec(nombre)?.[1]?.toLowerCase() ?? '';
+  if (tipo === 'application/pdf' || ext === 'pdf') return 'pdf';
+  if (/heic|heif/.test(tipo) || ext === 'heic' || ext === 'heif') return 'heic';
+  if (/^image\/(jpeg|png|webp|bmp|gif)$/.test(tipo) || ['jpg', 'jpeg', 'png', 'webp', 'bmp', 'gif'].includes(ext)) return 'imagen';
+  if (/^text\/(plain|csv)$/.test(tipo) || ['txt', 'csv'].includes(ext)) return 'texto';
+  return 'otro';
+}
+
 export async function textoDeArchivo(archivo: File, alAvanzar: (texto: string) => void = () => undefined): Promise<string> {
-  const esPdf = archivo.type === 'application/pdf' || /\.pdf$/i.test(archivo.name);
-  if (!esPdf) return ocr([archivo], alAvanzar);
+  const formato = formatoDe(archivo.name, archivo.type);
+  if (formato === 'heic') throw new FormatoNoAdmitido('Las fotos HEIC del iPhone no se pueden leer aquí. Guárdala como JPG (o toma una captura de pantalla) y adjúntala de nuevo.');
+  if (formato === 'otro') throw new FormatoNoAdmitido('Ese tipo de archivo no se puede leer. Adjunta un PDF, una imagen (JPG, PNG, WEBP, BMP o GIF) o un texto (TXT o CSV).');
+  if (formato === 'texto') return archivo.text();
+  if (formato === 'imagen') return ocr([archivo], alAvanzar);
 
   alAvanzar('Leyendo el PDF…');
   const pdfjs = await import('pdfjs-dist');

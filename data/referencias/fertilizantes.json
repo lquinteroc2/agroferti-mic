@@ -71,7 +71,18 @@
       }
     ],
     "verificacion": "ok",
-    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 231, ítem 3861, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 231, ítem 3861, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co.",
+    "detalle": {
+      "clase": "Fertilizante inorgánico · simple N",
+      "tipo": "Granulado",
+      "uso": "Suelo",
+      "fabricante": "AGRIUM INC; ALLIED HARVEST COMPANY LTD; AMEROPA (BEIJING) TRADING CO LTD; AMONNI STOCK COMPANY; BEIJING ASENDE FERTILIZ…",
+      "importador": "PRECISAGRO SAS",
+      "distribuidor": "PRECISAGRO SAS",
+      "origen": "CANADA; CHINA; RUSIA; BULGARIA; ESTADOS UNIDOS; SINGAPORE; EGIPTO; ARGELIA; ALEMANIA; NIGERIA; REPUBLICA DE BIELORUSIA;…",
+      "fechaRegistro": "3/02/11",
+      "presentaciones": "BOLSA DE POLIETILENO POR 1, 2, 5 Y 10 kgS DE PESO NETO; SACOS DE POLIPROPILENO Y POLIETILENO POR 20,25,40,46 Y 50 kgS DE PESO NETO; BIG BAG POR 500,900,1000, 1100,1150,1200,1250,1300 Y 1350 kgS DE PESO NETO; GRANEL"
+    }
   },
   {
     "id": "nutrimon-urea-46-ica-508",
@@ -133,7 +144,18 @@
       }
     ],
     "verificacion": "ok",
-    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 4, ítem 43, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 4, ítem 43, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co.",
+    "detalle": {
+      "clase": "Fertilizante inorgánico · simple N",
+      "tipo": "Granulado",
+      "uso": "Suelo",
+      "fabricante": "AMEROPA ; CHS EUROPA SARL; ENSACAR; EURO CHEM; FITCO; GAVILON; HELM FERTILIZER; INDAGRO; IPSL; KEYTRADE; KOCH INTERNATI…",
+      "importador": "MONOMEROS COLOMBO VENEZOLANOS SA , VIA LAS FLORES - BARRANQUILLA - COLOMBIA",
+      "distribuidor": "MONOMEROS COLOMBO VENEZOLANOS SA , VIA LAS FLORES - BARRANQUILLA - COLOMBIA",
+      "origen": "RUSIA; UCRANIA; LIBIA; CHINA; EEUU; ARGELIA; EGIPTO; MALASIA; NIGERIA; SUIZA; MEXICO; BRASIL; VENEZUELA; TRINIDAD; TOBA…",
+      "fechaRegistro": "27/01/96",
+      "presentaciones": "SACOS DE POLIPROPILENO BILAMINADO POR 1,2,5,10,25,40,50KG Y 100 LB DE PESO NETO, A GRANEL"
+    }
   },
   {
     "id": "dap-fosfato-diamonico-18-46-0-ica-245",
@@ -224,7 +246,18 @@
       }
     ],
     "verificacion": "ok",
-    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 2, ítem 24, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 2, ítem 24, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co.",
+    "detalle": {
+      "clase": "Fertilizante inorgánico · compuesto complejo NP",
+      "tipo": "Granulado",
+      "uso": "Fertirriego; suelo",
+      "fabricante": "1. TRANSAMMONIA ESTADOS UNIDOS 4211 W BOY SCOUT BLVD, SUITE 600 TAMPA, FI 33607-5757 2. INDAGRO - INDAGRO S.A. ESTADOS…",
+      "importador": "YARA COLOMBIA S.A",
+      "distribuidor": "YARA COLOMBIA S.A",
+      "origen": "COLOMBIA",
+      "fechaRegistro": "5/06/93",
+      "presentaciones": "SACOS DE POLIPROPILENO CON BOLSA INTERIOR DE POLIETILENO POR 50 kgS DE PESO NETO. BOLSAS DE POLIETILENO O POLIPROPILENO POR 500 G; 1, 5, 10 KG: SACOS DE POLIPROPILENO CON BOLSA INTERIOR DE POLIETILENO O POLIPROPILENO LAMINADO BRILLANTE POR 10, 15, 20. 25 Y 50…"
+    }
   },
   {
     "id": "dap-fosfato-diamonico-18-46-0-ica-2553",
@@ -291,7 +324,18 @@
       }
     ],
     "verificacion": "ok",
-    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 24, ítem 481, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 24, ítem 481, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co.",
+    "detalle": {
+      "clase": "Fertilizante inorgánico · complejo NP",
+      "tipo": "Granulado",
+      "uso": "Suelo",
+      "fabricante": "AGROINDUSTRIALES DE BALSAS. S.A.; TAMPA, PHOSPHATE CHEMICAL EXPORT ASSOCIATION INC, CF INDUSTRIES HOLDING INC. MOSAIC C…",
+      "importador": "YARA COLOMBIA S.A",
+      "distribuidor": "YARA COLOMBIA S.A",
+      "origen": "MEXICO; ESTADOS UNIDOS; PANAMA; POLONIA; TRINIDAD; TOBAGO; SUIZA; USA; CHINA; RUSSIA",
+      "fechaRegistro": "13/06/95",
+      "presentaciones": "BOLSA DE POLIETILENO O POLIPROPILENO POR 500G, 1,5 Y 10 kgS. SACOS DE POLIPROPILENO CON BOLSA INTERIOR DE POLIETILENO O POLIPROPILENO BRILLANTE POR 10, 15, 20, 25 Y 50 kgS. BIG BAGS DE POLIPROPILENO O DE POLIETILENO DE ALTA DENSIDAD (95X95X125 CON CUATRO ASAS…"
+    }
   },
   {
     "id": "nutrifert-kcl-cloruro-de-potasio-granular-0-0-60-ica-6935",
@@ -359,7 +403,18 @@
       }
     ],
     "verificacion": "por verificar: el PDF no indica ESTADO del registro",
-    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 224, ítem 3772, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 224, ítem 3772, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co.",
+    "detalle": {
+      "clase": "Fertilizante inorgánico · simple K",
+      "tipo": "Granulado",
+      "uso": "Suelo",
+      "fabricante": "PCS SALES; CANPOTEX LIMITED S A S KATOON S A S KATCHEWAN; MOSAIC CROP NUTRITION; THE MOSAIC COMPANY; COMPANY LIMITED; P…",
+      "importador": "PRECISAGRO S A S",
+      "distribuidor": "PRECISAGRO S A",
+      "origen": "CANADA; ESTADOS UNIDOS; RUSIA",
+      "fechaRegistro": "22/11/10",
+      "presentaciones": "BOLSAS DE POLIETILENO POR 1, 2, 5 Y 10 kgS DE PESO NETO. SACOS DE POLIPROPILENO LAMINADO POR 20, 25, 40, 46 Y 50 kgS DE PERO NETO. BIG BAGS POR 500, 900, 1100, 1150, 1200, 1300 Y 1350 kgS DE PERO NETO. A GRANEL"
+    }
   },
   {
     "id": "cloruro-de-potasio-granulado-0-0-60-ica-4985",
@@ -415,7 +470,13 @@
       }
     ],
     "verificacion": "por verificar: el PDF no indica ESTADO del registro",
-    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 116, ítem 2027, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co. Notas: la presentación SIPSA de 50 kg no aparece en PRESENTACIONES del ICA el PDF no trae PRESENTACIONES para este registro"
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 116, ítem 2027, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co. Notas: la presentación SIPSA de 50 kg no aparece en PRESENTACIONES del ICA el PDF no trae PRESENTACIONES para este registro",
+    "detalle": {
+      "clase": "Fertilizante inorgánico · simple K",
+      "tipo": "Granulado",
+      "uso": "Suelo",
+      "fechaRegistro": "9/11/04"
+    }
   },
   {
     "id": "triple-quince-15-15-15-ica-106",
@@ -499,7 +560,18 @@
       }
     ],
     "verificacion": "por verificar: el PDF no indica ESTADO del registro",
-    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 1, ítem 10, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 1, ítem 10, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co.",
+    "detalle": {
+      "clase": "Fertilizante inorgánico · compuesto complejo NPK",
+      "tipo": "Granulado",
+      "uso": "Suelo",
+      "fabricante": "YARA NORGE AS, YARA SUOMI OY",
+      "importador": "YARA COLOMBIA S.A",
+      "distribuidor": "YARA COLOMBIA S.A",
+      "origen": "NORUEGA; FINLANDIA; RUSIA",
+      "fechaRegistro": "6/02/95",
+      "presentaciones": "BOLSA DE POLIETILENO POR 1,5 Y 10 kgS DE PESO NETO. SACO DE POLIPROPILENO CON BOLSA INTERIOR DE POLIETILENO POR 20 Y 50 kgS DE PESO NETO. BOLSAS DE POLIETILENO O POLIPROPILENO POR 500 G: 1, 5, 10 KG: SACOS DE POLIPROPILENO CON BOLSA INTERIOR DE POLIETILENO O…"
+    }
   },
   {
     "id": "t-15-combate-15-15-15-ica-7312",
@@ -583,7 +655,17 @@
       }
     ],
     "verificacion": "ok",
-    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 249, ítem 4126, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co. Notas: forma escrita \"P2O5\" en el PDF, interpretada como P₂O₅"
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 249, ítem 4126, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co. Notas: forma escrita \"P2O5\" en el PDF, interpretada como P₂O₅",
+    "detalle": {
+      "clase": "Fertilizante inorgánico · compuesto mezclado NPK",
+      "tipo": "Granulado",
+      "uso": "Suelo",
+      "fabricante": "PRECISAGRO S.A.S",
+      "distribuidor": "PRECISAGRO S.A.S",
+      "origen": "COLOMBIA",
+      "fechaRegistro": "18/10/11",
+      "presentaciones": "BOLSAS DE POLIETILENO POR 1, 2. 5 Y 10 kgS DE PESO NETO. SACOS DE POLIPROPILENO LAMINADO POR 20. 25, 40, 46 Y 50 kgS DE PESO NETO"
+    }
   },
   {
     "id": "yaramila-kabal-10-20-20-ica-5",
@@ -661,7 +743,17 @@
       }
     ],
     "verificacion": "ok",
-    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 1, ítem 4, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 1, ítem 4, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co.",
+    "detalle": {
+      "clase": "Fertilizante inorgánico · compuesto complejo NPK",
+      "tipo": "Granulado",
+      "uso": "Suelo",
+      "fabricante": "YARA COLOMBIA S.A. OFICINA CARRERA 11 NO. 94A-34 EDIFICIO LG PISO 3. BOGOTA. COLOMBIA",
+      "distribuidor": "YARA COLOMBIA S.A. OFICINA CARRERA 11 NO. 94A-34 EDIFICIO LG PISO 3. BOGOTA. COLOMBIA",
+      "origen": "COLOMBIA",
+      "fechaRegistro": "6/02/95",
+      "presentaciones": "BOLSA DE POLIETILENO O POLIPROPILENO POR 500 GRAMOS, 1, 5 Y 10 kgS DE PESO NETO, SACOS DE POLIPROPILENO CON BOLSA INTERIOR DE POLIETILENO O DE POLIPROPILENO LAMINADO BRILLANTE POR 10,15,20,25 Y 50 kgS DE PESO NETO, BIG BAG DE POLIPROPILENO O DE POLIETILENO DE…"
+    }
   },
   {
     "id": "yaramila-trefos-10-30-10-ica-74",
@@ -739,7 +831,17 @@
       }
     ],
     "verificacion": "ok",
-    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 1, ítem 9, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 1, ítem 9, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co.",
+    "detalle": {
+      "clase": "Fertilizante inorgánico · compuesto complejo NPK",
+      "tipo": "Granulado",
+      "uso": "Suelo",
+      "fabricante": "YARA COLOMBIA S.A. “YARA COLOMBIA\"",
+      "distribuidor": "YARA COLOMBIA S.A. “YARA COLOMBIA\"",
+      "origen": "COLOMBIA",
+      "fechaRegistro": "6/02/95",
+      "presentaciones": "BOLSAS DE POLIETILENO O POLIPROPILENO POR 500 G, 1, 5 Y 10 kgS DE PESO NETO. SACOS DE POLIPROPILENO CON BOLSA INTERIOR DE POLIETILENO O POLIPROPILENO LAMINADO BRILLANTE POR 10, 15, 20, 25 Y 50 kgS DE PESO NETO. BIG BAGS DE POLIPROPILENO O DE POLIETILENO DE AL…"
+    }
   },
   {
     "id": "nutrimon-13-26-6-ica-494",
@@ -799,7 +901,17 @@
       }
     ],
     "verificacion": "ok",
-    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 3, ítem 38, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 3, ítem 38, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co.",
+    "detalle": {
+      "clase": "Fertilizante inorgánico · compuesto complejo NPK",
+      "tipo": "Granulado",
+      "uso": "Fertirriego; suelo",
+      "fabricante": "MONOMEROS COLOMBO VENEZOLANOS SA",
+      "distribuidor": "MONOMEROS COLOMBO VENEZOLANOS SA",
+      "origen": "COLOMBIA",
+      "fechaRegistro": "16/05/95",
+      "presentaciones": "SACOS DE POLIPROPILENO BILAMINADO 1KG, 5KG, 10KG, 25KG, 40KG, 50KG Y 100 LB DE PESO"
+    }
   },
   {
     "id": "remital-m-17-6-18-2-ica-629",
@@ -903,7 +1015,17 @@
       }
     ],
     "verificacion": "por verificar: valor \"2,0%\" sin etiqueta al final de la composición",
-    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 5, ítem 66, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co. Notas: el texto termina con un valor \"2,0%\" sin elemento asociado"
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 5, ítem 66, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co. Notas: el texto termina con un valor \"2,0%\" sin elemento asociado",
+    "detalle": {
+      "clase": "Fertilizante inorgánico · compuesto mezclado",
+      "tipo": "Granulado",
+      "uso": "Suelo",
+      "fabricante": "YARA COLOMBIA S.A",
+      "distribuidor": "YARA COLOMBIA S.A",
+      "origen": "COLOMBIA",
+      "fechaRegistro": "21/06/99",
+      "presentaciones": "BOLSA DE POLIETILENO POR 1, 5, Y 10 kgS DE PESO NETO, SACO DE POLIPROPILENO CON BOLSA INTERIOR DE POLIETILENO POR 20 Y 50 kgS DE PESO NETO"
+    }
   },
   {
     "id": "abotek-15-4-23-4-ica-3108",
@@ -1013,7 +1135,17 @@
       }
     ],
     "verificacion": "ok",
-    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 40, ítem 782, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 40, ítem 782, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co.",
+    "detalle": {
+      "clase": "Fertilizante inorgánico · complejo NPK",
+      "tipo": "Granulado",
+      "uso": "Suelo",
+      "fabricante": "YARA COLOMBIA SA",
+      "distribuidor": "YARA COLOMBIA SA",
+      "origen": "COLOMBIA",
+      "fechaRegistro": "14/04/98",
+      "presentaciones": "BOLSAS DE POLIETILENO O POLIPROPILENO POR 500G, 1, 5 Y 10 kgS; SACOS DE POLIPROPILENO CON BOLSA INTERIOR DE POLIETILENO O DE PROPILENO LAMINADO BRILLANTE POR 10, 15, 20, 25 Y 50 kgS; BIG BAGS DE POLIPROPILENO O DE POLIETILENO DE ALTA DENSIDAD (95X95X125 CON 4…"
+    }
   },
   {
     "id": "agrimins-granulado-8-5-0-6-ica-2359",
@@ -1152,7 +1284,17 @@
       }
     ],
     "verificacion": "ok",
-    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 21, ítem 410, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 21, ítem 410, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co.",
+    "detalle": {
+      "clase": "Fertilizante inorgánico · compuesto mezclado NP",
+      "tipo": "Granulado",
+      "uso": "Suelo",
+      "fabricante": "COLINAGRO S.A",
+      "distribuidor": "COLINAGRO S.A",
+      "origen": "COLOMBIA",
+      "fechaRegistro": "4/04/94",
+      "presentaciones": "BOLSAS DE POLIROPILENO POR 500 GRAMOS, 1, 5 Y 10 KILOS, SACOS DE POLIPROPILENO CON BOLSA INTERIOR DE POLIETILENO POR 30 Y 46 kgS DE PESO NETO"
+    }
   },
   {
     "id": "rafos-12-24-12-2-ica-3355",
@@ -1238,7 +1380,17 @@
       }
     ],
     "verificacion": "ok",
-    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 49, ítem 935, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 49, ítem 935, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co.",
+    "detalle": {
+      "clase": "Fertilizante inorgánico · compuesto complejo NPK",
+      "tipo": "Granulado",
+      "uso": "Suelo",
+      "fabricante": "YARA COLOMBIA S A CARRERA 11 N° 94 A - 34 EDIFICIO LG PISO 3 BOGOTA - COLOMBIA",
+      "distribuidor": "YARA COLOMBIA S A CARRERA 11 N° 94 A - 34 EDIFICIO LG PISO 3 BOGOTA - COLOMBIA",
+      "origen": "COLOMBIA",
+      "fechaRegistro": "1/07/99",
+      "presentaciones": "BOLSA DE POLIPROPILENO POR 1,5 Y 10 kgS DE PESO NETO; SACO DE POLIPROPILENO CON BOLSA INTERIOR DE POLIETILENO POR 20 Y 50 kgS DE PESO NETO; BOLSAS DE POLIETILENO O POLIPROPILENO POR 500 GR , 1,5 Y 10 KG ; SACO DE POLIPROPILENO CON BOLSA INTERIOR DE POLIETILEN…"
+    }
   },
   {
     "id": "nitrosoil-sulfato-de-amonio-21-0-0-24-s-cristales-ica-12729",
@@ -1293,7 +1445,18 @@
       }
     ],
     "verificacion": "ok",
-    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 543, ítem 8258, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 543, ítem 8258, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co.",
+    "detalle": {
+      "clase": "Fertilizante inorgánico · simple N",
+      "tipo": "Cristales",
+      "uso": "Suelo",
+      "fabricante": "HENGSHUI HENGJI AGRICULTURAL MATERIAL CO., LTD, HEBEI, CHINA. JIANFSU SONGJIA PETROCHEMICAL CO, NANJI, CHINA. KEMEROVO…",
+      "importador": "NITROFERT S.A.S. CARRERA 53 NO. 80-198 OFICINA 201, BARRANQUILLA. NOTIFICACIONES@NITROFERT.COM.CO",
+      "distribuidor": "NITROFERT S.A.S. CARRERA 53 NO. 80-198 OFICINA 201, BARRANQUILLA. NOTIFICACIONES@NITROFERT.COM.CO",
+      "origen": "CHINA; RUSIA",
+      "fechaRegistro": "7/10/21",
+      "presentaciones": "SACO DE POLIPROPILENO POR 1, 2, 5, 10, 25, 50 kgS Y 100 LIBRAS AMERICANAS. BIG BAG POR 1000 kgS DE PESO NETO. A GRANEL"
+    }
   },
   {
     "id": "nutrimon-sulfato-de-amonio-sam-21-0-0-24-s-cristales-ica-499",
@@ -1348,7 +1511,18 @@
       }
     ],
     "verificacion": "por verificar: el PDF no indica ESTADO del registro",
-    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 3, ítem 40, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 3, ítem 40, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co.",
+    "detalle": {
+      "clase": "Fertilizante inorgánico · simple N",
+      "tipo": "Cristales",
+      "uso": "Suelo",
+      "fabricante": "MONOMEROS INTERNATIONAL LTD;OAKLEY INTERNATIONAL LLC;NITRON CORPORATION;AMERICAN PLANT FOOD CORPORATION;DSM;INSAGRO USA…",
+      "importador": "MONOMEROS COLOMBO VENEZOLANOS SA",
+      "distribuidor": "MONOMEROS COLOMBO VENEZOLANOS SA",
+      "origen": "ALEMANIA; BELGICA; CHINA; COREA DEL SUR; ESTADOS UNIDOS; RUSIA; TURQUIA; SUIZA; SINGAPUR; MEXICO; PANAMA; COSTA RICA; R…",
+      "fechaRegistro": "30/06/95",
+      "presentaciones": "SACOS DE POLIPROPILENO BILAMINADO 1 KG, 2 KG, 5 KG, 10 KG, 25 KG, 40 KG, 50 KG Y 100 LB DE PESO NETO, A GRANEL"
+    }
   },
   {
     "id": "yarabela-nitromag-21-0-0-11-cao-7-mgo-ica-4383",
@@ -1408,7 +1582,17 @@
       }
     ],
     "verificacion": "por verificar: el PDF no indica ESTADO del registro",
-    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 84, ítem 1539, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 84, ítem 1539, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co.",
+    "detalle": {
+      "clase": "Fertilizante inorgánico · simple N",
+      "tipo": "Granulado",
+      "uso": "Suelo",
+      "fabricante": "YARA COLOMBIA SA",
+      "distribuidor": "YARA COLOMBIA SA",
+      "origen": "COLOMBIA NORUEGA NORUEGA HOLANDA BELGICA",
+      "fechaRegistro": "22/08/02",
+      "presentaciones": "SACOS DE POLIPROPILENO CON INTERIOR DE POLIETILENO POR 1, 25, 35 Y 50 kgS DE PESO NETO. BIG BAGS DE 1.2 TONELADAS METRICAS. BOLSAS DE POLIETILENO O POLIPROPILENO POR 500 G; 1, 5, 10 KG. SACOS DE POLIPROPILENO CON BOLSA INTERIOR DE POLIETILENO O POLIPROPILENO…"
+    }
   },
   {
     "id": "dolomita-inferhuila-ica-2576",
@@ -1457,7 +1641,16 @@
       }
     ],
     "verificacion": "por verificar: el PDF no indica ESTADO del registro",
-    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 25, ítem 493, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 25, ítem 493, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co.",
+    "detalle": {
+      "clase": "Acondicionador inorgánico",
+      "tipo": "Polvo",
+      "uso": "Suelo",
+      "fabricante": "INFERHUILA S.A",
+      "origen": "COLOMBIA",
+      "fechaRegistro": "16/08/95",
+      "presentaciones": "ACOS DE POLIPROPILENO CON BOLSA INTERIOR DE POLIETILENO, POR 50 kgS DE PESO NETO"
+    }
   },
   {
     "id": "cal-agricola-ica-3550",
@@ -1489,7 +1682,16 @@
       }
     ],
     "verificacion": "ok",
-    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 56, ítem 1058, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 56, ítem 1058, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co.",
+    "detalle": {
+      "clase": "Acondicionador",
+      "tipo": "Polvo",
+      "uso": "Suelo",
+      "fabricante": "PROMICAL Y CIA LTDA CALLE 86 N° 42 - 195 TEL: 2552911 ITAGUI - ANTIOQUIA",
+      "origen": "COLOMBIA",
+      "fechaRegistro": "25/05/00",
+      "presentaciones": "SACOS DE POLIPROPILENO CON BOLSA INTERIOR DE POLIETILENO POR 40 Y 50 kgS DE PESO NETO"
+    }
   },
   {
     "id": "solupotasse-sk-sulfato-de-potasio-0-0-50-18-s-cristales-ica-3280",
@@ -1520,7 +1722,18 @@
       }
     ],
     "verificacion": "ok",
-    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 46, ítem 877, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co. Notas: forma escrita \"K20\" en el PDF, interpretada como K₂O"
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 46, ítem 877, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co. Notas: forma escrita \"K20\" en el PDF, interpretada como K₂O",
+    "detalle": {
+      "clase": "Fertilizante inorgánico · simple K",
+      "tipo": "Cristales solubles",
+      "uso": "Fertirriego; suelo",
+      "fabricante": "TESSENDERLO GROUP NV/SA",
+      "importador": "COMERCIAL AGRARIA SAS",
+      "distribuidor": "COMERCIAL AGRARIA SAS",
+      "origen": "BELGICA",
+      "fechaRegistro": "13/01/99",
+      "presentaciones": "SACOS DE PAPEL KRAFT O DE POLIPROPILENO LAMINADO POR 25 Y 50 kgS DE PESO NETO; CAJAS DE CARTON CON BOLSA INTERIOR DE POLIETILENO POR 2 kgS DE PESO NETO; BOLSA DE POLIPROPILENO POR 1, 2 Y 5 DE PESO NETO"
+    }
   },
   {
     "id": "nutrimon-nitrasam-28-4-0-6-s-ica-4222",
@@ -1574,7 +1787,17 @@
       }
     ],
     "verificacion": "por verificar: el PDF no indica ESTADO del registro",
-    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 79, ítem 1452, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 79, ítem 1452, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co.",
+    "detalle": {
+      "clase": "Fertilizante inorgánico · compuesto complejo NP",
+      "tipo": "Granulado",
+      "uso": "Suelo",
+      "fabricante": "MONOMEROS COLOMBO VENEZOLANOS SA",
+      "distribuidor": "MONOMEROS COLOMBO VENEZOLANOS SA",
+      "origen": "COLOMBIA",
+      "fechaRegistro": "1/04/02",
+      "presentaciones": "SACOS DE POLIPROPILENO CON BOLSA INTERIOR DE POLIETILENO O SACOS LAMINADOS DE POLIPROPILENO POR 45,4 (100 LIBRAS AMERICANAS) Y POR 1, 5 Y 50 kgS DE PESO NETO"
+    }
   },
   {
     "id": "sulcamag-ica-1018",
@@ -1633,7 +1856,17 @@
       }
     ],
     "verificacion": "ok",
-    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 11, ítem 183, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 11, ítem 183, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co.",
+    "detalle": {
+      "clase": "Fertilizante inorgánico · simple P",
+      "tipo": "Granulado",
+      "uso": "Suelo",
+      "fabricante": "MINERA PROVIDENCIA S.A",
+      "distribuidor": "MINERA PROVIDENCIA S.A",
+      "origen": "COLOMBIA",
+      "fechaRegistro": "26/07/93",
+      "presentaciones": "BOLSAS DE POLIETILENO POR 10 kgS Y SACOS DE POLIPROPILENO CON BOLSA INTERIOR DE POLIETILENO POR 50 kgS DE PESO NETO"
+    }
   },
   {
     "id": "yaramila-hydrocomplex-12-11-18-3-mgo-8s-em-ica-4064",
@@ -1706,7 +1939,18 @@
       }
     ],
     "verificacion": "por verificar: el PDF no indica ESTADO del registro; valor sin unidad: \"MANGANESO (Mn) 0,02\"",
-    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 75, ítem 1390, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co. Notas: valor sin unidad: \"MANGANESO (Mn) 0,02\""
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 75, ítem 1390, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co. Notas: valor sin unidad: \"MANGANESO (Mn) 0,02\"",
+    "detalle": {
+      "clase": "Fertilizante inorgánico · compuesto complejo NPK",
+      "tipo": "Granulado",
+      "uso": "Suelo",
+      "fabricante": "YARA NORGE ASA; YARA INTERNATIONAL ASA",
+      "importador": "YARA COLOMBIA SAS",
+      "distribuidor": "YARA COLOMBIA SAS",
+      "origen": "NORUEGA; HOLANDA",
+      "fechaRegistro": "2/10/01",
+      "presentaciones": "SACOS DE POLIPROPILENO CON BOLSA INTERIOR DE POLIETILENO POR 50 kgS DE PESO NETO, SACOS DE 1, 25, 35, 50 KILOS; BIG BAGS 1,2 TONELADAS Y A GRANEL KILOS; BIG BAGS DE 1.2 TONELADAS Y A GRANE"
+    }
   },
   {
     "id": "nutrimon-18-18-18-ica-3525",
@@ -1754,7 +1998,17 @@
       }
     ],
     "verificacion": "por verificar: el PDF no indica ESTADO del registro",
-    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 56, ítem 1047, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 56, ítem 1047, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co.",
+    "detalle": {
+      "clase": "Fertilizante · complejo NPK",
+      "tipo": "Granulado",
+      "uso": "Suelo",
+      "fabricante": "MONOMEROS COLOMBO VENEZOLANOS",
+      "distribuidor": "MONOMEROS COLOMBO VENEZOLANOS",
+      "origen": "COLOMBIA",
+      "fechaRegistro": "27/04/00",
+      "presentaciones": "SACOS DE POLIPROPILENO CON BOLSA INTERIRO DE POLIETILENO O SACOS LAMINADOS DE POLIPROPILENO POR 45,4 ( 100 LIBRAS AMERICANAS) Y 50 kgS DE PESO NETO"
+    }
   },
   {
     "id": "calfos-granulado-ica-2623",
@@ -1796,6 +2050,16 @@
       }
     ],
     "verificacion": "por verificar: el PDF no indica ESTADO del registro",
-    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 26, ítem 512, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co. Notas: declara además FOSFORO TOTAL (P₂O₅) 20,00% y FOSFORO DE LENTA ASIMILACION (P₂O₅) 14,00%; en contenido se registra solo el fósforo asimilable"
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 26, ítem 512, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co. Notas: declara además FOSFORO TOTAL (P₂O₅) 20,00% y FOSFORO DE LENTA ASIMILACION (P₂O₅) 14,00%; en contenido se registra solo el fósforo asimilable",
+    "detalle": {
+      "clase": "Fertilizante inorgánico · simple P",
+      "tipo": "Granulado",
+      "uso": "Suelo",
+      "fabricante": "EMPRESA DE FOSFATOS DE BOYACA SA",
+      "distribuidor": "EMPRESA DE FOSFATOS DE BOYACA SA",
+      "origen": "COLOMBIA",
+      "fechaRegistro": "27/10/95",
+      "presentaciones": "SACOS DE POLIPROPILENO CON BOLSA INTERIOR DE 50 kgS DE PESO NETO"
+    }
   }
 ]

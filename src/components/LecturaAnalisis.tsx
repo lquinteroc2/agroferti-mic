@@ -1,9 +1,9 @@
 import { useState, type ChangeEvent } from 'react';
 import { extraerDatosAnalisis, type DatoLeido } from '../lib/lecturaAnalisis';
-import { textoDeArchivo } from '../lib/textoDeArchivo';
+import { FORMATOS_ADJUNTO, FormatoNoAdmitido, textoDeArchivo } from '../lib/textoDeArchivo';
 
 /**
- * Leer el informe del laboratorio desde un PDF o una foto. Muestra lo que se leyó con la línea de
+ * Leer el informe del laboratorio desde un archivo adjunto (PDF, imagen o texto). Muestra lo que se leyó con la línea de
  * donde salió; el usuario confirma (y corrige si hace falta) cada dato antes de pasarlo al
  * formulario. Lo no confirmado no se usa.
  */
@@ -24,12 +24,13 @@ export function LecturaAnalisis({ onAplicar }: { onAplicar: (datos: DatoLeido[])
       const leidos = extraerDatosAnalisis(texto);
       setDatos(leidos);
       setEstado(leidos.length ? 'revisar' : 'error');
-      if (!leidos.length) setMensaje('No se reconocieron datos en el archivo. Escríbelos en el formulario. Si es una foto, intenta con una más nítida, de frente y con buena luz.');
-    } catch {
+      if (!leidos.length) setMensaje('No se reconocieron datos en el archivo. Escríbelos en el formulario. Si es una imagen, intenta con una foto más nítida, de frente y con buena luz.');
+    } catch (error) {
       setEstado('error');
+      if (error instanceof FormatoNoAdmitido) { setMensaje(error.message); return; }
       setMensaje(navigator.onLine
-        ? 'No se pudo leer el archivo. Intenta con otro (PDF o foto) o escribe los datos en el formulario.'
-        : 'Para leer fotos se necesita internet la primera vez (descarga el idioma español). Conéctate o escribe los datos en el formulario.');
+        ? 'No se pudo leer el archivo. Intenta con otro archivo o escribe los datos en el formulario.'
+        : 'Para leer imágenes se necesita internet la primera vez (descarga el idioma español). Conéctate o escribe los datos en el formulario.');
     }
   }
 
@@ -48,10 +49,10 @@ export function LecturaAnalisis({ onAplicar }: { onAplicar: (datos: DatoLeido[])
   return (
     <fieldset className="form-group lectura-analisis">
       <legend>Leer el informe desde un archivo</legend>
-      <p className="hint">Elige el <strong>PDF</strong> del laboratorio o una <strong>foto</strong> del informe. La app intentará leer los datos, pero <strong>puede equivocarse</strong> (una coma o un número mal leído cambia todo el cálculo): revisa y confirma cada dato antes de pasarlo.</p>
+      <p className="hint">Adjunta el informe del laboratorio: <strong>PDF</strong>, imagen (<strong>JPG</strong>, PNG, WEBP, BMP o GIF, por ejemplo una foto o un escaneo) o texto (TXT o CSV). La app intentará leer los datos, pero <strong>puede equivocarse</strong> (una coma o un número mal leído cambia todo el cálculo): revisa y confirma cada dato antes de pasarlo.</p>
       {estado !== 'leyendo' && <label className="btn btn-outline btn-small lectura-boton">
-        Elegir PDF o foto
-        <input type="file" accept="application/pdf,image/*" className="sr-only" onChange={e => void elegir(e)} />
+        Adjuntar archivo
+        <input type="file" accept={FORMATOS_ADJUNTO} className="sr-only" onChange={e => void elegir(e)} />
       </label>}
       {estado === 'leyendo' && <p className="hint" role="status">{mensaje || 'Leyendo…'}</p>}
       {estado === 'error' && <p className="hint hint-warn" role="alert">{mensaje}</p>}

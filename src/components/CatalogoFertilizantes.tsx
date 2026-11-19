@@ -1,6 +1,21 @@
 import { useMemo, useState } from 'react';
 import { formatearExacto } from '../lib/formato';
-import { filtrarCatalogo, nombreMes, resumenComposicion, type FertilizanteReferencia } from '../lib/referencias';
+import { filtrarCatalogo, nombreMes, resumenComposicion, type DetalleRegistro, type FertilizanteReferencia } from '../lib/referencias';
+
+const ETIQUETAS_DETALLE: ReadonlyArray<[keyof DetalleRegistro, string]> = [
+  ['clase', 'Tipo de producto'], ['tipo', 'Presentación física'], ['uso', 'Uso registrado'], ['cultivos', 'Cultivos registrados'],
+  ['dosisRegistrada', 'Dosis registrada (la de la etiqueta)'], ['aplicacion', 'Época o frecuencia de aplicación'],
+  ['fabricante', 'Fabricante'], ['importador', 'Importador'], ['distribuidor', 'Distribuidor'], ['origen', 'País de origen'],
+  ['fechaRegistro', 'Fecha del registro'], ['presentaciones', 'Empaques registrados']
+];
+
+/** Datos del registro del ICA de un fertilizante, en lista de términos. */
+export function DetalleRegistroVista({ detalle }: { detalle?: DetalleRegistro }) {
+  if (!detalle) return null;
+  const filas = ETIQUETAS_DETALLE.filter(([campo]) => detalle[campo]);
+  if (!filas.length) return null;
+  return <dl className="detalle-registro">{filas.map(([campo, etiqueta]) => <div key={campo}><dt>{etiqueta}</dt><dd>{detalle[campo]}</dd></div>)}</dl>;
+}
 
 /** Nutrientes para filtrar "qué aporta" (formas como las declara la etiqueta). */
 const FILTROS: ReadonlyArray<[string, string]> = [
@@ -63,10 +78,11 @@ function FichaReferencia({ r, propio, onAgregar }: { r: FertilizanteReferencia; 
         <summary>
           <strong>{r.nombre}</strong>
           <span>{resumenComposicion(r)}</span>
-          <small>{r.empresa} · registro ICA {r.registroIca}{r.presentacionKg ? ` · bulto de ${formatearExacto(r.presentacionKg)} kg` : ''}{r.precios.length ? ' · con precio DANE' : ''}{propio ? ' · ya está en Mis productos' : ''}</small>
+          <small>{r.detalle?.clase ? `${r.detalle.clase} · ` : ''}{r.detalle?.tipo ? `${r.detalle.tipo.toLowerCase()} · ` : ''}{r.empresa} · registro ICA {r.registroIca}{r.presentacionKg ? ` · bulto de ${formatearExacto(r.presentacionKg)} kg` : ''}{r.precios.length ? ' · con precio DANE' : ''}{propio ? ' · ya está en Mis productos' : ''}</small>
         </summary>
         <div className="catalogo-detalle">
           <p><strong>Composición garantizada (registro ICA):</strong> {r.composicionTexto}</p>
+          <DetalleRegistroVista detalle={r.detalle} />
           {r.verificacion !== 'ok' && <p className="hint hint-warn">Pendiente de verificar: {r.verificacion.replace(/^por verificar:\s*/, '')}</p>}
           {r.precios.length > 0 && <label>Precio promedio por departamento (DANE)
             <select value={departamento} onChange={e => setDepartamento(e.target.value)}>

@@ -57,3 +57,15 @@ test('lectura: no inventa lo que no está; sin unidad reconocida no se lee el nu
   assert.equal(extraerDatosAnalisis('Potasio intercambiable (acetato de amonio 1 N pH 7) 0,25 cmol(+)/ka').find(d => d.clave === 'ph'), undefined);
   assert.equal(extraerDatosAnalisis('pH 0,8').find(d => d.clave === 'ph'), undefined, 'pH imposible en un suelo');
 });
+
+import { formatoDe } from '../src/lib/textoDeArchivo.ts';
+
+test('adjuntar archivo: reconoce PDF, imágenes y texto por tipo o por extensión; avisa con HEIC y otros', () => {
+  assert.equal(formatoDe('informe.pdf', ''), 'pdf');
+  assert.equal(formatoDe('foto.JPG', ''), 'imagen');
+  assert.equal(formatoDe('escaneo', 'image/png'), 'imagen');
+  assert.equal(formatoDe('informe.txt', 'text/plain'), 'texto');
+  assert.equal(formatoDe('resultados.csv', ''), 'texto');
+  assert.equal(formatoDe('IMG_0001.HEIC', ''), 'heic');
+  assert.equal(formatoDe('informe.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'), 'otro');
+});
