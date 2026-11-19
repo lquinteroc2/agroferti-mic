@@ -97,8 +97,8 @@ export function AnalisisSueloDetalle({ analisis, onEditar, onEliminar }: Props) 
         </div>
 
         <div className="calc-step">
-          <strong>2. Masa de suelo en la capa muestreada</strong>
-          <p>Cuántos kilos de suelo hay en una hectárea hasta la profundidad de la muestra.</p>
+          <strong>2. Masa de suelo de la capa arable</strong>
+          <p>La capa arable es la capa de arriba del suelo, donde están casi todas las raíces y se mezcla el fertilizante. Aquí se toma como la capa muestreada: desde la superficie hasta la profundidad de la muestra. Este paso calcula cuántos kilos de suelo tiene esa capa en una hectárea.</p>
           {eq.masaKgHa.ok
             ? <code>10.000 m²/ha × ({formatearExacto(analisis.profundidadCm!)} cm ÷ 100) m × ({formatearExacto(analisis.densidadGcm3!)} g/cm³ × 1.000) kg/m³ = <b>{formatearResultado(eq.masaKgHa.valor, 0)} kg de suelo/ha</b></code>
             : <SinCalculo calculo={eq.masaKgHa} explicacion="Sin este paso no se calculan equivalencias en kg/ha. La app no usa valores supuestos." />}

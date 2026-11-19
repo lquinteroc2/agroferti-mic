@@ -62,7 +62,7 @@ function SeccionAnalisis({ d }: { d: DatosInforme }) {
         <td>{equivalencia(i)}</td>
       </tr>)}</tbody>
     </table>}
-    <p className="informe-nota">* Equivalencia del valor del laboratorio en la capa muestreada. No es una dosis ni lo que la planta puede aprovechar.</p>
+    <p className="informe-nota">* Equivalencia del valor del laboratorio en la capa arable (la capa muestreada). No es una dosis ni lo que la planta puede aprovechar.</p>
   </>;
 }
 

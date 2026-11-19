@@ -364,3 +364,5 @@
 .detalle-registro div{min-width:0}
 .detalle-registro dt{font-size:.74rem;font-weight:800;color:#5f7468;text-transform:uppercase;letter-spacing:.04em}
 .detalle-registro dd{margin:2px 0 0;overflow-wrap:anywhere}
+.help-item p+p{margin-top:8px}
+.help-item .formula{font-family:ui-monospace,Consolas,monospace;font-size:.84rem;background:#f3f7f0;border:1px solid #dce6d6;border-radius:8px;padding:8px 10px;color:#2f4b3c;overflow-wrap:anywhere}

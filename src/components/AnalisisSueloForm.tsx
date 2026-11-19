@@ -230,7 +230,7 @@ export function AnalisisSueloForm({ inicial, areaActualM2, onGuardar, onCancelar
           </label>
           <label><span className="campo-titulo">Profundidad de muestreo (cm) <span className="required" aria-hidden="true">*</span></span>
             <input inputMode="decimal" value={entrada.profundidadCm} onChange={e => cambiar('profundidadCm', e.target.value)} placeholder="Ej. 20" required {...errorProps('err-prof', errores.profundidadCm)} />
-            <small>Hasta dónde se tomó la muestra de suelo.</small>
+            <small>Hasta dónde se tomó la muestra de suelo. Es el grosor de la capa arable que usa la app (normalmente 20 cm).</small>
             {avisoCampo('profundidadCm')}
             {errores.profundidadCm && <span id="err-prof" className="field-error">{errores.profundidadCm}</span>}
           </label>
