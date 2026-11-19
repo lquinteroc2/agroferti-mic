@@ -2,7 +2,7 @@ import { useState, useSyncExternalStore } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { AnalisisSueloSeccion } from './components/AnalisisSueloSeccion';
 import { HistorialLoteSeccion } from './components/HistorialLoteSeccion';
-import { BarraUsuario, saludoDe } from './components/BarraUsuario';
+import { Encabezado, Logo, saludoDe } from './components/Encabezado';
 import { InformeGeneral } from './components/InformeGeneral';
 import { InformeLote } from './components/InformeLote';
 import { LoteForm, type DatosLote } from './components/LoteForm';
@@ -27,12 +27,6 @@ function useEnLinea(): boolean {
 }
 
 type Vista = 'inicio' | 'nuevo' | 'editar' | 'detalle' | 'informe' | 'informe-general' | 'productos' | 'ayuda';
-
-function Logo() {
-  return <span className="brand-symbol" aria-hidden="true">
-    <svg viewBox="0 0 64 64" fill="none"><path d="M31 47C16 43 12 22 21 14c11 3 19 12 18 23M31 46c6-19 17-23 25-24-1 13-8 24-25 24" fill="#b3df9d"/><path d="M31 50V27" stroke="#fff" strokeWidth="4" strokeLinecap="round"/></svg>
-  </span>;
-}
 
 export default function App() {
   const [vista, setVista] = useState<Vista>('inicio');
@@ -114,20 +108,7 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <header className="topbar">
-        <div className="container topbar-inner">
-          <button className="brand" type="button" onClick={() => ir('inicio')} aria-label="Ir al inicio de AgroFerti MIC">
-            <Logo />
-            <span><strong>AgroFerti <em>MIC</em></strong><small>Fertilización y seguimiento</small></span>
-          </button>
-          <nav className="nav" aria-label="Navegación principal">
-            <button className={vista === 'ayuda' || vista === 'productos' ? 'nav-link' : 'nav-link selected'} onClick={() => ir('inicio')}>Mis lotes</button>
-            <button className={vista === 'productos' ? 'nav-link selected' : 'nav-link'} onClick={() => ir('productos')}>Productos</button>
-            <button className={vista === 'ayuda' ? 'nav-link selected' : 'nav-link'} onClick={() => ir('ayuda')}>Cómo funciona</button>
-          </nav>
-        </div>
-      </header>
-      <BarraUsuario estado={estadoNube} />
+      <Encabezado seccion={vista === 'productos' || vista === 'ayuda' ? vista : 'inicio'} onIr={ir} estado={estadoNube} />
 
       <main className="container main-content">
         {vencida && <div role="status" className="notice notice-error"><span aria-hidden="true">!</span>Tu sesión venció. Puedes seguir trabajando sin internet; cuando tengas conexión tendrás que ingresar de nuevo para sincronizar.</div>}

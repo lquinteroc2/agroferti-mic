@@ -190,7 +190,7 @@ export function ProductoForm({ inicial, onGuardar, onCancelar }: Props) {
       <fieldset className="form-group">
         <legend>Producto</legend>
         <div className="fields">
-          <label className="full">Nombre del producto <span className="required" aria-hidden="true">*</span>
+          <label className="full"><span className="campo-titulo">Nombre del producto <span className="required" aria-hidden="true">*</span></span>
             <input value={entrada.nombre} onChange={e => cambiar('nombre', e.target.value)} maxLength={100} placeholder="Como aparece en la etiqueta" required {...errorProps('err-nombre-producto', errores.nombre)} />
             {errores.nombre && <span id="err-nombre-producto" className="field-error">{errores.nombre}</span>}
           </label>

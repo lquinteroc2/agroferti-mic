@@ -148,7 +148,7 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
       <fieldset className="form-group">
         <legend>Plan</legend>
         <div className="fields">
-          <label>Nombre del plan <span className="required" aria-hidden="true">*</span>
+          <label><span className="campo-titulo">Nombre del plan <span className="required" aria-hidden="true">*</span></span>
             <input value={entrada.nombre} onChange={e => { setEntrada(x => ({ ...x, nombre: e.target.value })); corregido('nombre'); }} maxLength={80} placeholder="Ej. Siembra 2026-B" aria-invalid={!!errores.nombre} aria-describedby={errores.nombre ? 'err-nombre-plan' : undefined} />
             {errores.nombre && <span id="err-nombre-plan" className="field-error">{errores.nombre}</span>}
           </label>

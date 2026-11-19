@@ -128,7 +128,7 @@ export function PlanEstado({ plan, calculo, onCambiarEstado, onCopiar }: Props) 
       {accion && <form className="estado-form" onSubmit={confirmar} noValidate aria-label={ACCIONES[accion].boton}>
         <p><strong>{ACCIONES[accion].boton}.</strong> {ACCIONES[accion].explicacion}</p>
         <div className="fields">
-          <label>Nombre de quien registra el cambio <span className="required" aria-hidden="true">*</span>
+          <label><span className="campo-titulo">Nombre de quien registra el cambio <span className="required" aria-hidden="true">*</span></span>
             <input value={responsable} onChange={e => { setResponsable(e.target.value); setErrores([]); }} maxLength={80} placeholder="Nombre y rol, p. ej. agrónomo" autoFocus />
           </label>
           <label>Nota

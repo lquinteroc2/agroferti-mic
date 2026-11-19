@@ -184,12 +184,12 @@ export function AnalisisSueloForm({ inicial, areaActualM2, onGuardar, onCancelar
       <fieldset className="form-group">
         <legend>Datos de la muestra</legend>
         <div className="fields">
-          <label>Fecha del análisis <span className="required" aria-hidden="true">*</span>
+          <label><span className="campo-titulo">Fecha del análisis <span className="required" aria-hidden="true">*</span></span>
             <input type="date" value={entrada.fechaAnalisis} max={fechaLocalISO()} onChange={e => cambiar('fechaAnalisis', e.target.value)} required {...errorProps('err-fecha', errores.fechaAnalisis)} />
             {avisoCampo('fechaAnalisis')}
             {errores.fechaAnalisis && <span id="err-fecha" className="field-error">{errores.fechaAnalisis}</span>}
           </label>
-          <label>Profundidad de muestreo (cm) <span className="required" aria-hidden="true">*</span>
+          <label><span className="campo-titulo">Profundidad de muestreo (cm) <span className="required" aria-hidden="true">*</span></span>
             <input inputMode="decimal" value={entrada.profundidadCm} onChange={e => cambiar('profundidadCm', e.target.value)} placeholder="Ej. 20" required {...errorProps('err-prof', errores.profundidadCm)} />
             <small>Hasta dónde se tomó la muestra de suelo.</small>
             {avisoCampo('profundidadCm')}

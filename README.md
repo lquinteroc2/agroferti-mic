@@ -260,7 +260,7 @@ agroferti-mic/
 │  │  ├─ PlanDetalle.tsx           # Fase 3c: cálculo del plan explicado paso a paso
 │  │  ├─ PlanEstado.tsx            # Fase 3d: estados del plan e historial
 │  │  ├─ PantallaIngreso.tsx       # Ingreso obligatorio con Google y autorización de datos (Ley 1581)
-│  │  ├─ BarraUsuario.tsx          # Foto o inicial, "Hola, nombre" y cerrar sesión
+│  │  ├─ Encabezado.tsx            # Secciones, foto o inicial, "Hola, nombre", correo y cerrar sesión; menú hamburguesa en celular
 │  │  ├─ InformeGeneral.tsx        # Informe de todos los lotes para imprimir o guardar en PDF
 │  │  ├─ NubeSeccion.tsx           # Mi cuenta: estado de la sincronización, cerrar sesión, borrar datos de la nube
 │  │  ├─ AplicacionesPlan.tsx      # Fase 4b: lo aplicado frente a un plan aprobado
@@ -404,7 +404,7 @@ No inventar resultados de campo. Etiquetar todos los datos simulados como **EJEM
 ## Para retomar (estado al 17 de noviembre de 2026)
 
 - Historial del lote (ciclos de cultivo) publicado y revisado: los 10 puntos de la revisión de código están corregidos (181 pruebas, build correcto).
-- **Ingreso obligatorio (17 de noviembre de 2026):** sin iniciar sesión con Google solo se ve la página de ingreso (presentación de la app y botón de Google siempre visible; ingresar después del aviso es la autorización de datos, Ley 1581). Con sesión se ve arriba la foto de perfil o la inicial, "Hola, nombre" y Cerrar sesión. **Informe de todos los lotes (PDF)** en Mis lotes. Con la sesión vencida y sin internet se puede seguir trabajando; al volver la conexión hay que ingresar de nuevo. La copia de seguridad JSON se retiró: la nube la reemplaza y el informe de cada lote se imprime o se guarda en PDF.
+- **Ingreso obligatorio (17 de noviembre de 2026):** sin iniciar sesión con Google solo se ve la página de ingreso (presentación de la app y botón de Google siempre visible; ingresar después del aviso es la autorización de datos, Ley 1581). Con sesión, el encabezado muestra las secciones, la foto de perfil o la inicial, "Hola, nombre", el correo y Cerrar sesión; en celular, el avatar y un menú hamburguesa con las secciones y Cerrar sesión. **Informe de todos los lotes (PDF)** en Mis lotes. Con la sesión vencida y sin internet se puede seguir trabajando; al volver la conexión hay que ingresar de nuevo. La copia de seguridad JSON se retiró: la nube la reemplaza y el informe de cada lote se imprime o se guarda en PDF.
 - **Nube publicada y revisada (17 de noviembre de 2026):** Worker + D1 (`agroferti-db`, migraciones 0001 y 0002 aplicadas) + Sign in with Google, en planes gratuitos y sin métodos de pago. La cuenta de Cloudflare es la de `leonardoquintero222@gmail.com`; el secreto `SESION_SECRETO` está guardado en Cloudflare (no en el repositorio). Falta la prueba con un inicio de sesión real de Google en la app publicada y en un teléfono.
 - Para trabajar con la API en local: `npm run db:migrar:local` (una vez), crear `.dev.vars` con `SESION_SECRETO=<texto de 32+ caracteres>` y luego `npm run dev:api` (app + API en http://localhost:8787). En Windows PowerShell usa `npm.cmd` y `npx.cmd`.
 - Si cambia el esquema de D1: nueva migración en `migrations/` y `npm run db:migrar:nube` antes de publicar el código que la usa.
