@@ -20,7 +20,7 @@ export function SugerenciasPlan({ cultivo, analisis, reglas, descargadas, onUsar
   cultivo: Cultivo;
   analisis?: AnalisisVerificado;
   reglas: ReadonlyArray<ReglaDosis>;
-  /** false: el teléfono aún no ha descargado las referencias de la nube. */
+  /** false: el dispositivo aún no ha descargado las referencias de la nube. */
   descargadas: boolean;
   onUsar: (s: Sugerencia) => void;
   /** Usa todas las sugerencias que aplican de una vez. */

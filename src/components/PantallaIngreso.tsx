@@ -95,14 +95,14 @@ export function PantallaIngreso({ estado, enLinea }: { estado?: EstadoNube; enLi
   }
 
   async function borrarTelefono() {
-    if (!(await confirmar({ titulo: 'Usar otra cuenta', mensaje: `¿Borrar TODOS los datos de este teléfono para usar otra cuenta? Lo que ya esté en la nube de ${otraCuenta ?? 'la cuenta anterior'} no se pierde, pero lo que no se haya sincronizado sí. Esta acción no se puede deshacer.`, boton: 'Borrar y continuar', peligro: true }))) return;
+    if (!(await confirmar({ titulo: 'Usar otra cuenta', mensaje: `¿Borrar TODOS los datos de este dispositivo para usar otra cuenta? Lo que ya esté en la nube de ${otraCuenta ?? 'la cuenta anterior'} no se pierde, pero lo que no se haya sincronizado sí. Esta acción no se puede deshacer.`, boton: 'Borrar y continuar', peligro: true }))) return;
     setTrabajando(true);
     try {
       await borrarTelefonoYDesvincular();
       setOtraCuenta(null);
       setError('');
     } catch {
-      setError('No se pudieron borrar los datos de este teléfono. Vuelve a intentarlo.');
+      setError('No se pudieron borrar los datos de este dispositivo. Vuelve a intentarlo.');
     } finally {
       setTrabajando(false);
     }
@@ -123,8 +123,8 @@ export function PantallaIngreso({ estado, enLinea }: { estado?: EstadoNube; enLi
         <h2 id="titulo-ingreso">Ingresa a tu cuenta</h2>
         <p className="muted">Usa tu cuenta de Google. Es gratis y no necesitas crear una contraseña.</p>
 
-        {vencida && <p className="hint">Tu sesión venció. Vuelve a ingresar; tus datos siguen guardados en este teléfono.</p>}
-        {estado?.vinculado && !vencida && <p className="hint">Este teléfono tiene datos de <strong>{estado.usuario.email}</strong>. Ingresa con esa cuenta para verlos.</p>}
+        {vencida && <p className="hint">Tu sesión venció. Vuelve a ingresar; tus datos siguen guardados en este dispositivo.</p>}
+        {estado?.vinculado && !vencida && <p className="hint">Este dispositivo tiene datos de <strong>{estado.usuario.email}</strong>. Ingresa con esa cuenta para verlos.</p>}
 
         {!enLinea
           ? <p className="error">Necesitas conexión a internet para ingresar. Conéctate y vuelve a intentarlo.</p>
@@ -134,8 +134,8 @@ export function PantallaIngreso({ estado, enLinea }: { estado?: EstadoNube; enLi
         <TextoAutorizacion />
 
         {otraCuenta && <div className="error-box">
-          <strong>Este teléfono tiene datos de otra cuenta ({otraCuenta}).</strong> Para no mezclar datos de dos personas, ingresa con esa cuenta o borra los datos de este teléfono.
-          <div className="respaldo-acciones"><button type="button" className="btn btn-outline" disabled={trabajando} onClick={() => void borrarTelefono()}>Borrar los datos de este teléfono</button></div>
+          <strong>Este dispositivo tiene datos de otra cuenta ({otraCuenta}).</strong> Para no mezclar datos de dos personas, ingresa con esa cuenta o borra los datos de este dispositivo.
+          <div className="respaldo-acciones"><button type="button" className="btn btn-outline" disabled={trabajando} onClick={() => void borrarTelefono()}>Borrar los datos de este dispositivo</button></div>
         </div>}
         {error && !otraCuenta && <p role="alert" className="error">{error}</p>}
       </section>

@@ -2,7 +2,7 @@
  * Referencias técnicas guardadas en la nube (tabla `referencias` de D1): fertilizantes comerciales
  * registrados ante el ICA con su precio de referencia DANE-SIPSA, y reglas de dosis por cultivo
  * según el análisis de suelo, cada una con su fuente publicada. La app las descarga y las guarda en
- * el teléfono para usarlas sin internet. Nunca se aplican solas: el usuario decide.
+ * el dispositivo para usarlas sin internet. Nunca se aplican solas: el usuario decide.
  *
  * Todo lo que llega se verifica: una referencia con la estructura equivocada se descarta.
  */
@@ -157,7 +157,7 @@ export function leerNivelSuelo(v: unknown): NivelSuelo | null {
   return { id: v.id, cultivo: v.cultivo, nutriente: v.nutriente, metodo: v.metodo, unidad: v.unidad, rangos, fuente, transcripcion: v.transcripcion, verificacion: v.verificacion };
 }
 
-/** Conjunto de referencias recibido de la nube o guardado en el teléfono. Lo inválido se descarta. */
+/** Conjunto de referencias recibido de la nube o guardado en el dispositivo. Lo inválido se descarta. */
 export function leerConjunto(v: unknown): ConjuntoReferencias | null {
   if (!esObjeto(v) || !texto(v.version)) return null;
   const lista = <T,>(x: unknown, leer: (y: unknown) => T | null): T[] => (Array.isArray(x) ? x.map(leer).filter((y): y is T => y !== null) : []);

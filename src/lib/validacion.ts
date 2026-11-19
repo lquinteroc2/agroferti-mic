@@ -17,7 +17,7 @@ import { numeroATexto } from './formato.ts';
 
 export const UNIDADES_NUTRIENTE: ReadonlyArray<UnidadNutriente> = ['mg/kg', 'cmol(+)/kg'];
 
-/** Límite de la app para revisar listas (no agronómico): evita bloquear el teléfono con listas dañadas enormes. */
+/** Límite de la app para revisar listas (no agronómico): evita bloquear el dispositivo con listas dañadas enormes. */
 export const MAX_RESULTADOS = 500;
 
 /** Campos que esta versión conoce. Cualquier otro se conserva intacto al editar. */

@@ -59,7 +59,7 @@ export function Encabezado({ seccion, onIr, estado }: { seccion: Seccion; onIr: 
 
   async function salir() {
     setAbierto(false);
-    if (!(await confirmar({ titulo: 'Cerrar sesión', mensaje: '¿Cerrar sesión? Tus datos siguen guardados en este teléfono y en la nube. Para volver a verlos tendrás que ingresar de nuevo con la misma cuenta.', boton: 'Cerrar sesión' }))) return;
+    if (!(await confirmar({ titulo: 'Cerrar sesión', mensaje: '¿Cerrar sesión? Tus datos siguen guardados en este dispositivo y en la nube. Para volver a verlos tendrás que ingresar de nuevo con la misma cuenta.', boton: 'Cerrar sesión' }))) return;
     setSaliendo(true);
     try {
       await cerrarSesion();

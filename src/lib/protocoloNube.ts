@@ -8,7 +8,7 @@
  */
 import { esObjeto } from './validacion.ts';
 
-/** Tablas del teléfono que se guardan en la nube (las mismas de la copia de seguridad). */
+/** Tablas del dispositivo que se guardan en la nube (las mismas de la copia de seguridad). */
 export const TABLAS_NUBE = ['lotes', 'analisisSuelos', 'productos', 'planes', 'registros', 'ciclos'] as const;
 export type TablaNube = typeof TABLAS_NUBE[number];
 
@@ -83,7 +83,7 @@ export interface SolicitudSesion {
   credencial: string;
   /** El usuario aceptó la autorización de tratamiento de datos en esta sesión. */
   consentimiento: boolean;
-  /** Cuenta a la que está vinculado el teléfono: si es otra, la nube no crea nada. */
+  /** Cuenta a la que está vinculado el dispositivo: si es otra, la nube no crea nada. */
   vinculado?: string;
 }
 

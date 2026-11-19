@@ -1,7 +1,7 @@
 /**
  * Worker de AgroFerti MIC: sirve la app (archivos estáticos) y la API de la nube en /api/*.
  * Plan gratuito de Cloudflare: si se supera un límite diario, la API responde con error y la app
- * sigue funcionando con los datos del teléfono. Nunca se pasa a un plan de pago.
+ * sigue funcionando con los datos del dispositivo. Nunca se pasa a un plan de pago.
  */
 import {
   CUOTA_BYTES,
@@ -32,7 +32,7 @@ export interface Env {
   SESION_SECRETO: string;
 }
 
-/** Fechas de actualización más adelantadas que esto (reloj del teléfono adelantado) se recortan a la hora del servidor. */
+/** Fechas de actualización más adelantadas que esto (reloj del dispositivo adelantado) se recortan a la hora del servidor. */
 const MARGEN_RELOJ_MS = 5 * 60_000;
 const obtenerClaves = crearObtenerClaves();
 
@@ -139,9 +139,9 @@ async function iniciarSesion(request: Request, env: Env): Promise<Response> {
     if (e instanceof ErrorDescargaClaves) throw new ErrorRespuesta(503, 'error-interno', 'No se pudo comprobar el inicio de sesión con Google. Vuelve a intentarlo en unos minutos.');
     throw e;
   }
-  // El teléfono ya tiene datos de otra cuenta: no se crea ni se modifica nada.
+  // El dispositivo ya tiene datos de otra cuenta: no se crea ni se modifica nada.
   if (typeof cuerpo.vinculado === 'string' && cuerpo.vinculado && cuerpo.vinculado !== google.sub) {
-    throw new ErrorRespuesta(409, 'otra-cuenta', 'Este teléfono tiene datos de otra cuenta.');
+    throw new ErrorRespuesta(409, 'otra-cuenta', 'Este dispositivo tiene datos de otra cuenta.');
   }
   const consentimiento = cuerpo.consentimiento === true;
   const existente = await env.DB.prepare('SELECT 1 FROM usuarios WHERE sub = ?1').bind(google.sub).first();
@@ -234,7 +234,7 @@ async function sincronizar(request: Request, env: Env): Promise<Response> {
 const TIPOS_REFERENCIA: Record<string, 'fertilizantes' | 'reglasDosis' | 'niveles'> = { fertilizante: 'fertilizantes', dosis: 'reglasDosis', nivel: 'niveles' };
 
 /**
- * Referencias técnicas (iguales para todos). Si el teléfono ya tiene la versión actual, no se leen
+ * Referencias técnicas (iguales para todos). Si el dispositivo ya tiene la versión actual, no se leen
  * las filas: así se cuida el límite diario de lecturas del plan gratuito.
  */
 async function referencias(request: Request, env: Env): Promise<Response> {
@@ -255,7 +255,7 @@ async function referencias(request: Request, env: Env): Promise<Response> {
   return new Response(cuerpo, { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });
 }
 
-/** Derecho de supresión (Ley 1581): borra todos los datos del usuario en la nube. El teléfono no cambia. */
+/** Derecho de supresión (Ley 1581): borra todos los datos del usuario en la nube. El dispositivo no cambia. */
 async function borrarCuenta(request: Request, env: Env): Promise<Response> {
   const cuenta = await cuentaDeSesion(request, env);
   await env.DB.batch([
@@ -280,7 +280,7 @@ export default {
       console.error(e);
       // Incluye el límite diario del plan gratuito de D1: no se cobra, solo falla hasta el día siguiente.
       return json({
-        error: 'La nube no está disponible en este momento (puede ser el límite diario del plan gratuito). Tus datos siguen guardados en este teléfono.',
+        error: 'La nube no está disponible en este momento (puede ser el límite diario del plan gratuito). Tus datos siguen guardados en este dispositivo.',
         codigo: 'error-interno'
       } satisfies ErrorApi, 503);
     }

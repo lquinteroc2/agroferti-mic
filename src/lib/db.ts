@@ -213,7 +213,7 @@ export async function guardarEstadoNube(estado: EstadoNube | undefined): Promise
   else await db.ajustes.delete(CLAVE_NUBE);
 }
 
-/** Olvida la sincronización (instantánea y sesión) sin tocar los datos del teléfono. */
+/** Olvida la sincronización (instantánea y sesión) sin tocar los datos del dispositivo. */
 export async function desvincularNube(): Promise<void> {
   await db.transaction('rw', db.sincronizado, db.ajustes, async () => {
     await db.sincronizado.clear();
@@ -222,7 +222,7 @@ export async function desvincularNube(): Promise<void> {
   guardarEliminados({});
 }
 
-/** Borra todos los datos de este teléfono (para usarlo con otra cuenta). Pide confirmación antes. */
+/** Borra todos los datos de este dispositivo (para usarlo con otra cuenta). Pide confirmación antes. */
 export async function borrarDatosDelTelefono(): Promise<void> {
   await db.transaction('rw', [...tablasNube(), db.sincronizado, db.ajustes, db.apartadas] as Table[], async () => {
     for (const t of tablasNube()) await t.clear();
@@ -233,7 +233,7 @@ export async function borrarDatosDelTelefono(): Promise<void> {
   guardarEliminados({});
 }
 
-// ---- Referencias técnicas (fertilizantes ICA/DANE, dosis y niveles), copia en el teléfono ----
+// ---- Referencias técnicas (fertilizantes ICA/DANE, dosis y niveles), copia en el dispositivo ----
 
 const CLAVE_REFERENCIAS = 'referencias';
 
@@ -261,7 +261,7 @@ export const versionesApartadas = {
   descartar: () => db.apartadas.clear()
 };
 
-/** Registros sin lote (p. ej. el lote se eliminó en otro teléfono), para descargarlos o eliminarlos. */
+/** Registros sin lote (p. ej. el lote se eliminó en otro dispositivo), para descargarlos o eliminarlos. */
 export const registrosSinLote = {
   async listar(): Promise<{ tabla: TablaNube; registro: unknown }[]> {
     return db.transaction('r', tablasNube(), async () => {

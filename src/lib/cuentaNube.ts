@@ -1,6 +1,6 @@
 /**
  * Sesión en la nube y sincronización automática. La app funciona igual sin sesión: todo se guarda
- * primero en el teléfono, y la nube se actualiza cuando hay internet.
+ * primero en el dispositivo, y la nube se actualiza cuando hay internet.
  */
 import { almacenSincronizacion, borrarDatosDelTelefono, db, desvincularNube, guardarEstadoNube, guardarReferencias, leerEstadoNube, leerReferencias, registrarEliminacion } from './db';
 import { leerConjunto } from './referencias';
@@ -16,7 +16,7 @@ export type FaseSincronizacion =
 
 interface EstadoExterno {
   fase: FaseSincronizacion;
-  /** Hubo cambios en el teléfono después de la última sincronización. */
+  /** Hubo cambios en el dispositivo después de la última sincronización. */
   cambiosLocales: boolean;
 }
 
@@ -82,8 +82,8 @@ export function sincronizarAhora(): Promise<void> {
       // Las referencias no impiden la sincronización: si fallan, se reintenta en la próxima.
       await actualizarReferencias(inicio.token).catch(() => undefined);
     } catch (e) {
-      const error = e instanceof ErrorNube ? e : new ErrorNube('error-interno', 'No se pudo sincronizar. Tus datos siguen guardados en este teléfono.');
-      // Sesión vencida o cuenta borrada: hay que volver a iniciar sesión (los datos del teléfono no cambian).
+      const error = e instanceof ErrorNube ? e : new ErrorNube('error-interno', 'No se pudo sincronizar. Tus datos siguen guardados en este dispositivo.');
+      // Sesión vencida o cuenta borrada: hay que volver a iniciar sesión (los datos del dispositivo no cambian).
       if (error.codigo === 'no-autorizado') {
         const actual = await leerEstadoNube();
         if (actual) await guardarEstadoNube({ ...actual, token: '' });
@@ -111,10 +111,10 @@ async function actualizarReferencias(token: string, ahora: Date = new Date()): P
   if (conjunto) await guardarReferencias({ conjunto, consultado });
 }
 
-/** El teléfono ya tiene datos de otra cuenta de la nube. */
+/** El dispositivo ya tiene datos de otra cuenta de la nube. */
 export class OtraCuenta extends Error {
   constructor(readonly emailVinculado: string) {
-    super(`Este teléfono está vinculado a otra cuenta (${emailVinculado}). Para usar esta cuenta, primero borra los datos de este teléfono.`);
+    super(`Este dispositivo está vinculado a otra cuenta (${emailVinculado}). Para usar esta cuenta, primero borra los datos de este dispositivo.`);
   }
 }
 
@@ -123,7 +123,7 @@ export async function iniciarSesion(credencial: string, consentimiento: boolean)
   const previo = await leerEstadoNube();
   let sesion;
   try {
-    // La nube no crea ni modifica nada si el teléfono está vinculado a otra cuenta.
+    // La nube no crea ni modifica nada si el dispositivo está vinculado a otra cuenta.
     sesion = await apiNube.iniciarSesion(credencial, consentimiento, previo?.vinculado);
   } catch (e) {
     if (e instanceof ErrorNube && e.codigo === 'otra-cuenta' && previo) throw new OtraCuenta(previo.usuario.email);
@@ -136,14 +136,14 @@ export async function iniciarSesion(credencial: string, consentimiento: boolean)
     vinculado: sesion.usuario.sub,
     cursor: previo?.cursor ?? 0,
     // Se conserva la época anterior: si la cuenta se borró y se volvió a crear, la sincronización lo
-    // detecta y vuelve a subir todo. Un teléfono que nunca sincronizó empieza con la época actual.
+    // detecta y vuelve a subir todo. Un dispositivo que nunca sincronizó empieza con la época actual.
     epoca: previo ? previo.epoca ?? '' : sesion.epoca,
     ultimaSincronizacion: previo?.ultimaSincronizacion
   });
   await sincronizarAhora();
 }
 
-/** Cierra la sesión en este teléfono. Los datos siguen en el teléfono y en la nube. */
+/** Cierra la sesión en este dispositivo. Los datos siguen en el dispositivo y en la nube. */
 export async function cerrarSesion(): Promise<void> {
   await exclusivo(async () => {
     const actual = await leerEstadoNube();
@@ -152,7 +152,7 @@ export async function cerrarSesion(): Promise<void> {
   actualizar({ fase: { fase: 'inactiva' } });
 }
 
-/** Borra los datos de la cuenta en la nube (Ley 1581: supresión). El teléfono conserva los suyos. */
+/** Borra los datos de la cuenta en la nube (Ley 1581: supresión). El dispositivo conserva los suyos. */
 export async function borrarCuentaNube(): Promise<void> {
   await exclusivo(async () => {
     const actual = await leerEstadoNube();
@@ -163,7 +163,7 @@ export async function borrarCuentaNube(): Promise<void> {
   actualizar({ fase: { fase: 'inactiva' } });
 }
 
-/** Para usar el teléfono con otra cuenta: borra sus datos y la vinculación. */
+/** Para usar el dispositivo con otra cuenta: borra sus datos y la vinculación. */
 export async function borrarTelefonoYDesvincular(): Promise<void> {
   await exclusivo(async () => {
     aplicando = true;

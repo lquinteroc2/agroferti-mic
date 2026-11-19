@@ -1,18 +1,18 @@
 /**
- * Sincronización entre el teléfono (IndexedDB) y la nube. Reglas puras, probadas en Node con un
+ * Sincronización entre el dispositivo (IndexedDB) y la nube. Reglas puras, probadas en Node con un
  * almacén en memoria; `db.ts` aporta el almacén real.
  *
- * - El teléfono guarda una "instantánea" del texto de cada registro tal como quedó en la última
+ * - El dispositivo guarda una "instantánea" del texto de cada registro tal como quedó en la última
  *   sincronización. Lo que difiere de la instantánea es un cambio local por subir; lo que está en la
- *   instantánea pero ya no en el teléfono es una eliminación (con la hora real en que se eliminó).
+ *   instantánea pero ya no en el dispositivo es una eliminación (con la hora real en que se eliminó).
  * - En la nube gana la versión más reciente (updatedAt). Si la nube rechaza un cambio por tener una
- *   versión más reciente, el teléfono adopta la de la nube y **aparta** la suya en "versiones
+ *   versión más reciente, el dispositivo adopta la de la nube y **aparta** la suya en "versiones
  *   apartadas", que el usuario puede descargar: nada se pierde en silencio.
  * - Un cambio que llega de la nube no reemplaza un cambio local que aún no se ha subido, ni uno que
  *   el usuario hizo mientras la solicitud iba en camino: ese se sube en la siguiente sincronización.
  * - Solo se suben registros válidos (las mismas reglas que aplica la nube). Los dañados se quedan en
- *   el teléfono y se informan.
- * - Si la cuenta de la nube se borró y se volvió a crear (cambia la "época"), el teléfono olvida lo
+ *   el dispositivo y se informan.
+ * - Si la cuenta de la nube se borró y se volvió a crear (cambia la "época"), el dispositivo olvida lo
  *   sincronizado y vuelve a subir todo lo suyo.
  */
 import { actualizadoDe, MAX_SUBIDA, TABLAS_NUBE, type Cambio, type CambioNube, type RegistroInvalido, type RespuestaSincronizar, type SolicitudSincronizar, type TablaNube } from './protocoloNube.ts';
@@ -44,9 +44,9 @@ export interface AlmacenSincronizacion {
   obtenerInstantanea(clave: string): Promise<string | undefined>;
   /** `null` quita la clave de la instantánea. */
   ponerInstantanea(clave: string, texto: string | null): Promise<void>;
-  /** Olvida toda la instantánea (la cuenta de la nube cambió). Los datos del teléfono no cambian. */
+  /** Olvida toda la instantánea (la cuenta de la nube cambió). Los datos del dispositivo no cambian. */
   vaciarInstantanea(): Promise<void>;
-  /** Hora ISO en que se eliminó el registro en este teléfono, si se conoce. */
+  /** Hora ISO en que se eliminó el registro en este dispositivo, si se conoce. */
   fechaEliminacion(clave: string): string | undefined;
   olvidarEliminacion(clave: string): void;
   apartar(version: VersionApartada): Promise<void>;
@@ -65,11 +65,11 @@ export interface ResultadoSincronizacion {
   apartados: number;
   /** Cambios locales que quedaron sin subir (p. ej. se hicieron mientras se sincronizaba). */
   pendientes: number;
-  /** Registros del teléfono con datos por corregir: no se suben hasta corregirlos. */
+  /** Registros del dispositivo con datos por corregir: no se suben hasta corregirlos. */
   noSubidos: RegistroInvalido[];
   /** La cuenta llegó a su cuota de almacenamiento: los cambios nuevos no se suben. */
   cuotaExcedida: boolean;
-  /** Análisis, planes, registros o ciclos cuyo lote no existe en el teléfono. */
+  /** Análisis, planes, registros o ciclos cuyo lote no existe en el dispositivo. */
   sinLote: number;
   /** La cuenta de la nube se había borrado y vuelto a crear: se subió todo de nuevo. */
   reiniciada: boolean;
@@ -83,7 +83,7 @@ export const claveDe = (tabla: string, id: string) => `${tabla}/${id}`;
 const idDe = (r: unknown): string | undefined => (esObjeto(r) && typeof r.id === 'string' && r.id ? r.id : undefined);
 
 interface CambioLocal extends Cambio {
-  /** El registro no estaba en la última sincronización de este teléfono (creado o restaurado aquí). */
+  /** El registro no estaba en la última sincronización de este dispositivo (creado o restaurado aquí). */
   nuevo: boolean;
 }
 
@@ -125,7 +125,7 @@ export function calcularPendientes(
   return { cambios, noSubidos };
 }
 
-/** Registros que dependen de un lote que no está en el teléfono. */
+/** Registros que dependen de un lote que no está en el dispositivo. */
 export function contarSinLote(local: TablasNube): number {
   const lotes = new Set(local.lotes.map(idDe));
   let total = 0;
@@ -136,7 +136,7 @@ export function contarSinLote(local: TablasNube): number {
 }
 
 /**
- * Escribe en el teléfono una versión de la nube. Devuelve false si no se puede aplicar (JSON
+ * Escribe en el dispositivo una versión de la nube. Devuelve false si no se puede aplicar (JSON
  * ilegible o un lote que rompería la lista de lotes); quien llama la aparta.
  */
 async function escribir(almacen: AlmacenSincronizacion, cambio: CambioNube): Promise<boolean> {
@@ -160,7 +160,7 @@ async function escribir(almacen: AlmacenSincronizacion, cambio: CambioNube): Pro
   return true;
 }
 
-/** Texto actual del registro en el teléfono (null si no existe). */
+/** Texto actual del registro en el dispositivo (null si no existe). */
 async function textoLocal(almacen: AlmacenSincronizacion, tabla: TablaNube, id: string): Promise<string | null> {
   const actual = await almacen.obtener(tabla, id);
   return actual === undefined ? null : codificarRegistro(actual);
@@ -183,7 +183,7 @@ export async function sincronizar(
     const local = await almacen.leerTodo();
     return { ...calcularPendientes(local, await almacen.leerInstantanea(), { ahora: ahora(), fechaEliminacion: c => almacen.fechaEliminacion(c) }), sinLote: contarSinLote(local) };
   };
-  // Los pendientes se calculan una sola vez: leer y codificar todo en cada vuelta sería lento en el teléfono.
+  // Los pendientes se calculan una sola vez: leer y codificar todo en cada vuelta sería lento en el dispositivo.
   let { cambios: cola, noSubidos, sinLote } = await calcular();
   const noSubidosServidor: RegistroInvalido[] = [];
   /** Registros creados o restaurados aquí que la nube tenía eliminados: se vuelven a subir con la hora actual. */
@@ -232,7 +232,7 @@ export async function sincronizar(
         const enNube = rechazados.get(clave);
         if (!enNube) {
           if (cuotaExcedida && c.datos !== null) continue;
-          // Aceptado: así quedó en la nube. Si el teléfono cambió mientras tanto, se subirá en la próxima sincronización.
+          // Aceptado: así quedó en la nube. Si el dispositivo cambió mientras tanto, se subirá en la próxima sincronización.
           await almacen.ponerInstantanea(clave, c.datos);
           if (c.datos === null) almacen.olvidarEliminacion(clave);
           subidos++;
@@ -242,7 +242,7 @@ export async function sincronizar(
         }
         terminados.add(clave);
         if (enNube.datos === null && c.datos !== null && c.nuevo && !revivir.has(clave)) {
-          // Creado o restaurado en este teléfono sobre algo eliminado en la nube: se vuelve a subir con la hora actual.
+          // Creado o restaurado en este dispositivo sobre algo eliminado en la nube: se vuelve a subir con la hora actual.
           revivir.add(clave);
           terminados.delete(clave);
           avance++;
@@ -253,7 +253,7 @@ export async function sincronizar(
         if ((await textoLocal(almacen, c.tabla, c.id)) !== c.datos) continue;
         if (c.datos !== null) await apartar(c.tabla, c.id, c.datos, 'La nube tenía una versión más reciente de este registro.');
         if (!(await escribir(almacen, enNube))) {
-          if (enNube.datos !== null) await apartar(c.tabla, c.id, enNube.datos, 'La versión de la nube no se pudo aplicar en este teléfono.');
+          if (enNube.datos !== null) await apartar(c.tabla, c.id, enNube.datos, 'La versión de la nube no se pudo aplicar en este dispositivo.');
         } else {
           avance++;
         }
@@ -266,7 +266,7 @@ export async function sincronizar(
         // Cambio local sin subir (distinto de lo sincronizado y de lo que llega): se conserva.
         if (actual !== sincronizado && actual !== c.datos) continue;
         if (await escribir(almacen, c)) recibidos++;
-        else if (c.datos !== null) await apartar(c.tabla, c.id, c.datos, 'La versión de la nube no se pudo aplicar en este teléfono.');
+        else if (c.datos !== null) await apartar(c.tabla, c.id, c.datos, 'La versión de la nube no se pudo aplicar en este dispositivo.');
       }
       await almacen.guardarAvance(respuesta.hasta, respuesta.epoca);
     });

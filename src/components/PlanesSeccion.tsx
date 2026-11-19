@@ -93,7 +93,7 @@ export function PlanesSeccion({ lote, onIrAProductos }: { lote: Lote; onIrAProdu
     return origen && { nombre: origen.nombre || 'Plan sin nombre', estado: origen.estado, abrir: () => abrir('ver', origen.id) };
   }
 
-  // Reglas de dosis de referencia (descargadas de la nube); undefined mientras no haya copia en el teléfono.
+  // Reglas de dosis de referencia (descargadas de la nube); undefined mientras no haya copia en el dispositivo.
   const reglas = useLiveQuery(async () => (await leerReferencias())?.conjunto.reglasDosis ?? null, []);
   const fertilizantes = useLiveQuery(async () => (await leerReferencias())?.conjunto.fertilizantes ?? [], [], []);
   /** Agrega al catálogo del usuario un fertilizante del registro ICA (con el precio DANE del departamento, si hay). */

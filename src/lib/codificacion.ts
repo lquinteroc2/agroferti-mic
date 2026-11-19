@@ -1,7 +1,7 @@
 /**
  * Codificación de un registro como texto para la nube. JSON no representa NaN, ±Infinity ni fechas:
  * se guardan etiquetados y se restauran al leer, para que la nube guarde exactamente lo que hay en
- * el teléfono (incluidos los datos dañados).
+ * el dispositivo (incluidos los datos dañados).
  */
 import { esObjeto } from './validacion.ts';
 

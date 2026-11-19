@@ -2,7 +2,7 @@
  * Reglas de contenido para guardar un registro en la nube. Son las MISMAS verificaciones que usa la
  * app al leer sus datos: la app las aplica antes de subir y el Worker otra vez antes de guardar.
  *
- * Un registro con datos dañados sigue en el teléfono (nunca se borra en silencio), pero no se sube
+ * Un registro con datos dañados sigue en el dispositivo (nunca se borra en silencio), pero no se sube
  * hasta que se corrija. Así la nube solo guarda datos válidos.
  */
 import type { PlanVerificado, ProblemaDato } from '../types.ts';

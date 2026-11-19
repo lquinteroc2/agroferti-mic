@@ -47,12 +47,12 @@ export function NubeSeccion({ estado }: { estado: EstadoNube }) {
   }
 
   async function salir() {
-    if (!(await confirmar({ titulo: 'Cerrar sesión', mensaje: '¿Cerrar sesión? Tus datos siguen guardados en este teléfono y en la nube. Para volver a verlos tendrás que ingresar de nuevo con la misma cuenta.', boton: 'Cerrar sesión' }))) return;
+    if (!(await confirmar({ titulo: 'Cerrar sesión', mensaje: '¿Cerrar sesión? Tus datos siguen guardados en este dispositivo y en la nube. Para volver a verlos tendrás que ingresar de nuevo con la misma cuenta.', boton: 'Cerrar sesión' }))) return;
     void accion(cerrarSesion);
   }
 
   async function borrarNube() {
-    if (!(await confirmar({ titulo: 'Borrar mis datos de la nube', mensaje: '¿Borrar todos tus datos de la nube? Se borran de los servidores y los demás dispositivos dejarán de verlos. Los datos de ESTE teléfono no se borran. Esta acción no se puede deshacer.', boton: 'Borrar de la nube', peligro: true }))) return;
+    if (!(await confirmar({ titulo: 'Borrar mis datos de la nube', mensaje: '¿Borrar todos tus datos de la nube? Se borran de los servidores y los demás dispositivos dejarán de verlos. Los datos de ESTE dispositivo no se borran. Esta acción no se puede deshacer.', boton: 'Borrar de la nube', peligro: true }))) return;
     void accion(borrarCuentaNube);
   }
 
@@ -68,19 +68,19 @@ export function NubeSeccion({ estado }: { estado: EstadoNube }) {
 
   const textoEstado = fase.fase === 'sincronizando' ? 'Sincronizando…'
     : fase.fase === 'error' ? fase.error.message
-    : cambiosLocales || (resultado && resultado.pendientes > 0) ? 'Hay cambios guardados en este teléfono que se subirán en unos segundos.'
+    : cambiosLocales || (resultado && resultado.pendientes > 0) ? 'Hay cambios guardados en este dispositivo que se subirán en unos segundos.'
     : estado.ultimaSincronizacion ? `Todo sincronizado. Última vez: ${fechaHoraDeMarca(estado.ultimaSincronizacion)}.`
     : 'Preparando la primera sincronización…';
 
   return (
     <section className="respaldo nube" aria-labelledby="titulo-nube">
       <h2 id="titulo-nube">Mi cuenta</h2>
-      <p>Ingresaste como <strong>{estado.usuario.nombre ? `${estado.usuario.nombre} (${estado.usuario.email})` : estado.usuario.email}</strong>. Tus datos se guardan en este teléfono y se copian a la nube cuando hay internet. Para tener tus datos en papel o en PDF, usa <strong>Informe para el productor</strong> en la ficha de cada lote.</p>
+      <p>Ingresaste como <strong>{estado.usuario.nombre ? `${estado.usuario.nombre} (${estado.usuario.email})` : estado.usuario.email}</strong>. Tus datos se guardan en este dispositivo y se copian a la nube cuando hay internet. Para tener tus datos en papel o en PDF, usa <strong>Informe para el productor</strong> en la ficha de cada lote.</p>
       <p className={`nube-estado${fase.fase === 'error' ? ' nube-estado-error' : ''}`} role="status">{textoEstado}</p>
-      {resultado?.reiniciada && <p className="hint">Tu cuenta en la nube se había borrado y se creó de nuevo: este teléfono volvió a subir todos sus datos.</p>}
-      {resultado?.cuotaExcedida && <p className="error">Tu cuenta llegó al espacio máximo de la nube para este prototipo. Los cambios nuevos se guardan en este teléfono, pero no se suben. Elimina lotes o registros que ya no necesites.</p>}
+      {resultado?.reiniciada && <p className="hint">Tu cuenta en la nube se había borrado y se creó de nuevo: este dispositivo volvió a subir todos sus datos.</p>}
+      {resultado?.cuotaExcedida && <p className="error">Tu cuenta llegó al espacio máximo de la nube para este prototipo. Los cambios nuevos se guardan en este dispositivo, pero no se suben. Elimina lotes o registros que ya no necesites.</p>}
       {resultado && resultado.noSubidos.length > 0 && <div className="hint">
-        <strong>{resultado.noSubidos.length} {resultado.noSubidos.length === 1 ? 'registro tiene' : 'registros tienen'} datos por corregir y no se suben a la nube</strong> (siguen en este teléfono). Corrígelos en su sección:
+        <strong>{resultado.noSubidos.length} {resultado.noSubidos.length === 1 ? 'registro tiene' : 'registros tienen'} datos por corregir y no se suben a la nube</strong> (siguen en este dispositivo). Corrígelos en su sección:
         <ul>{resultado.noSubidos.slice(0, MAX_LISTA).map((r, i) => <li key={i}>{NOMBRE_TABLA[r.tabla] ?? r.tabla}: {r.motivo}</li>)}</ul>
         {resultado.noSubidos.length > MAX_LISTA && <span>… y {resultado.noSubidos.length - MAX_LISTA} más.</span>}
       </div>}

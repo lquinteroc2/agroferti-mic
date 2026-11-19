@@ -35,7 +35,7 @@ export function ProductosSeccion() {
   }, []);
   const productos = lectura?.ok ? lectura.productos : undefined;
   const seleccion = useSeleccionViva(productos, 'titulo-productos');
-  // Catálogo de referencia (ICA y DANE), descargado de la nube y guardado en el teléfono.
+  // Catálogo de referencia (ICA y DANE), descargado de la nube y guardado en el dispositivo.
   const referencias = useLiveQuery(async () => (await leerReferencias())?.conjunto.fertilizantes ?? [], [], []);
   const { modo, modoVisible, seleccionado, esperando } = seleccion;
 

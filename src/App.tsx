@@ -126,7 +126,7 @@ export default function App() {
   }
 
   // Sin sesión no se puede usar la app. Con la sesión vencida y sin internet se deja seguir usándola
-  // (los datos son del teléfono); al volver la conexión hay que ingresar de nuevo.
+  // (los datos son del dispositivo); al volver la conexión hay que ingresar de nuevo.
   const vencida = !!estadoNube?.token && sesionVencida(estadoNube);
   const sesionActiva = !!estadoNube?.token && (!vencida || !enLinea);
   if (estadoNube === null || !sesionActiva) {
@@ -195,13 +195,13 @@ export default function App() {
         {vista === 'informe-general' && <InformeGeneral usuario={estadoNube.usuario.nombre ? `${estadoNube.usuario.nombre} (${estadoNube.usuario.email})` : saludoDe(estadoNube.usuario)} onVolver={() => ir('inicio')} />}
         {vista === 'productos' && <ProductosSeccion key={visita} />}
 
-        {vista === 'ayuda' && <div className="page-narrow help"><div className="section-kicker">GUÍA PARA EL PRODUCTOR</div><h1>Cómo funciona AgroFerti MIC</h1><p className="muted">Organiza la información de tus lotes y registra lo que realmente pasa en el campo. Funciona en el celular, también sin internet.</p>
+        {vista === 'ayuda' && <div className="page-narrow help"><div className="section-kicker">GUÍA PARA EL PRODUCTOR</div><h1>Cómo funciona AgroFerti MIC</h1><p className="muted">Organiza la información de tus lotes y registra lo que realmente pasa en el campo. Funciona en el celular y en el computador, también sin internet.</p>
           <div className="help-item"><span>1</span><div><h3>Crea tus lotes</h3><p>En <strong>Mis lotes</strong>, registra cada terreno con su nombre, cultivo, área, fecha de siembra y ubicación.</p></div></div>
           <div className="help-item"><span>2</span><div><h3>Registra el análisis de suelo</h3><p>En la ficha del lote, copia los resultados del laboratorio. La app te muestra, paso a paso, a cuántos kilos por hectárea equivale cada resultado.</p></div></div>
           <div className="help-item"><span>3</span><div><h3>Prepara el plan de fertilización</h3><p>En la ficha del lote, crea una propuesta de plan: la app te propone las metas de nitrógeno, fósforo y potasio según tu análisis de suelo y la zona, y te sugiere fertilizantes con registro ICA para cubrirlas. Con eso calcula cuánto aplicar, cuántos bultos y cuánto cuesta. Puedes cambiar todo antes de guardar; después, el plan se revisa y se aprueba.</p></div></div>
           <div className="help-item"><span>4</span><div><h3>Haz seguimiento</h3><p>Registra lo que aplicaste, tus observaciones y las tareas pendientes. La app compara lo aplicado con el plan aprobado.</p></div></div>
           <div className="help-item"><span>5</span><div><h3>Cierra el ciclo e imprime</h3><p>Al cosechar, cierra el ciclo en el <strong>historial del lote</strong> para empezar un nuevo ciclo sin perder lo anterior. Imprime o guarda en PDF el informe de un lote o el de todos tus lotes.</p></div></div>
-          <div className="info-box"><strong>Tus datos:</strong> se guardan en este teléfono y en tu cuenta en la nube (con tu autorización), así no se pierden si cambias de teléfono. La app funciona sin internet y se sincroniza cuando hay conexión. Para tenerlos en papel o en PDF, usa <strong>Informe para el productor</strong> en la ficha de cada lote. Puedes borrar tus datos de la nube en <strong>Mi cuenta</strong>, en Mis lotes.</div>
+          <div className="info-box"><strong>Tus datos:</strong> se guardan en este dispositivo y en tu cuenta en la nube (con tu autorización), así no se pierden si cambias de dispositivo. La app funciona sin internet y se sincroniza cuando hay conexión. Para tenerlos en papel o en PDF, usa <strong>Informe para el productor</strong> en la ficha de cada lote. Puedes borrar tus datos de la nube en <strong>Mi cuenta</strong>, en Mis lotes.</div>
           <button className="btn btn-primary" onClick={() => ir('inicio')}>Ir a mis lotes</button>
         </div>}
         {((vista === 'editar' || vista === 'detalle' || vista === 'informe') && !activo) && <div className="empty"><p>Selecciona un lote para continuar.</p><button className="btn btn-primary" onClick={() => ir('inicio')}>Ver mis lotes</button></div>}
