@@ -243,3 +243,33 @@ export function departamentoDeUbicacion(f: FertilizanteReferencia, ubicacion?: s
   const donde = sinTildes(ubicacion);
   return f.precios.find(p => donde.includes(sinTildes(p.departamento)))?.departamento;
 }
+
+export interface FiltroCatalogo {
+  /** Palabras del nombre, la empresa, el registro o la composición ("urea", "15-15-15", "yara"). */
+  texto?: string;
+  /** Formas químicas que debe aportar el producto (todas), p. ej. ['P₂O₅', 'K₂O']. */
+  formas?: string[];
+  soloConPrecio?: boolean;
+}
+
+/**
+ * Catálogo completo filtrado para explorarlo. Orden: con precio del DANE, verificados y, si se pide
+ * una sola forma química, mayor concentración; si no, por nombre.
+ */
+export function filtrarCatalogo(lista: ReadonlyArray<FertilizanteReferencia>, filtro: FiltroCatalogo): FertilizanteReferencia[] {
+  const palabras = sinTildes(filtro.texto ?? '').split(/\s+/).filter(Boolean);
+  const formas = filtro.formas ?? [];
+  const porcentaje = (f: FertilizanteReferencia, forma: string) => f.contenido.find(c => c.forma === forma)?.porcentaje ?? 0;
+  return lista
+    .filter(f => !filtro.soloConPrecio || f.precios.length > 0)
+    .filter(f => formas.every(forma => porcentaje(f, forma) > 0))
+    .filter(f => {
+      if (!palabras.length) return true;
+      const donde = sinTildes(`${f.nombre} ${f.empresa} ${f.registroIca} ${resumenComposicion(f)} ${f.composicionTexto}`);
+      return palabras.every(p => donde.includes(p));
+    })
+    .sort((a, b) => Number(b.precios.length > 0) - Number(a.precios.length > 0)
+      || Number(b.verificacion === 'ok') - Number(a.verificacion === 'ok')
+      || (formas.length === 1 ? porcentaje(b, formas[0]) - porcentaje(a, formas[0]) : 0)
+      || a.nombre.localeCompare(b.nombre));
+}

@@ -335,3 +335,28 @@
 .productos-sugeridos li small,.productos-sugeridos>small{display:block;color:#5f7468;font-size:.76rem}
 .productos-sugeridos li .btn{flex-shrink:0;min-height:44px}
 @media(max-width:560px){.productos-sugeridos li{flex-direction:column;align-items:stretch}}
+/* Productos: pestañas y catálogo de fertilizantes del ICA */
+.pestanas{display:flex;gap:6px;border-bottom:1px solid #dfe7dc;margin-bottom:18px;overflow-x:auto}
+.pestanas button{border:0;background:transparent;padding:12px 16px;min-height:44px;font-weight:700;color:#5f7468;border-bottom:3px solid transparent;white-space:nowrap}
+.pestanas button.activa{color:#194c3b;border-bottom-color:#194c3b}
+.catalogo-filtros{display:grid;gap:12px;background:white;border:1px solid #e0e7dd;border-radius:12px;padding:14px 16px;margin-bottom:10px}
+.catalogo-buscar{display:flex;flex-direction:column;gap:6px;font-weight:700;font-size:.85rem;color:#344d3e}
+.catalogo-buscar input{border:1px solid #d7e0d6;border-radius:9px;padding:12px;font:inherit;font-weight:400}
+.catalogo-formas{border:0;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:8px}
+.catalogo-formas legend{font-weight:700;font-size:.85rem;color:#344d3e;margin-bottom:6px;padding:0}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid #d7e0d6;border-radius:99px;padding:8px 12px;min-height:44px;font-size:.84rem;background:#fafcf8;cursor:pointer}
+.chip:has(input:checked){background:#e6f1e1;border-color:#85ab83;color:#194c3b;font-weight:700}
+.catalogo-lista{list-style:none;padding:0;margin:0 0 14px;display:grid;gap:8px}
+.catalogo-ficha{background:white;border:1px solid #e0e7dd;border-radius:12px}
+.catalogo-ficha summary{cursor:pointer;padding:12px 16px;display:flex;flex-direction:column;gap:3px;min-height:44px;list-style:none}
+.catalogo-ficha summary::-webkit-details-marker{display:none}
+.catalogo-ficha summary strong::before{content:'▸ ';color:#71954b}
+.catalogo-ficha[open] summary strong::before{content:'▾ '}
+.catalogo-ficha summary span{font-size:.86rem;color:#2f4b3c}
+.catalogo-ficha summary small{font-size:.78rem;color:#5f7468}
+.catalogo-ficha[open] summary{border-bottom:1px solid #eef2ec}
+.catalogo-detalle{padding:12px 16px;display:grid;gap:10px;font-size:.86rem}
+.catalogo-detalle p{margin:0}
+.catalogo-detalle label{display:flex;flex-direction:column;gap:6px;font-weight:700}
+.catalogo-detalle select{border:1px solid #d7e0d6;border-radius:9px;padding:10px;font:inherit;font-weight:400;max-width:100%}
+.catalogo-detalle .btn{justify-self:start;min-height:44px}

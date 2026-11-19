@@ -158,3 +158,18 @@ test('catálogo: el precio del departamento se toma de la ubicación del lote', 
   assert.equal(departamentoDeUbicacion(f, 'Tunja, Boyacá'), undefined);
   assert.equal(departamentoDeUbicacion(f, undefined), undefined);
 });
+
+import { filtrarCatalogo } from '../src/lib/referencias.ts';
+
+test('catálogo para explorar: filtra por texto, por nutrientes que aporta y por precio', () => {
+  const lista = [
+    fertilizante(),
+    fertilizante({ id: 'kcl', nombre: 'Cloruro de potasio 0-0-60', registroIca: '11', composicionTexto: 'POTASIO SOLUBLE EN AGUA (K₂O) 60 %', contenido: [{ elemento: 'Potasio', forma: 'K₂O', porcentaje: 60 }], precios: [] }),
+    fertilizante({ id: 'npk', nombre: 'Triple 15', registroIca: '12', composicionTexto: 'NITRÓGENO TOTAL (N) 15 %, POTASIO (K₂O) 15 %', contenido: [{ elemento: 'Nitrógeno', forma: 'N', porcentaje: 15 }, { elemento: 'Fósforo', forma: 'P₂O₅', porcentaje: 15 }, { elemento: 'Potasio', forma: 'K₂O', porcentaje: 15 }], precios: [] })
+  ].map(f => leerFertilizante(f)!);
+  assert.equal(filtrarCatalogo(lista, {}).length, 3, 'sin filtros, todo el catálogo');
+  assert.deepEqual(filtrarCatalogo(lista, { formas: ['K₂O'] }).map(f => f.id), ['kcl', 'npk'], 'mayor concentración primero');
+  assert.deepEqual(filtrarCatalogo(lista, { formas: ['N', 'K₂O'] }).map(f => f.id), ['npk']);
+  assert.deepEqual(filtrarCatalogo(lista, { soloConPrecio: true }).map(f => f.id), ['dap-ejemplo']);
+  assert.deepEqual(filtrarCatalogo(lista, { texto: 'FÓSFORO asimilable' }).map(f => f.id), ['dap-ejemplo'], 'busca también en la composición garantizada');
+});
