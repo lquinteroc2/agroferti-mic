@@ -78,6 +78,8 @@ export function ProductoDetalle({ producto: v, onEditar, onEliminar }: Props) {
             <div><dt>Kg por bulto</dt><dd>{p.presentacionKg !== undefined ? `${formatearExacto(p.presentacionKg)} kg` : sinDato}</dd></div>
             <div><dt>Precio del bulto</dt><dd>{p.precioPresentacionCop !== undefined ? `${formatearExacto(p.precioPresentacionCop)} COP` : sinDato}</dd></div>
             <div><dt>Fecha del precio</dt><dd>{p.fechaPrecio ? fechaLegible(p.fechaPrecio) : sinDato}</dd></div>
+            {p.fuentePrecio && <div><dt>Fuente del precio</dt><dd>{p.fuentePrecio}</dd></div>}
+            {p.registroIca && <div><dt>Registro ICA</dt><dd>{p.registroIca}</dd></div>}
           </dl>
         </section>
 

@@ -282,3 +282,21 @@
 .plan-resumen-total{margin:10px 0 0;font-size:.95rem}
 .plan-detalle-calculo{margin:14px 0}
 .plan-detalle-calculo>summary{cursor:pointer;font-weight:700;color:#27503c;text-decoration:underline;min-height:44px;display:flex;align-items:center}
+/* Catálogo de referencia (ICA y DANE) en el formulario de producto */
+.referencia-picker{background:#f6faf3;border:1px solid #cfe2c6;border-radius:12px;padding:14px 16px}
+.referencia-detalle{margin-top:12px;font-size:.86rem;color:#344d3e}
+.referencia-detalle p{margin:0 0 6px}
+.referencia-fuente{font-size:.78rem;color:#5f7468}
+/* Metas sugeridas según referencias técnicas */
+.sugerencias{background:#f6faf3;border:1px solid #cfe2c6;border-radius:12px;padding:14px 16px;margin:16px 0}
+.sugerencias h3{margin:0 0 8px;font-size:1rem;color:#194c3b}
+.sugerencias-region{display:flex;flex-direction:column;gap:6px;font-size:.85rem;font-weight:700;color:#344d3e;margin:8px 0}
+.sugerencias-region select{border:1px solid #d7e0d6;border-radius:9px;padding:11px 12px;background:white}
+.sugerencias-lista{list-style:none;padding:0;margin:10px 0 0;display:grid;gap:10px}
+.sugerencias-lista li{display:flex;gap:12px;align-items:center;justify-content:space-between;background:white;border:1px solid #e0e7dd;border-radius:10px;padding:10px 12px}
+.sugerencias-lista li>div{display:flex;flex-direction:column;gap:3px;min-width:0}
+.sugerencias-lista small{color:#5f7468;font-size:.8rem}
+.sugerencias-fuente{font-style:italic}
+.sugerencias-no{margin-top:10px;font-size:.84rem}
+.sugerencias-no summary{cursor:pointer;color:#27503c;font-weight:700;min-height:44px;display:flex;align-items:center}
+@media(max-width:720px){.sugerencias-lista li{flex-direction:column;align-items:stretch}}

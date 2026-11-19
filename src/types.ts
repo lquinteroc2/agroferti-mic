@@ -118,6 +118,10 @@ export interface ProductoFertilizante {
   /** Precio de una presentación en COP; exige kg de la presentación y fecha del precio. */
   precioPresentacionCop?: number;
   fechaPrecio?: string;
+  /** Número de registro ICA del producto (si se conoce, p. ej. tomado del catálogo de referencia). */
+  registroIca?: string;
+  /** De dónde salió el precio (p. ej. "DANE-SIPSA, Cundinamarca, octubre de 2026"). */
+  fuentePrecio?: string;
   /** Dato ficticio: la interfaz debe mostrar "EJEMPLO". */
   esEjemplo: boolean;
   createdAt?: string;

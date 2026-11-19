@@ -6,6 +6,7 @@ import { crearRepositorioPlanes, crearRepositorioProductos } from './repositorio
 import { crearRepositorioSeguimiento } from './repositorioSeguimiento';
 import type { EstadoNube } from './nube';
 import { TABLAS_NUBE, type TablaNube } from './protocoloNube';
+import { leerConjunto, type ConjuntoReferencias } from './referencias';
 import type { AlmacenSincronizacion, TablasNube, VersionApartada } from './sincronizacion';
 
 export const db = new Dexie('AgroFertiMIC') as Dexie & {
@@ -230,6 +231,27 @@ export async function borrarDatosDelTelefono(): Promise<void> {
     await db.ajustes.delete(CLAVE_NUBE);
   });
   guardarEliminados({});
+}
+
+// ---- Referencias técnicas (fertilizantes ICA/DANE, dosis y niveles), copia en el teléfono ----
+
+const CLAVE_REFERENCIAS = 'referencias';
+
+export interface ReferenciasGuardadas {
+  conjunto: ConjuntoReferencias;
+  /** Cuándo se consultó la nube por última vez (ISO). */
+  consultado: string;
+}
+
+export async function leerReferencias(): Promise<ReferenciasGuardadas | undefined> {
+  const fila = await db.ajustes.get(CLAVE_REFERENCIAS);
+  const valor = fila?.valor as Partial<ReferenciasGuardadas> | undefined;
+  const conjunto = leerConjunto(valor?.conjunto);
+  return conjunto && typeof valor?.consultado === 'string' ? { conjunto, consultado: valor.consultado } : undefined;
+}
+
+export async function guardarReferencias(r: ReferenciasGuardadas): Promise<void> {
+  await db.ajustes.put({ clave: CLAVE_REFERENCIAS, valor: r });
 }
 
 /** Versiones apartadas por la sincronización, para descargarlas o descartarlas. */

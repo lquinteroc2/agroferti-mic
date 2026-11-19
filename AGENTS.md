@@ -10,6 +10,7 @@ Contexto: AgroFerti MIC es un prototipo académico SENA del Grupo 1, multicultiv
 - Mantén UI en español, prioriza Android de gama media y diseño accesible. Datos personales en la nube solo con la autorización del titular (Ley 1581 de 2012).
 
 ## Seguridad agronómica
+- **Decisión del 19 de noviembre de 2026 (aprobada por el dueño del proyecto):** la app puede **sugerir** metas nutricionales y fertilizantes comerciales, pero **solo** a partir de referencias guardadas en la base de datos (tabla `referencias` de D1), cada una con su fuente publicada (título, entidad, año, URL, página y tabla), y marcadas "por verificar" hasta que las revise una persona. La sugerencia se muestra como **rango con su cita y la advertencia de revisarla con un agrónomo**; el usuario decide el valor y la app nunca la aplica sola. Si para un cultivo, método de laboratorio o unidad no hay referencia, la app no sugiere nada.
 - No inventes dosis, umbrales de deficiencia, intervalos de aplicación, aprobación técnica o mediciones de campo.
 - No traduzcas automáticamente ppm del laboratorio en kg de fertilizante por hectárea. Ppm (mg/kg) a kg/ha es solo equivalencia dimensional condicionada por masa del suelo, no biodisponibilidad ni prescripción.
 - La cantidad de un fertilizante se calcula **solo si** existe una meta nutrimental validada, con fuente, fecha y nutriente/forma química inequívocos.

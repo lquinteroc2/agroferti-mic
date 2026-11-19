@@ -5,7 +5,7 @@ import { EstadoPlanBadge, type DatosCambio } from './PlanEstado';
 import { PlanForm, type OpcionesPlanFormulario } from './PlanForm';
 import { useSeleccionViva, type ModoSeccion } from './useSeleccionViva';
 import { calcularPlan } from '../lib/calculos';
-import { repositorioAnalisis, repositorioPlanes, repositorioProductos, repositorioSeguimiento } from '../lib/db';
+import { leerReferencias, repositorioAnalisis, repositorioPlanes, repositorioProductos, repositorioSeguimiento } from '../lib/db';
 import { fechaDeMarca, fechaLegible, formatearExacto, formatearResultado } from '../lib/formato';
 import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import type { DatosPlan } from '../lib/validacionPlan';
@@ -91,6 +91,8 @@ export function PlanesSeccion({ lote, onIrAProductos }: { lote: Lote; onIrAProdu
     return origen && { nombre: origen.nombre || 'Plan sin nombre', estado: origen.estado, abrir: () => abrir('ver', origen.id) };
   }
 
+  // Reglas de dosis de referencia (descargadas de la nube); undefined mientras no haya copia en el teléfono.
+  const reglas = useLiveQuery(async () => (await leerReferencias())?.conjunto.reglasDosis ?? null, []);
   const productos = lectura?.ok ? lectura.productos : [];
   const analisis = lectura?.ok ? lectura.analisis : [];
   const registros = lectura?.ok ? lectura.registros : [];
@@ -129,8 +131,8 @@ export function PlanesSeccion({ lote, onIrAProductos }: { lote: Lote; onIrAProdu
         No se pudieron leer los planes guardados en este navegador. Tus datos no se han borrado. Recarga la página; si el problema sigue, revisa que el navegador permita almacenamiento local y no esté en modo privado.
       </div>}
 
-      {modo === 'nuevo' && <PlanForm lote={lote} productos={productos} analisis={analisis} onGuardar={guardar} onCancelar={() => abrir('lista', null)} />}
-      {modo === 'editar' && seleccionado && <PlanForm key={seleccionado.id} inicial={seleccionado} lote={lote} productos={productos} analisis={analisis} onGuardar={guardar} onCancelar={() => abrir('ver')} />}
+      {modo === 'nuevo' && <PlanForm lote={lote} productos={productos} analisis={analisis} reglas={reglas ?? undefined} onGuardar={guardar} onCancelar={() => abrir('lista', null)} />}
+      {modo === 'editar' && seleccionado && <PlanForm key={seleccionado.id} inicial={seleccionado} lote={lote} productos={productos} analisis={analisis} reglas={reglas ?? undefined} onGuardar={guardar} onCancelar={() => abrir('ver')} />}
       {modo === 'ver' && seleccionado && <>
         <button className="back" onClick={() => abrir('lista', null)}>← Volver a los planes del lote</button>
         <PlanDetalle

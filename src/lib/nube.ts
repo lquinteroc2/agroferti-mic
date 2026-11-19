@@ -64,7 +64,10 @@ export const apiNube = {
     llamar<RespuestaSesion>('/api/sesion', { method: 'POST', body: JSON.stringify({ credencial, consentimiento, vinculado } satisfies SolicitudSesion) }),
   sincronizar: (token: string, solicitud: SolicitudSincronizar) =>
     llamar<RespuestaSincronizar>('/api/sincronizar', { method: 'POST', body: JSON.stringify(solicitud) }, token),
-  borrarCuenta: (token: string) => llamar<{ ok: true }>('/api/cuenta', { method: 'DELETE' }, token)
+  borrarCuenta: (token: string) => llamar<{ ok: true }>('/api/cuenta', { method: 'DELETE' }, token),
+  /** Referencias técnicas; si el teléfono ya tiene la versión, responde { sinCambios: true }. */
+  referencias: (token: string, version: string) =>
+    llamar<unknown>('/api/referencias?version=' + encodeURIComponent(version), { method: 'GET' }, token)
 };
 
 export const sesionVencida = (estado: Pick<EstadoNube, 'vence'>, ahora: Date = new Date()) => !(Date.parse(estado.vence) > ahora.getTime());

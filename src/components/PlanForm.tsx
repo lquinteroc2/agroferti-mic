@@ -15,6 +15,10 @@ import {
 } from '../lib/validacionPlan';
 import type { AnalisisVerificado, CopiaProducto, Lote, MetaNutrimental, PlanVerificado, ProductoFertilizante } from '../types';
 import { resumenContenido } from './ProductoDetalle';
+import { SugerenciasPlan } from './SugerenciasPlan';
+import type { ReglaDosis } from '../lib/referencias';
+import type { Sugerencia } from '../lib/sugerencias';
+import { citaDeSugerencia } from '../lib/sugerencias';
 
 export interface OpcionesPlanFormulario {
   actualizarArea: boolean;
@@ -30,9 +34,12 @@ interface Props {
   analisis: ReadonlyArray<AnalisisVerificado>;
   onGuardar: (datos: DatosPlan, opciones: OpcionesPlanFormulario) => Promise<void>;
   onCancelar: () => void;
+  /** Reglas de dosis de referencia (de la nube); undefined si aún no se han descargado. */
+  reglas?: ReadonlyArray<ReglaDosis>;
 }
 
-type FilaMeta = EntradaMeta & { clave: number };
+/** Con rangoSugerido, la meta vino de una sugerencia: se muestra el rango junto al valor. */
+type FilaMeta = EntradaMeta & { clave: number; rangoSugerido?: { min: number; max: number } };
 type CampoMeta = 'kgHa' | 'fuente' | 'fechaFuente' | 'origen' | 'productoId';
 
 const OTRO = '__otro';
@@ -64,7 +71,7 @@ function avisoProducto(fila: FilaMeta, producto?: Pick<CopiaProducto, 'nombre' |
   return <p className="hint hint-warn">{declara} <strong>Esta meta no se calculará:</strong> la meta está en {forma} y la etiqueta no declara esa forma. La app no convierte entre formas químicas (P y P₂O₅, K y K₂O).</p>;
 }
 
-export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCancelar }: Props) {
+export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCancelar, reglas }: Props) {
   // Si el análisis de referencia se eliminó, la referencia se quita al guardar (con aviso), en lugar de impedir guardar.
   const [referenciaPerdida] = useState(() =>
     !!inicial?.analisisReferenciaId && !analisis.some(a => a.id === inicial.analisisReferenciaId));
@@ -105,6 +112,25 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
     if (entrada.metas[indice]?.existente) setQuitadas(n => n + 1);
     setEntrada(e => ({ ...e, metas: e.metas.filter((_, i) => i !== indice) }));
     setErrores(({ metas: _, ...resto }) => resto);
+  }
+
+  /** Agrega una meta a partir de una sugerencia: nutriente, forma y fuente; el valor en kg/ha lo escribe el usuario. */
+  function usarSugerencia(s: Sugerencia) {
+    const el = CATALOGO_NUTRIENTES.find(e => e.formas.includes(s.forma));
+    const fila: FilaMeta = {
+      ...filaVacia(),
+      elemento: el?.nombre ?? s.forma, forma: s.forma, elementoLibre: !el, formaLibre: !el,
+      fuente: citaDeSugerencia(s),
+      fechaFuente: s.regla.fuente.anio ? String(s.regla.fuente.anio) + '-01-01' : '',
+      origen: 'real',
+      rangoSugerido: { min: s.minKgHa, max: s.maxKgHa }
+    };
+    setEntrada(e => {
+      // Una primera meta nueva y vacía se reemplaza en lugar de dejarla en blanco.
+      const vacia = e.metas.length === 1 && !e.metas[0].existente && !e.metas[0].elemento && !e.metas[0].kgHa;
+      return { ...e, metas: vacia ? [fila] : [...e.metas, fila] };
+    });
+    corregido('metas');
   }
 
   function elegirElemento(indice: number, valor: string) {
@@ -158,7 +184,7 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
               {analisis.filter(a => a.problemas.length === 0 || a.id === entrada.analisisReferenciaId).map(a =>
                 <option key={a.id} value={a.id}>Análisis del {fechaLegible(a.fechaAnalisis)}{a.laboratorio ? ` · ${a.laboratorio}` : ''}</option>)}
             </select>
-            <small>Solo como contexto: el análisis no entra en ningún cálculo del plan.</small>
+            <small>Sirve para sugerir metas con las referencias técnicas (abajo). Las cantidades se calculan con las metas que escribas.</small>
             {referenciaPerdida && <span className="field-warning">El análisis que este plan tenía como referencia ya no existe. Al guardar, el plan quedará sin referencia.</span>}
           </label>
           {!inicial && <label>Elaborado por
@@ -166,6 +192,9 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
           </label>}
         </div>
       </fieldset>
+
+      <SugerenciasPlan cultivo={lote.cultivo} analisis={analisis.find(a => a.id === entrada.analisisReferenciaId)}
+        reglas={reglas ?? []} descargadas={reglas !== undefined} onUsar={usarSugerencia} />
 
       <fieldset className="form-group">
         <legend>Metas y productos</legend>
@@ -204,7 +233,8 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
                   <input value={m.forma} onChange={e => cambiarFila(i, { forma: e.target.value })} maxLength={20} placeholder="Ej. SO₃" aria-invalid={!!error} />
                 </label>}
                 <label>Meta (kg/ha)
-                  <input inputMode="decimal" value={m.kgHa} onChange={e => cambiarCampo(i, 'kgHa', e.target.value)} placeholder="Según tu fuente" aria-invalid={!!error} />
+                  <input inputMode="decimal" value={m.kgHa} onChange={e => cambiarCampo(i, 'kgHa', e.target.value)} placeholder={m.rangoSugerido ? `Entre ${m.rangoSugerido.min} y ${m.rangoSugerido.max}` : 'Según tu fuente'} aria-invalid={!!error} />
+                  {m.rangoSugerido && <small>Rango de la referencia: {m.rangoSugerido.min} a {m.rangoSugerido.max} kg/ha. Escribe el valor que decidas.</small>}
                 </label>
                 <label>Fuente técnica
                   <input value={m.fuente} onChange={e => cambiarCampo(i, 'fuente', e.target.value)} maxLength={200} placeholder="Documento, profesional o laboratorio" aria-invalid={!!error} />

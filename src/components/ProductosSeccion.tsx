@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { OrigenBadge, ProductoDetalle, resumenContenido } from './ProductoDetalle';
 import { ProductoForm } from './ProductoForm';
 import { useSeleccionViva, type ModoSeccion } from './useSeleccionViva';
-import { repositorioProductos } from '../lib/db';
+import { leerReferencias, repositorioProductos } from '../lib/db';
 import { fechaLegible, formatearExacto } from '../lib/formato';
 import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import type { DatosProducto } from '../lib/validacionPlan';
@@ -34,6 +34,8 @@ export function ProductosSeccion() {
   }, []);
   const productos = lectura?.ok ? lectura.productos : undefined;
   const seleccion = useSeleccionViva(productos, 'titulo-productos');
+  // Catálogo de referencia (ICA y DANE), descargado de la nube y guardado en el teléfono.
+  const referencias = useLiveQuery(async () => (await leerReferencias())?.conjunto.fertilizantes ?? [], [], []);
   const { modo, modoVisible, seleccionado, esperando } = seleccion;
 
   function abrir(m: ModoSeccion, id?: string | null) {
@@ -84,7 +86,7 @@ export function ProductosSeccion() {
 
       {modo === 'nuevo' && <>
         <button className="back" onClick={() => abrir('lista', null)}>← Volver al catálogo</button>
-        <ProductoForm onGuardar={guardar} onCancelar={() => abrir('lista', null)} />
+        <ProductoForm referencias={referencias} onGuardar={guardar} onCancelar={() => abrir('lista', null)} />
       </>}
       {modo === 'editar' && seleccionado && <button className="back" onClick={() => abrir('ver')}>← Volver al producto</button>}
       {modo === 'editar' && seleccionado && <ProductoForm key={seleccionado.id} inicial={seleccionado} onGuardar={guardar} onCancelar={() => abrir('ver')} />}

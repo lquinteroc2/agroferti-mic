@@ -231,6 +231,30 @@ async function sincronizar(request: Request, env: Env): Promise<Response> {
   return json(respuesta);
 }
 
+const TIPOS_REFERENCIA: Record<string, 'fertilizantes' | 'reglasDosis' | 'niveles'> = { fertilizante: 'fertilizantes', dosis: 'reglasDosis', nivel: 'niveles' };
+
+/**
+ * Referencias técnicas (iguales para todos). Si el teléfono ya tiene la versión actual, no se leen
+ * las filas: así se cuida el límite diario de lecturas del plan gratuito.
+ */
+async function referencias(request: Request, env: Env): Promise<Response> {
+  await cuentaDeSesion(request, env);
+  const meta = await env.DB.prepare("SELECT valor FROM referencias_meta WHERE clave = 'version'").first<{ valor: string }>();
+  if (!meta) return json({ version: '', fertilizantes: [], reglasDosis: [], niveles: [] });
+  if (new URL(request.url).searchParams.get('version') === meta.valor) return json({ sinCambios: true, version: meta.valor });
+  const filas = (await env.DB.prepare('SELECT tipo, datos FROM referencias ORDER BY tipo, id').all<{ tipo: string; datos: string }>()).results;
+  const conjunto: Record<string, unknown> & { version: string; fertilizantes: unknown[]; reglasDosis: unknown[]; niveles: unknown[] } =
+    { version: meta.valor, fertilizantes: [], reglasDosis: [], niveles: [] };
+  for (const f of filas) {
+    const destino = TIPOS_REFERENCIA[f.tipo];
+    if (!destino) continue;
+    try {
+      conjunto[destino].push(JSON.parse(f.datos));
+    } catch { /* una fila ilegible se omite; la app verifica cada referencia */ }
+  }
+  return json(conjunto);
+}
+
 /** Derecho de supresión (Ley 1581): borra todos los datos del usuario en la nube. El teléfono no cambia. */
 async function borrarCuenta(request: Request, env: Env): Promise<Response> {
   const cuenta = await cuentaDeSesion(request, env);
@@ -249,6 +273,7 @@ export default {
       if (url.pathname === '/api/sesion' && request.method === 'POST') return await iniciarSesion(request, env);
       if (url.pathname === '/api/sincronizar' && request.method === 'POST') return await sincronizar(request, env);
       if (url.pathname === '/api/cuenta' && request.method === 'DELETE') return await borrarCuenta(request, env);
+      if (url.pathname === '/api/referencias' && request.method === 'GET') return await referencias(request, env);
       return json({ error: 'Ruta no encontrada.', codigo: 'solicitud-invalida' } satisfies ErrorApi, 404);
     } catch (e) {
       if (e instanceof ErrorRespuesta) return json({ error: e.message, codigo: e.codigo } satisfies ErrorApi, e.estado);

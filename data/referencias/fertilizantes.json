@@ -1,0 +1,1801 @@
+[
+  {
+    "id": "urea-granular-46-n-ica-7028",
+    "nombre": "Urea Granular 46% N",
+    "empresa": "PRECISAGRO SAS",
+    "registroIca": "7028",
+    "estadoRegistro": "VIGENTE",
+    "composicionTexto": "NITROGENO TOTAL (N) 46,0%; NITROGENO UREICO(N) 46,0%; BIURET MAXIMO 1,5%; HUMEDAD MAXIMA 1,0%",
+    "contenido": [
+      {
+        "elemento": "Nitrógeno",
+        "forma": "N",
+        "porcentaje": 46
+      }
+    ],
+    "presentacionKg": 50,
+    "precios": [
+      {
+        "departamento": "Atlántico",
+        "precioPromedioCop": 219250,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Bolívar",
+        "precioPromedioCop": 175000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Córdoba",
+        "precioPromedioCop": 170320,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Cundinamarca",
+        "precioPromedioCop": 153355.5555556,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Huila",
+        "precioPromedioCop": 172000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Magdalena",
+        "precioPromedioCop": 222400,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Norte de Santander",
+        "precioPromedioCop": 175000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Santander",
+        "precioPromedioCop": 152833.3333333,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Sucre",
+        "precioPromedioCop": 187000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      }
+    ],
+    "verificacion": "ok",
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 231, ítem 3861, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+  },
+  {
+    "id": "nutrimon-urea-46-ica-508",
+    "nombre": "Nutrimon Urea 46%",
+    "empresa": "MONOMEROS COLOMBO VENEZOLANOS SAS",
+    "registroIca": "508",
+    "estadoRegistro": "VIGENTE",
+    "composicionTexto": "NITROGENO TOTAL (N) 46%; NITROGENO UREICO (N) 46%; BIURET MAXIMA 1%; HUMEDAD MAXIMA 1%",
+    "contenido": [
+      {
+        "elemento": "Nitrógeno",
+        "forma": "N",
+        "porcentaje": 46
+      }
+    ],
+    "presentacionKg": 50,
+    "precios": [
+      {
+        "departamento": "Antioquia",
+        "precioPromedioCop": 177594.1176471,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Cesar",
+        "precioPromedioCop": 175150,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Cundinamarca",
+        "precioPromedioCop": 178888.8888889,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Meta",
+        "precioPromedioCop": 156900,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Santander",
+        "precioPromedioCop": 167400,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Sucre",
+        "precioPromedioCop": 190000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Tolima",
+        "precioPromedioCop": 150460,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      }
+    ],
+    "verificacion": "ok",
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 4, ítem 43, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+  },
+  {
+    "id": "dap-fosfato-diamonico-18-46-0-ica-245",
+    "nombre": "DAP - Fosfato Diamónico 18-46-0",
+    "empresa": "YARA COLOMBIA SA",
+    "registroIca": "245",
+    "estadoRegistro": "VIGENTE",
+    "composicionTexto": "NITROGENO TOTAL (N) 18%; NITROGENO AMONIACAL (N) 18%; FOSFORO ASIMILIBLE (P₂O₅) 46%; HUMEDAD MAXIMA 1%",
+    "contenido": [
+      {
+        "elemento": "Nitrógeno",
+        "forma": "N",
+        "porcentaje": 18
+      },
+      {
+        "elemento": "Fósforo",
+        "forma": "P₂O₅",
+        "porcentaje": 46
+      }
+    ],
+    "presentacionKg": 50,
+    "precios": [
+      {
+        "departamento": "Antioquia",
+        "precioPromedioCop": 228500,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Bogotá, D.C.",
+        "precioPromedioCop": 229400,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Cauca",
+        "precioPromedioCop": 236500,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Cundinamarca",
+        "precioPromedioCop": 222520,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Huila",
+        "precioPromedioCop": 240000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Nariño",
+        "precioPromedioCop": 218857.1428571,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Norte de Santander",
+        "precioPromedioCop": 234000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Risaralda",
+        "precioPromedioCop": 222957.1428571,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Santander",
+        "precioPromedioCop": 217000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Tolima",
+        "precioPromedioCop": 222625,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Valle del Cauca",
+        "precioPromedioCop": 229900,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      }
+    ],
+    "verificacion": "ok",
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 2, ítem 24, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+  },
+  {
+    "id": "dap-fosfato-diamonico-18-46-0-ica-2553",
+    "nombre": "DAP - Fosfato Diamónico 18-46-0",
+    "empresa": "YARA COLOMBIA SA",
+    "registroIca": "2553",
+    "estadoRegistro": "VIGENTE",
+    "composicionTexto": "NITROGENO TOTAL (N) 18,0%; NITROGENO AMONIACAL (N) 18,0%; FOSFORO ASIMILABLE (P₂O₅) 46,0%; HUMEDAD MAXIMA 1,30%",
+    "contenido": [
+      {
+        "elemento": "Nitrógeno",
+        "forma": "N",
+        "porcentaje": 18
+      },
+      {
+        "elemento": "Fósforo",
+        "forma": "P₂O₅",
+        "porcentaje": 46
+      }
+    ],
+    "presentacionKg": 50,
+    "precios": [
+      {
+        "departamento": "Antioquia",
+        "precioPromedioCop": 231980.625,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Cauca",
+        "precioPromedioCop": 210000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Cundinamarca",
+        "precioPromedioCop": 233000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Norte de Santander",
+        "precioPromedioCop": 216000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Quindío",
+        "precioPromedioCop": 207600,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Tolima",
+        "precioPromedioCop": 230300,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Valle del Cauca",
+        "precioPromedioCop": 230433.3333333,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      }
+    ],
+    "verificacion": "ok",
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 24, ítem 481, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+  },
+  {
+    "id": "nutrifert-kcl-cloruro-de-potasio-granular-0-0-60-ica-6935",
+    "nombre": "Nutrifert KCL (Cloruro de Potasio) Granular 0-0-60",
+    "empresa": "PRECISAGRO S A S",
+    "registroIca": "6935",
+    "estadoRegistro": "Sin estado en el listado del ICA",
+    "composicionTexto": "POTASIO SOLUBLE EN AGUA (K₂O) 60%; CLORUROS MAXIMO (Cl) 45,16%; HUMEDAD 0,04%",
+    "contenido": [
+      {
+        "elemento": "Potasio",
+        "forma": "K₂O",
+        "porcentaje": 60
+      }
+    ],
+    "presentacionKg": 50,
+    "precios": [
+      {
+        "departamento": "Córdoba",
+        "precioPromedioCop": 121000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Cundinamarca",
+        "precioPromedioCop": 125137.5,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Huila",
+        "precioPromedioCop": 119300,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Nariño",
+        "precioPromedioCop": 128500,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Norte de Santander",
+        "precioPromedioCop": 123500,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Risaralda",
+        "precioPromedioCop": 128500,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Valle del Cauca",
+        "precioPromedioCop": 128433.3333333,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Casanare",
+        "precioPromedioCop": 125000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      }
+    ],
+    "verificacion": "por verificar: el PDF no indica ESTADO del registro",
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 224, ítem 3772, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+  },
+  {
+    "id": "cloruro-de-potasio-granulado-0-0-60-ica-4985",
+    "nombre": "Cloruro de Potasio Granulado 0-0-60",
+    "empresa": "NUTRICION DE PLANTAS SAS",
+    "registroIca": "4985",
+    "estadoRegistro": "Sin estado en el listado del ICA",
+    "composicionTexto": "POTASIO SOLUBLE EN AGUA (K₂O) 60,0%; CLORO (CI) 45,0%; HUMEDAD MAXIMA 2,0%",
+    "contenido": [
+      {
+        "elemento": "Potasio",
+        "forma": "K₂O",
+        "porcentaje": 60
+      }
+    ],
+    "presentacionKg": 50,
+    "precios": [
+      {
+        "departamento": "Cauca",
+        "precioPromedioCop": 129000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Huila",
+        "precioPromedioCop": 109550,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Nariño",
+        "precioPromedioCop": 111750,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Risaralda",
+        "precioPromedioCop": 107058.3333333,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Tolima",
+        "precioPromedioCop": 125614.2857143,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Valle del Cauca",
+        "precioPromedioCop": 111220,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      }
+    ],
+    "verificacion": "por verificar: el PDF no indica ESTADO del registro",
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 116, ítem 2027, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co. Notas: la presentación SIPSA de 50 kg no aparece en PRESENTACIONES del ICA el PDF no trae PRESENTACIONES para este registro"
+  },
+  {
+    "id": "triple-quince-15-15-15-ica-106",
+    "nombre": "Triple Quince 15-15-15",
+    "empresa": "YARA COLOMBIA SA",
+    "registroIca": "106",
+    "estadoRegistro": "Sin estado en el listado del ICA",
+    "composicionTexto": "NITROGENO TOTAL (N) 15,0%; NITROGENO AMONIACAL (N) 8,89%; NITROGENO NITRICO (N) 6,11%; FOSFORO ASIMILABLE (P₂O₅) 15,0%; POTASIO SOLUBLE EN AGUA (K₂O) 15,0%; HUMEDAD MAXIMA 1%",
+    "contenido": [
+      {
+        "elemento": "Nitrógeno",
+        "forma": "N",
+        "porcentaje": 15
+      },
+      {
+        "elemento": "Fósforo",
+        "forma": "P₂O₅",
+        "porcentaje": 15
+      },
+      {
+        "elemento": "Potasio",
+        "forma": "K₂O",
+        "porcentaje": 15
+      }
+    ],
+    "presentacionKg": 50,
+    "precios": [
+      {
+        "departamento": "Antioquia",
+        "precioPromedioCop": 164062.5,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Bogotá, D.C.",
+        "precioPromedioCop": 183300,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Boyacá",
+        "precioPromedioCop": 168190,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Cauca",
+        "precioPromedioCop": 164125,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Cundinamarca",
+        "precioPromedioCop": 163636.3636364,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Huila",
+        "precioPromedioCop": 179320,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Norte de Santander",
+        "precioPromedioCop": 162333.3333333,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Santander",
+        "precioPromedioCop": 155000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Valle del Cauca",
+        "precioPromedioCop": 173446.6666667,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      }
+    ],
+    "verificacion": "por verificar: el PDF no indica ESTADO del registro",
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 1, ítem 10, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+  },
+  {
+    "id": "t-15-combate-15-15-15-ica-7312",
+    "nombre": "T-15 Combate 15-15-15",
+    "empresa": "PRECISAGRO SAS",
+    "registroIca": "7312",
+    "estadoRegistro": "VIGENTE",
+    "composicionTexto": "NITROGENO TOTAL (N) 15,00%; NITROGENO AMONIACAL (N) 6,0%; NITROGENO UREICO(N) 9,0%; FOSFORO ASIMILABLE {P2O5) 15,0%; POTASIO SOLUBLE EN AGUA (K₂O) 15,00%; HUMEDAD 1,33",
+    "contenido": [
+      {
+        "elemento": "Nitrógeno",
+        "forma": "N",
+        "porcentaje": 15
+      },
+      {
+        "elemento": "Fósforo",
+        "forma": "P₂O₅",
+        "porcentaje": 15
+      },
+      {
+        "elemento": "Potasio",
+        "forma": "K₂O",
+        "porcentaje": 15
+      }
+    ],
+    "presentacionKg": 50,
+    "precios": [
+      {
+        "departamento": "Antioquia",
+        "precioPromedioCop": 150186,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Atlántico",
+        "precioPromedioCop": 184905.5,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Bolívar",
+        "precioPromedioCop": 150000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Boyacá",
+        "precioPromedioCop": 151000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Córdoba",
+        "precioPromedioCop": 154000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Cundinamarca",
+        "precioPromedioCop": 151400,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Magdalena",
+        "precioPromedioCop": 176500,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Santander",
+        "precioPromedioCop": 151400,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Sucre",
+        "precioPromedioCop": 186334.6666667,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      }
+    ],
+    "verificacion": "ok",
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 249, ítem 4126, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co. Notas: forma escrita \"P2O5\" en el PDF, interpretada como P₂O₅"
+  },
+  {
+    "id": "yaramila-kabal-10-20-20-ica-5",
+    "nombre": "YaraMila Kabal 10-20-20",
+    "empresa": "YARA COLOMBIA SA",
+    "registroIca": "5",
+    "estadoRegistro": "VIGENTE",
+    "composicionTexto": "NITROGENO TOTAL (N) 10,0%; NITROGENO AMONIACAL (N) 6,87%; NITROGENO NITRICO (N) 3,13%; FOSFORO ASIMILABLE (P₂O₅) 20,0%; POTASIO SOLUBLE EN AGUA (K₂O) 20,0%; HUMEDAD MAXIMA 2%",
+    "contenido": [
+      {
+        "elemento": "Nitrógeno",
+        "forma": "N",
+        "porcentaje": 10
+      },
+      {
+        "elemento": "Fósforo",
+        "forma": "P₂O₅",
+        "porcentaje": 20
+      },
+      {
+        "elemento": "Potasio",
+        "forma": "K₂O",
+        "porcentaje": 20
+      }
+    ],
+    "presentacionKg": 50,
+    "precios": [
+      {
+        "departamento": "Antioquia",
+        "precioPromedioCop": 156686.1818182,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Boyacá",
+        "precioPromedioCop": 175100,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Cauca",
+        "precioPromedioCop": 171833.3333333,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Cundinamarca",
+        "precioPromedioCop": 169285.7142857,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Nariño",
+        "precioPromedioCop": 171500,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Norte de Santander",
+        "precioPromedioCop": 170000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Santander",
+        "precioPromedioCop": 156800,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Valle del Cauca",
+        "precioPromedioCop": 185200,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      }
+    ],
+    "verificacion": "ok",
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 1, ítem 4, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+  },
+  {
+    "id": "yaramila-trefos-10-30-10-ica-74",
+    "nombre": "YaraMila Trefos 10-30-10",
+    "empresa": "YARA COLOMBIA SA \"YARA COLOMBIA\"",
+    "registroIca": "74",
+    "estadoRegistro": "VIGENTE",
+    "composicionTexto": "NITROGENO TOTAL (N) 10%; NITROGENO AMONIACAL (N) 7,89%; NITROGENO NITRICO (N) 2,11%; FOSFORO ASIMILABLE (P₂O₅) 30%; POTASIO SOLUBLE EN AGUA (K₂O) 10%; HUMEDAD MAXIMA 2%",
+    "contenido": [
+      {
+        "elemento": "Nitrógeno",
+        "forma": "N",
+        "porcentaje": 10
+      },
+      {
+        "elemento": "Fósforo",
+        "forma": "P₂O₅",
+        "porcentaje": 30
+      },
+      {
+        "elemento": "Potasio",
+        "forma": "K₂O",
+        "porcentaje": 10
+      }
+    ],
+    "presentacionKg": 50,
+    "precios": [
+      {
+        "departamento": "Antioquia",
+        "precioPromedioCop": 191400,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Cauca",
+        "precioPromedioCop": 206571.4285714,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Cundinamarca",
+        "precioPromedioCop": 194000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Huila",
+        "precioPromedioCop": 221437.5,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Nariño",
+        "precioPromedioCop": 217175,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Quindío",
+        "precioPromedioCop": 235000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Santander",
+        "precioPromedioCop": 186000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Valle del Cauca",
+        "precioPromedioCop": 226065,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      }
+    ],
+    "verificacion": "ok",
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 1, ítem 9, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+  },
+  {
+    "id": "nutrimon-13-26-6-ica-494",
+    "nombre": "Nutrimon 13-26-6",
+    "empresa": "MONOMEROS COLOMBO VENEZOLANOS SA",
+    "registroIca": "494",
+    "estadoRegistro": "VIGENTE",
+    "composicionTexto": "NITROGENO TOTAL (N) 13%; NITROGENO AMONIACAL (N) 10,5%; NITROGENO NITRICO (N) 2,5%; FOSFORO ASIMILABLE (P₂O₅) 26%; POTASIO SOLUBLE EN AGUA (K₂O) 6%; HUMEDAD MAXIMA 1,5%",
+    "contenido": [
+      {
+        "elemento": "Nitrógeno",
+        "forma": "N",
+        "porcentaje": 13
+      },
+      {
+        "elemento": "Fósforo",
+        "forma": "P₂O₅",
+        "porcentaje": 26
+      },
+      {
+        "elemento": "Potasio",
+        "forma": "K₂O",
+        "porcentaje": 6
+      }
+    ],
+    "presentacionKg": 50,
+    "precios": [
+      {
+        "departamento": "Antioquia",
+        "precioPromedioCop": 198833.3333333,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Bogotá, D.C.",
+        "precioPromedioCop": 205675,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Boyacá",
+        "precioPromedioCop": 197020,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Cundinamarca",
+        "precioPromedioCop": 194083.3333333,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Nariño",
+        "precioPromedioCop": 199600,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      }
+    ],
+    "verificacion": "ok",
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 3, ítem 38, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+  },
+  {
+    "id": "remital-m-17-6-18-2-ica-629",
+    "nombre": "Remital-M: 17-6-18-2",
+    "empresa": "YARA COLOMBIA SA",
+    "registroIca": "629",
+    "estadoRegistro": "VIGENTE",
+    "composicionTexto": "NITROGENO TOTAL (N) 17,0%; NITROGENO AMONIACAL (N) 9,7%; NITROGENO NITRICO (N) 7,3%; FOSFORO ASIMILABLE (P₂O₅) 6,0%; POTASIO SOLUBLE EN AGUA (K₂O) 18,0%; MAGNESIO (MgO) 2,0%; AZUFRE TOTAL (S) 1,6%; BORO (B) 0,1%; ZINC (Zn) 0,1%; 2,0%",
+    "contenido": [
+      {
+        "elemento": "Nitrógeno",
+        "forma": "N",
+        "porcentaje": 17
+      },
+      {
+        "elemento": "Fósforo",
+        "forma": "P₂O₅",
+        "porcentaje": 6
+      },
+      {
+        "elemento": "Potasio",
+        "forma": "K₂O",
+        "porcentaje": 18
+      },
+      {
+        "elemento": "Magnesio",
+        "forma": "MgO",
+        "porcentaje": 2
+      },
+      {
+        "elemento": "Azufre",
+        "forma": "S",
+        "porcentaje": 1.6
+      },
+      {
+        "elemento": "Boro",
+        "forma": "B",
+        "porcentaje": 0.1
+      },
+      {
+        "elemento": "Zinc",
+        "forma": "Zn",
+        "porcentaje": 0.1
+      }
+    ],
+    "presentacionKg": 50,
+    "precios": [
+      {
+        "departamento": "Antioquia",
+        "precioPromedioCop": 146000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Caldas",
+        "precioPromedioCop": 162137.5,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Cauca",
+        "precioPromedioCop": 170650,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Huila",
+        "precioPromedioCop": 164190.9090909,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Nariño",
+        "precioPromedioCop": 153800,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Risaralda",
+        "precioPromedioCop": 149957.5,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Santander",
+        "precioPromedioCop": 156242.8571429,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Tolima",
+        "precioPromedioCop": 153166.6666667,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Valle del Cauca",
+        "precioPromedioCop": 170146.6666667,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      }
+    ],
+    "verificacion": "por verificar: valor \"2,0%\" sin etiqueta al final de la composición",
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 5, ítem 66, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co. Notas: el texto termina con un valor \"2,0%\" sin elemento asociado"
+  },
+  {
+    "id": "abotek-15-4-23-4-ica-3108",
+    "nombre": "Abotek 15-4-23-4",
+    "empresa": "YARA COLOMBIA SA",
+    "registroIca": "3108",
+    "estadoRegistro": "VIGENTE",
+    "composicionTexto": "NITROGENO TOTAL (N) 15,0%; NITROGENO AMONIACAL (N) 8,30%; NITROGENO NITRICO (N) 6,70%; FOSFORO ASIMILABLE (P₂O₅) 4,0%; POTASIO SOLUBLE EN AGUA (K₂O) 23,0%; MAGNESIO (MgO) 4,0%; AZUFRE TOTAL (S) 2,0%; BORO (B) 0,1%; ZINC (Zn) 0,1%; HUMEDAD MAXIMA 1,0%",
+    "contenido": [
+      {
+        "elemento": "Nitrógeno",
+        "forma": "N",
+        "porcentaje": 15
+      },
+      {
+        "elemento": "Fósforo",
+        "forma": "P₂O₅",
+        "porcentaje": 4
+      },
+      {
+        "elemento": "Potasio",
+        "forma": "K₂O",
+        "porcentaje": 23
+      },
+      {
+        "elemento": "Magnesio",
+        "forma": "MgO",
+        "porcentaje": 4
+      },
+      {
+        "elemento": "Azufre",
+        "forma": "S",
+        "porcentaje": 2
+      },
+      {
+        "elemento": "Boro",
+        "forma": "B",
+        "porcentaje": 0.1
+      },
+      {
+        "elemento": "Zinc",
+        "forma": "Zn",
+        "porcentaje": 0.1
+      }
+    ],
+    "presentacionKg": 50,
+    "precios": [
+      {
+        "departamento": "Antioquia",
+        "precioPromedioCop": 147750,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Caldas",
+        "precioPromedioCop": 156450,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Cauca",
+        "precioPromedioCop": 163500,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Cundinamarca",
+        "precioPromedioCop": 151066.6666667,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Meta",
+        "precioPromedioCop": 178800,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Norte de Santander",
+        "precioPromedioCop": 146100,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Quindío",
+        "precioPromedioCop": 161087.5,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Risaralda",
+        "precioPromedioCop": 162698.75,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Santander",
+        "precioPromedioCop": 141650,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Valle del Cauca",
+        "precioPromedioCop": 190810,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      }
+    ],
+    "verificacion": "ok",
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 40, ítem 782, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+  },
+  {
+    "id": "agrimins-granulado-8-5-0-6-ica-2359",
+    "nombre": "Agrimins Granulado: 8-5-0-6",
+    "empresa": "COLINAGRO SA",
+    "registroIca": "2359",
+    "estadoRegistro": "VIGENTE",
+    "composicionTexto": "NITROGENO TOTAL (N) 8,00%; NITROGENO AMONIACAL (N) 1,00%; NITROGENO UREICO (N) 7,00%; FOSFORO ASIMILABLE (P₂O₅) 5,00%; CALCIO TOTAL (CaO) 18,00%; MAGNESIO TOTAL (MgO) 6,00%; AZUFRE TOTAL (S) 1,60%; COBRE TOTAL(Cu) 0,14%; BORO TOTAL (B) 1,00%; MOLIBDENO TOTAL (Mo) 0,005%; ZINC TOTAL (Zn) 2,50%; HUMEDAD 2,93%",
+    "contenido": [
+      {
+        "elemento": "Nitrógeno",
+        "forma": "N",
+        "porcentaje": 8
+      },
+      {
+        "elemento": "Fósforo",
+        "forma": "P₂O₅",
+        "porcentaje": 5
+      },
+      {
+        "elemento": "Calcio",
+        "forma": "CaO",
+        "porcentaje": 18
+      },
+      {
+        "elemento": "Magnesio",
+        "forma": "MgO",
+        "porcentaje": 6
+      },
+      {
+        "elemento": "Azufre",
+        "forma": "S",
+        "porcentaje": 1.6
+      },
+      {
+        "elemento": "Cobre",
+        "forma": "Cu",
+        "porcentaje": 0.14
+      },
+      {
+        "elemento": "Boro",
+        "forma": "B",
+        "porcentaje": 1
+      },
+      {
+        "elemento": "Zinc",
+        "forma": "Zn",
+        "porcentaje": 2.5
+      }
+    ],
+    "presentacionKg": 46,
+    "precios": [
+      {
+        "departamento": "Antioquia",
+        "precioPromedioCop": 141716,
+        "presentacion": "46 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Bogotá, D.C.",
+        "precioPromedioCop": 146125,
+        "presentacion": "46 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Boyacá",
+        "precioPromedioCop": 142041.6666667,
+        "presentacion": "46 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Caldas",
+        "precioPromedioCop": 141483.3333333,
+        "presentacion": "46 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Cauca",
+        "precioPromedioCop": 143333.3333333,
+        "presentacion": "46 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Cundinamarca",
+        "precioPromedioCop": 138323.5294118,
+        "presentacion": "46 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Huila",
+        "precioPromedioCop": 140658.8235294,
+        "presentacion": "46 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Meta",
+        "precioPromedioCop": 148500,
+        "presentacion": "46 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Nariño",
+        "precioPromedioCop": 135666.6666667,
+        "presentacion": "46 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Risaralda",
+        "precioPromedioCop": 141807,
+        "presentacion": "46 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Santander",
+        "precioPromedioCop": 142750,
+        "presentacion": "46 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Tolima",
+        "precioPromedioCop": 146171,
+        "presentacion": "46 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Valle del Cauca",
+        "precioPromedioCop": 156052.3809524,
+        "presentacion": "46 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Casanare",
+        "precioPromedioCop": 155600,
+        "presentacion": "46 kilogramos",
+        "periodo": "2026-10"
+      }
+    ],
+    "verificacion": "ok",
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 21, ítem 410, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+  },
+  {
+    "id": "rafos-12-24-12-2-ica-3355",
+    "nombre": "Rafos 12-24-12-2",
+    "empresa": "YARA COLOMBIA S A",
+    "registroIca": "3355",
+    "estadoRegistro": "VIGENTE",
+    "composicionTexto": "NITROGENO TOTAL (N) 12,0%; NITROGENO AMONIACAL (N) 8,8%; NITROGENO NITRICO (N) 3,2%; FOSFORO ASIMILABLE (P₂O₅) 24,0%; POTASIO SOLUBLE EN AGUA (K₂O) 12,0%; MAGNESIO (MgO) 2,0%; AZUFRE TOTAL (S) 1,0%; BORO (B) 0,04%; ZINC (Zn) 0,02%, HUMEDAD MAXIMA 1,0%",
+    "contenido": [
+      {
+        "elemento": "Nitrógeno",
+        "forma": "N",
+        "porcentaje": 12
+      },
+      {
+        "elemento": "Fósforo",
+        "forma": "P₂O₅",
+        "porcentaje": 24
+      },
+      {
+        "elemento": "Potasio",
+        "forma": "K₂O",
+        "porcentaje": 12
+      },
+      {
+        "elemento": "Magnesio",
+        "forma": "MgO",
+        "porcentaje": 2
+      },
+      {
+        "elemento": "Azufre",
+        "forma": "S",
+        "porcentaje": 1
+      },
+      {
+        "elemento": "Boro",
+        "forma": "B",
+        "porcentaje": 0.04
+      },
+      {
+        "elemento": "Zinc",
+        "forma": "Zn",
+        "porcentaje": 0.02
+      }
+    ],
+    "presentacionKg": 50,
+    "precios": [
+      {
+        "departamento": "Antioquia",
+        "precioPromedioCop": 170000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Bogotá, D.C.",
+        "precioPromedioCop": 189847.5,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Boyacá",
+        "precioPromedioCop": 185756.25,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Cundinamarca",
+        "precioPromedioCop": 180755.625,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Quindío",
+        "precioPromedioCop": 173966.6666667,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Valle del Cauca",
+        "precioPromedioCop": 190221.4285714,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      }
+    ],
+    "verificacion": "ok",
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 49, ítem 935, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+  },
+  {
+    "id": "nitrosoil-sulfato-de-amonio-21-0-0-24-s-cristales-ica-12729",
+    "nombre": "Nitrosoil Sulfato de Amonio 21-0-0-24(S) Cristales",
+    "empresa": "NITROFERT SAS",
+    "registroIca": "12729",
+    "estadoRegistro": "VIGENTE",
+    "composicionTexto": "NITROGENO TOTAL (N) 21%; NITROGENO AMONIACAL (N) 21%; AZUFRE TOTAL (S) 24%; HUMEDAD MAXIMA 1%",
+    "contenido": [
+      {
+        "elemento": "Nitrógeno",
+        "forma": "N",
+        "porcentaje": 21
+      },
+      {
+        "elemento": "Azufre",
+        "forma": "S",
+        "porcentaje": 24
+      }
+    ],
+    "presentacionKg": 50,
+    "precios": [
+      {
+        "departamento": "Cundinamarca",
+        "precioPromedioCop": 79000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Huila",
+        "precioPromedioCop": 81825,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Nariño",
+        "precioPromedioCop": 95000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Tolima",
+        "precioPromedioCop": 82500,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Valle del Cauca",
+        "precioPromedioCop": 103250,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      }
+    ],
+    "verificacion": "ok",
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 543, ítem 8258, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+  },
+  {
+    "id": "nutrimon-sulfato-de-amonio-sam-21-0-0-24-s-cristales-ica-499",
+    "nombre": "Nutrimon Sulfato de Amonio (SAM): 21-0-0-24(S) Cristales",
+    "empresa": "MONOMEROS COLOMBO-VENEZOLANOS SAS",
+    "registroIca": "499",
+    "estadoRegistro": "Sin estado en el listado del ICA",
+    "composicionTexto": "NITROGENO TOTAL (N) 20,50%; NITROGENO AMONIACAL (N) 20,50%; AZUFRE TOTAL (S) 23,50%; ACIDEZ LIBRE (COMO H2SO4) 0,05%; HUMEDAD MAXIMA 1%",
+    "contenido": [
+      {
+        "elemento": "Nitrógeno",
+        "forma": "N",
+        "porcentaje": 20.5
+      },
+      {
+        "elemento": "Azufre",
+        "forma": "S",
+        "porcentaje": 23.5
+      }
+    ],
+    "presentacionKg": 50,
+    "precios": [
+      {
+        "departamento": "Bogotá, D.C.",
+        "precioPromedioCop": 95000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Cesar",
+        "precioPromedioCop": 88750,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Cundinamarca",
+        "precioPromedioCop": 89600,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Nariño",
+        "precioPromedioCop": 83700,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Valle del Cauca",
+        "precioPromedioCop": 87425,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      }
+    ],
+    "verificacion": "por verificar: el PDF no indica ESTADO del registro",
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 3, ítem 40, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+  },
+  {
+    "id": "yarabela-nitromag-21-0-0-11-cao-7-mgo-ica-4383",
+    "nombre": "YaraBela Nitromag 21-0-0-11(CaO)-7(MgO)",
+    "empresa": "YARA COLOMBIA SAS",
+    "registroIca": "4383",
+    "estadoRegistro": "Sin estado en el listado del ICA",
+    "composicionTexto": "NITROGENO TOTAL (N) 21,0%; NITROGENO AMONIACAL (N) 10,30%; NITROGENO NITRICO (N) 10,70%; CALCIO TOTAL (CaO) 11,0%; MAGNESIO TOTAL (MgO) 7,5%; HUMEDAD 1%",
+    "contenido": [
+      {
+        "elemento": "Nitrógeno",
+        "forma": "N",
+        "porcentaje": 21
+      },
+      {
+        "elemento": "Calcio",
+        "forma": "CaO",
+        "porcentaje": 11
+      },
+      {
+        "elemento": "Magnesio",
+        "forma": "MgO",
+        "porcentaje": 7.5
+      }
+    ],
+    "presentacionKg": 50,
+    "precios": [
+      {
+        "departamento": "Cundinamarca",
+        "precioPromedioCop": 160000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Nariño",
+        "precioPromedioCop": 140750,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Quindío",
+        "precioPromedioCop": 134150,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Risaralda",
+        "precioPromedioCop": 147400,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Santander",
+        "precioPromedioCop": 139000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      }
+    ],
+    "verificacion": "por verificar: el PDF no indica ESTADO del registro",
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 84, ítem 1539, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+  },
+  {
+    "id": "dolomita-inferhuila-ica-2576",
+    "nombre": "Dolomita Inferhuila",
+    "empresa": "INFERHUILA SAS \"COMERCIALIZADORA DE INSUMOS Y FERTILIZANTES DEL HUILA SA",
+    "registroIca": "2576",
+    "estadoRegistro": "Sin estado en el listado del ICA",
+    "composicionTexto": "CALCIO (CaO) 30,0%; MAGNESIO (MgO) 15,0%",
+    "contenido": [
+      {
+        "elemento": "Calcio",
+        "forma": "CaO",
+        "porcentaje": 30
+      },
+      {
+        "elemento": "Magnesio",
+        "forma": "MgO",
+        "porcentaje": 15
+      }
+    ],
+    "presentacionKg": 50,
+    "precios": [
+      {
+        "departamento": "Caldas",
+        "precioPromedioCop": 21233.3333333,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Huila",
+        "precioPromedioCop": 15960,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Risaralda",
+        "precioPromedioCop": 20400,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Tolima",
+        "precioPromedioCop": 17416.6666667,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      }
+    ],
+    "verificacion": "por verificar: el PDF no indica ESTADO del registro",
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 25, ítem 493, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+  },
+  {
+    "id": "cal-agricola-ica-3550",
+    "nombre": "Cal Agrícola",
+    "empresa": "PROMICAL SOC EXPORTADORA LTDA Y COMANDITARIOS S EN C",
+    "registroIca": "3550",
+    "estadoRegistro": "VIGENTE",
+    "composicionTexto": "CALCIO (CaO) 53,0%, HUMEDAD MAXIMA 1,0%",
+    "contenido": [
+      {
+        "elemento": "Calcio",
+        "forma": "CaO",
+        "porcentaje": 53
+      }
+    ],
+    "presentacionKg": 50,
+    "precios": [
+      {
+        "departamento": "Antioquia",
+        "precioPromedioCop": 18700,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Cundinamarca",
+        "precioPromedioCop": 26000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      }
+    ],
+    "verificacion": "ok",
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 56, ítem 1058, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+  },
+  {
+    "id": "solupotasse-sk-sulfato-de-potasio-0-0-50-18-s-cristales-ica-3280",
+    "nombre": "Solupotasse SK: Sulfato de Potasio 0-0-50-18(S) Cristales",
+    "empresa": "COMERCIAL AGRARIA S A",
+    "registroIca": "3280",
+    "estadoRegistro": "VIGENTE",
+    "composicionTexto": "POTASIO SOLUBLE EN AGUA (K20) 50,00%; AZUFRE TOTAL (S) 18,00%; CLORUROS MAXIMOS (Cl) 1,00%; SOLUBLIDAD 100%",
+    "contenido": [
+      {
+        "elemento": "Potasio",
+        "forma": "K₂O",
+        "porcentaje": 50
+      },
+      {
+        "elemento": "Azufre",
+        "forma": "S",
+        "porcentaje": 18
+      }
+    ],
+    "presentacionKg": 25,
+    "precios": [
+      {
+        "departamento": "Santander",
+        "precioPromedioCop": 134500,
+        "presentacion": "25 kilogramos",
+        "periodo": "2026-10"
+      }
+    ],
+    "verificacion": "ok",
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 46, ítem 877, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co. Notas: forma escrita \"K20\" en el PDF, interpretada como K₂O"
+  },
+  {
+    "id": "nutrimon-nitrasam-28-4-0-6-s-ica-4222",
+    "nombre": "Nutrimon Nitrasam 28-4-0-6(S)",
+    "empresa": "MONOMEROS COLOMBO VENEZOLANOS SA",
+    "registroIca": "4222",
+    "estadoRegistro": "Sin estado en el listado del ICA",
+    "composicionTexto": "NITROGENO TOTAL (N) 28%; NITROGENO AMONIACAL (N) 18%; NITROGENO NITRICO (N) 10%; FOSFORO ASIMILABLE (P₂O₅) 4%; AZUFRE TOTAL (S) 6%; HUMEDAD MAXIMA 1%",
+    "contenido": [
+      {
+        "elemento": "Nitrógeno",
+        "forma": "N",
+        "porcentaje": 28
+      },
+      {
+        "elemento": "Fósforo",
+        "forma": "P₂O₅",
+        "porcentaje": 4
+      },
+      {
+        "elemento": "Azufre",
+        "forma": "S",
+        "porcentaje": 6
+      }
+    ],
+    "presentacionKg": 50,
+    "precios": [
+      {
+        "departamento": "Antioquia",
+        "precioPromedioCop": 153300,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Cauca",
+        "precioPromedioCop": 146833.3333333,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Cundinamarca",
+        "precioPromedioCop": 160000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Nariño",
+        "precioPromedioCop": 159500,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      }
+    ],
+    "verificacion": "por verificar: el PDF no indica ESTADO del registro",
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 79, ítem 1452, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+  },
+  {
+    "id": "sulcamag-ica-1018",
+    "nombre": "Sulcamag",
+    "empresa": "MINERA PROVIDENCIA SA",
+    "registroIca": "1018",
+    "estadoRegistro": "VIGENTE",
+    "composicionTexto": "FOSFORO ASIMILABLE (P₂O₅) 3,0%; CALCIO (CaO) 25,0%; MAGNESIO (MgO) 13,0%; AZUFRE TOTAL (S) 8,0%",
+    "contenido": [
+      {
+        "elemento": "Fósforo",
+        "forma": "P₂O₅",
+        "porcentaje": 3
+      },
+      {
+        "elemento": "Calcio",
+        "forma": "CaO",
+        "porcentaje": 25
+      },
+      {
+        "elemento": "Magnesio",
+        "forma": "MgO",
+        "porcentaje": 13
+      },
+      {
+        "elemento": "Azufre",
+        "forma": "S",
+        "porcentaje": 8
+      }
+    ],
+    "presentacionKg": 50,
+    "precios": [
+      {
+        "departamento": "Caldas",
+        "precioPromedioCop": 87891.6666667,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Huila",
+        "precioPromedioCop": 84200,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Risaralda",
+        "precioPromedioCop": 87850,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Tolima",
+        "precioPromedioCop": 83960,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      }
+    ],
+    "verificacion": "ok",
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 11, ítem 183, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+  },
+  {
+    "id": "yaramila-hydrocomplex-12-11-18-3-mgo-8s-em-ica-4064",
+    "nombre": "YaraMila Hydrocomplex: 12-11-18-3(MgO)-8S+Em",
+    "empresa": "YARA COLOMBIA SA",
+    "registroIca": "4064",
+    "estadoRegistro": "Sin estado en el listado del ICA",
+    "composicionTexto": "NITROGENO TOTAL (N) 12,4%; NITROGENO AMONIACAL (N) 7,3%; NITROGENO NITRICO (N) 5,1%; FOSFORO ASIMILABLE (P₂O₅ ) 11,0%; POTASIO SOLUBLE EN AGUA (K₂O) 18,0%; MAGNESIO (MgO) 2,70%; AZUFRE TOTAL (S) 8,0%; BORO(B) 0,02%; HIERRO (Fe) 0,20%; MANGANESO (Mn) 0,02; ZINC SOLUBLE EN HCL (Zn) 0,02%",
+    "contenido": [
+      {
+        "elemento": "Nitrógeno",
+        "forma": "N",
+        "porcentaje": 12.4
+      },
+      {
+        "elemento": "Fósforo",
+        "forma": "P₂O₅",
+        "porcentaje": 11
+      },
+      {
+        "elemento": "Potasio",
+        "forma": "K₂O",
+        "porcentaje": 18
+      },
+      {
+        "elemento": "Magnesio",
+        "forma": "MgO",
+        "porcentaje": 2.7
+      },
+      {
+        "elemento": "Azufre",
+        "forma": "S",
+        "porcentaje": 8
+      },
+      {
+        "elemento": "Boro",
+        "forma": "B",
+        "porcentaje": 0.02
+      },
+      {
+        "elemento": "Hierro",
+        "forma": "Fe",
+        "porcentaje": 0.2
+      },
+      {
+        "elemento": "Zinc",
+        "forma": "Zn",
+        "porcentaje": 0.02
+      }
+    ],
+    "presentacionKg": 50,
+    "precios": [
+      {
+        "departamento": "Antioquia",
+        "precioPromedioCop": 194000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Boyacá",
+        "precioPromedioCop": 215500,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Cundinamarca",
+        "precioPromedioCop": 212335,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      }
+    ],
+    "verificacion": "por verificar: el PDF no indica ESTADO del registro; valor sin unidad: \"MANGANESO (Mn) 0,02\"",
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 75, ítem 1390, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co. Notas: valor sin unidad: \"MANGANESO (Mn) 0,02\""
+  },
+  {
+    "id": "nutrimon-18-18-18-ica-3525",
+    "nombre": "Nutrimon 18-18-18",
+    "empresa": "MONOMEROS COLOMBO-VENEZOLANOS SAS",
+    "registroIca": "3525",
+    "estadoRegistro": "Sin estado en el listado del ICA",
+    "composicionTexto": "NITROGENO TOTAL (N) 18,0%; NITROGENO AMONIACAL (N) 9,5%; NITROGENO NITRICO (N) 8,5%; FOSFORO ASIMILABLE (P₂O₅) 18,0%; POTASIO SOLUBLE EN AGUA (K₂O) 18,0%",
+    "contenido": [
+      {
+        "elemento": "Nitrógeno",
+        "forma": "N",
+        "porcentaje": 18
+      },
+      {
+        "elemento": "Fósforo",
+        "forma": "P₂O₅",
+        "porcentaje": 18
+      },
+      {
+        "elemento": "Potasio",
+        "forma": "K₂O",
+        "porcentaje": 18
+      }
+    ],
+    "presentacionKg": 50,
+    "precios": [
+      {
+        "departamento": "Cundinamarca",
+        "precioPromedioCop": 173500,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Santander",
+        "precioPromedioCop": 164000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Tolima",
+        "precioPromedioCop": 204000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      }
+    ],
+    "verificacion": "por verificar: el PDF no indica ESTADO del registro",
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 56, ítem 1047, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co."
+  },
+  {
+    "id": "calfos-granulado-ica-2623",
+    "nombre": "Calfos Granulado",
+    "empresa": "EMPRESA DE FOSFATOS DE BOYACA SA",
+    "registroIca": "2623",
+    "estadoRegistro": "Sin estado en el listado del ICA",
+    "composicionTexto": "FOSFORO TOTAL (P₂O₅) 20,00%; FOSFORO ASIMILABLE (P₂O₅) 6,00%; FOSFORO DE LENTA ASIMILACION (P₂O₅) 14,00%; CALCIO (CaO) 28,00%; AZUFRE (S) 3,00%",
+    "contenido": [
+      {
+        "elemento": "Fósforo",
+        "forma": "P₂O₅",
+        "porcentaje": 6
+      },
+      {
+        "elemento": "Calcio",
+        "forma": "CaO",
+        "porcentaje": 28
+      },
+      {
+        "elemento": "Azufre",
+        "forma": "S",
+        "porcentaje": 3
+      }
+    ],
+    "presentacionKg": 50,
+    "precios": [
+      {
+        "departamento": "Boyacá",
+        "precioPromedioCop": 72505.5555556,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
+        "departamento": "Cundinamarca",
+        "precioPromedioCop": 74125,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      }
+    ],
+    "verificacion": "por verificar: el PDF no indica ESTADO del registro",
+    "fuente": "Instituto Colombiano Agropecuario (ICA), Registros de productos fertilizantes de uso agrícola, actualizado 1 nov. 2026, p. 26, ítem 512, www.ica.gov.co. Precios: DANE, SIPSA-I insumos, anexo departamental, octubre de 2026, www.dane.gov.co. Notas: declara además FOSFORO TOTAL (P₂O₅) 20,00% y FOSFORO DE LENTA ASIMILACION (P₂O₅) 14,00%; en contenido se registra solo el fósforo asimilable"
+  }
+]

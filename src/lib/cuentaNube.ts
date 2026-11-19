@@ -2,7 +2,8 @@
  * Sesión en la nube y sincronización automática. La app funciona igual sin sesión: todo se guarda
  * primero en el teléfono, y la nube se actualiza cuando hay internet.
  */
-import { almacenSincronizacion, borrarDatosDelTelefono, db, desvincularNube, guardarEstadoNube, leerEstadoNube, registrarEliminacion } from './db';
+import { almacenSincronizacion, borrarDatosDelTelefono, db, desvincularNube, guardarEstadoNube, guardarReferencias, leerEstadoNube, leerReferencias, registrarEliminacion } from './db';
+import { leerConjunto } from './referencias';
 import { apiNube, ErrorNube, sesionVencida, type EstadoNube } from './nube';
 import { TABLAS_NUBE } from './protocoloNube';
 import { sincronizar, type ResultadoSincronizacion } from './sincronizacion';
@@ -78,6 +79,8 @@ export function sincronizarAhora(): Promise<void> {
       const actual = await leerEstadoNube();
       if (actual?.vinculado === inicio.vinculado) await guardarEstadoNube({ ...actual, ultimaSincronizacion: fecha });
       actualizar({ fase: { fase: 'lista', resultado, fecha } });
+      // Las referencias no impiden la sincronización: si fallan, se reintenta en la próxima.
+      await actualizarReferencias(inicio.token).catch(() => undefined);
     } catch (e) {
       const error = e instanceof ErrorNube ? e : new ErrorNube('error-interno', 'No se pudo sincronizar. Tus datos siguen guardados en este teléfono.');
       // Sesión vencida o cuenta borrada: hay que volver a iniciar sesión (los datos del teléfono no cambian).
@@ -89,6 +92,23 @@ export function sincronizarAhora(): Promise<void> {
     }
   }).finally(() => { enCurso = null; });
   return enCurso;
+}
+
+/** Cada cuánto se pregunta a la nube si hay referencias nuevas (cambian poco). */
+const VIGENCIA_REFERENCIAS_MS = 12 * 60 * 60 * 1000;
+
+/** Descarga las referencias técnicas si no hay copia o si la copia tiene más de 12 horas y cambiaron. */
+async function actualizarReferencias(token: string, ahora: Date = new Date()): Promise<void> {
+  const guardadas = await leerReferencias();
+  if (guardadas && ahora.getTime() - Date.parse(guardadas.consultado) < VIGENCIA_REFERENCIAS_MS) return;
+  const respuesta = await apiNube.referencias(token, guardadas?.conjunto.version ?? '');
+  const consultado = ahora.toISOString();
+  if (guardadas && (respuesta as { sinCambios?: boolean })?.sinCambios) {
+    await guardarReferencias({ ...guardadas, consultado });
+    return;
+  }
+  const conjunto = leerConjunto(respuesta);
+  if (conjunto) await guardarReferencias({ conjunto, consultado });
 }
 
 /** El teléfono ya tiene datos de otra cuenta de la nube. */

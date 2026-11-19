@@ -5,6 +5,8 @@ import { formatearExacto, formatearResultado, numeroATexto } from '../lib/format
 import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import { fechaLocalISO, numeroSinAmbiguedad, validarNumeroSinAmbiguedad } from '../lib/validacion';
 import {
+  MAX_FUENTE_PRECIO,
+  MAX_REGISTRO_ICA,
   resumenErrores,
   validarProducto,
   type DatosProducto,
@@ -12,17 +14,20 @@ import {
   type EntradaProducto,
   type ErroresProducto
 } from '../lib/validacionPlan';
+import { nombreMes, productoDesdeReferencia, type FertilizanteReferencia } from '../lib/referencias';
 import type { ContenidoDeclarado, ProductoVerificado } from '../types';
 
 interface Props {
   inicial?: ProductoVerificado;
   onGuardar: (datos: DatosProducto, opciones: { descartarDanados: boolean }) => Promise<void>;
   onCancelar: () => void;
+  /** Fertilizantes de referencia (registro ICA y precios DANE) para llenar el formulario. */
+  referencias?: ReadonlyArray<FertilizanteReferencia>;
 }
 
 type FilaContenido = EntradaContenido & { clave: number };
 type EntradaFormulario = Omit<EntradaProducto, 'contenido'> & { contenido: FilaContenido[] };
-type CampoTexto = 'nombre' | 'presentacionKg' | 'precioPresentacionCop' | 'fechaPrecio';
+type CampoTexto = 'nombre' | 'presentacionKg' | 'precioPresentacionCop' | 'fechaPrecio' | 'registroIca' | 'fuentePrecio';
 
 const OTRO = '__otro';
 let siguienteClave = 0;
@@ -50,6 +55,8 @@ function entradaInicial(inicial?: ProductoVerificado): EntradaFormulario {
     presentacionKg: numero('presentacionKg', p?.presentacionKg),
     precioPresentacionCop: numero('precioPresentacionCop', p?.precioPresentacionCop),
     fechaPrecio: p?.fechaPrecio ?? original('fechaPrecio'),
+    registroIca: p?.registroIca ?? original('registroIca'),
+    fuentePrecio: p?.fuentePrecio ?? original('fuentePrecio'),
     esEjemplo: p?.esEjemplo ?? null
   };
 }
@@ -70,7 +77,7 @@ function vistaPrevia(precioTexto: string, kgTexto: string): string | null {
   }
 }
 
-export function ProductoForm({ inicial, onGuardar, onCancelar }: Props) {
+export function ProductoForm({ inicial, onGuardar, onCancelar, referencias = [] }: Props) {
   const [entrada, setEntrada] = useState(() => entradaInicial(inicial));
   const [descartarDanados, setDescartarDanados] = useState(false);
   const [errores, setErrores] = useState<ErroresProducto>({});
@@ -80,6 +87,28 @@ export function ProductoForm({ inicial, onGuardar, onCancelar }: Props) {
   /** Último campo de precio editado: su error se borra; los de los otros dos se recalculan. */
   const [campoPrecio, setCampoPrecio] = useState<CampoTexto | null>(null);
   const problemas = inicial?.problemas ?? [];
+  const [referenciaId, setReferenciaId] = useState('');
+  const [departamento, setDepartamento] = useState('');
+  const referencia = referencias.find(r => r.id === referenciaId);
+
+  /** Llena el formulario con la referencia elegida; el usuario puede revisar y cambiar todo antes de guardar. */
+  function usarReferencia() {
+    if (!referencia) return;
+    const d = productoDesdeReferencia(referencia, departamento || undefined);
+    setEntrada(e => ({
+      ...e,
+      nombre: d.nombre,
+      contenido: d.contenido.map(c => ({ ...filaDesdeGuardado(c), existente: false })),
+      presentacionKg: d.presentacionKg !== undefined ? numeroSinAmbiguedad(d.presentacionKg) : e.presentacionKg,
+      precioPresentacionCop: d.precioPresentacionCop !== undefined ? numeroSinAmbiguedad(d.precioPresentacionCop) : '',
+      fechaPrecio: d.fechaPrecio ?? '',
+      registroIca: d.registroIca,
+      fuentePrecio: d.fuentePrecio ?? '',
+      esEjemplo: false
+    }));
+    setErrores({});
+    setErrorGeneral([]);
+  }
 
   useEffect(() => {
     if (!campoPrecio) return;
@@ -175,7 +204,7 @@ export function ProductoForm({ inicial, onGuardar, onCancelar }: Props) {
     <form className="form-card" onSubmit={enviar} noValidate aria-labelledby="titulo-form-producto">
       <div className="section-kicker">CATÁLOGO DE PRODUCTOS</div>
       <h2 id="titulo-form-producto">{inicial ? 'Editar producto' : 'Registrar un producto'}</h2>
-      <p className="muted">Copia los datos tal como aparecen en la etiqueta del fertilizante. La app no recomienda productos ni dosis. Los campos con <span className="required">*</span> son obligatorios.</p>
+      <p className="muted">Copia los datos tal como aparecen en la etiqueta del fertilizante. Los campos con <span className="required">*</span> son obligatorios.</p>
 
       {problemas.length > 0 && <div className="error-box" role="group" aria-labelledby="titulo-danados-producto">
         <strong id="titulo-danados-producto">Este producto tiene datos guardados dañados.</strong>
@@ -187,12 +216,42 @@ export function ProductoForm({ inicial, onGuardar, onCancelar }: Props) {
         </label>
       </div>}
 
+      {referencias.length > 0 && <fieldset className="form-group referencia-picker">
+        <legend>Llenar desde el catálogo de referencia</legend>
+        <p className="hint">Fertilizantes comerciales registrados ante el <strong>ICA</strong>, con su composición garantizada y el precio promedio que publica el <strong>DANE</strong> por departamento. Elige uno para llenar el formulario; después revisa que coincida con la etiqueta de tu bulto.</p>
+        <div className="fields">
+          <label className="full">Fertilizante
+            <select value={referenciaId} onChange={e => { setReferenciaId(e.target.value); setDepartamento(''); }}>
+              <option value="">Elige…</option>
+              {referencias.map(r => <option key={r.id} value={r.id}>{r.nombre} · {r.empresa}</option>)}
+            </select>
+          </label>
+          {referencia && referencia.precios.length > 0 && <label className="full">Precio de referencia del departamento
+            <select value={departamento} onChange={e => setDepartamento(e.target.value)}>
+              <option value="">Sin precio</option>
+              {referencia.precios.map(p => <option key={p.departamento} value={p.departamento}>{p.departamento}: {formatearExacto(p.precioPromedioCop)} COP ({p.presentacion}, {nombreMes(p.periodo)})</option>)}
+            </select>
+          </label>}
+        </div>
+        {referencia && <div className="referencia-detalle">
+          <p><strong>Registro ICA {referencia.registroIca}</strong> · {referencia.estadoRegistro} · {referencia.empresa}</p>
+          <p>Composición garantizada: {referencia.composicionTexto}</p>
+          {referencia.verificacion !== 'ok' && <p className="hint hint-warn">Dato pendiente de verificación: {referencia.verificacion.replace(/^por verificar:\s*/, '')}</p>}
+          <p className="referencia-fuente">Fuente: {referencia.fuente}</p>
+          <button type="button" className="btn btn-outline btn-small" onClick={usarReferencia}>Usar estos datos</button>
+        </div>}
+      </fieldset>}
+
       <fieldset className="form-group">
         <legend>Producto</legend>
         <div className="fields">
           <label className="full"><span className="campo-titulo">Nombre del producto <span className="required" aria-hidden="true">*</span></span>
             <input value={entrada.nombre} onChange={e => cambiar('nombre', e.target.value)} maxLength={100} placeholder="Como aparece en la etiqueta" required {...errorProps('err-nombre-producto', errores.nombre)} />
             {errores.nombre && <span id="err-nombre-producto" className="field-error">{errores.nombre}</span>}
+          </label>
+          <label>Registro ICA
+            <input value={entrada.registroIca} onChange={e => cambiar('registroIca', e.target.value)} maxLength={MAX_REGISTRO_ICA} placeholder="Ej. ICA 1234" aria-describedby="ayuda-registro-ica" />
+            <small id="ayuda-registro-ica">Aparece en la etiqueta del bulto.</small>
           </label>
         </div>
         <fieldset className="choice-group" aria-describedby={errores.esEjemplo ? 'err-ejemplo' : undefined}>
@@ -268,6 +327,9 @@ export function ProductoForm({ inicial, onGuardar, onCancelar }: Props) {
           <label>Fecha del precio
             <input type="date" value={entrada.fechaPrecio} max={fechaLocalISO()} onChange={e => cambiar('fechaPrecio', e.target.value)} {...errorProps('err-fecha-precio', errores.fechaPrecio)} />
             {errores.fechaPrecio && <span id="err-fecha-precio" className="field-error">{errores.fechaPrecio}</span>}
+          </label>
+          <label className="full">De dónde sale el precio
+            <input value={entrada.fuentePrecio} onChange={e => cambiar('fuentePrecio', e.target.value)} maxLength={MAX_FUENTE_PRECIO} placeholder="Ej. Factura del almacén agropecuario" />
           </label>
         </div>
         {previa && <p className="hint">{previa}</p>}

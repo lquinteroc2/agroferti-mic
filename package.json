@@ -9,6 +9,8 @@
     "dev:api": "vite build && wrangler dev --port 8787",
     "db:migrar:local": "wrangler d1 migrations apply agroferti-db --local",
     "db:migrar:nube": "wrangler d1 migrations apply agroferti-db --remote",
+    "referencias:local": "node --experimental-strip-types scripts/referencias-sql.ts && wrangler d1 execute agroferti-db --local --file .wrangler/referencias.sql",
+    "referencias:nube": "node --experimental-strip-types scripts/referencias-sql.ts && wrangler d1 execute agroferti-db --remote --file .wrangler/referencias.sql",
     "preview": "vite preview --host 0.0.0.0",
     "test": "node --experimental-strip-types --test tests/*.test.ts"
   },

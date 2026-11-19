@@ -45,7 +45,7 @@ export const TRANSICIONES_PLAN: Readonly<Record<EstadoPlan, ReadonlyArray<Estado
 };
 
 const CAMPOS_PRODUCTO: ReadonlySet<string> = new Set([
-  'id', 'nombre', 'contenido', 'presentacionKg', 'precioPresentacionCop', 'fechaPrecio', 'esEjemplo', 'createdAt', 'updatedAt'
+  'id', 'nombre', 'contenido', 'presentacionKg', 'precioPresentacionCop', 'fechaPrecio', 'registroIca', 'fuentePrecio', 'esEjemplo', 'createdAt', 'updatedAt'
 ]);
 const CAMPOS_PLAN: ReadonlySet<string> = new Set([
   'id', 'loteId', 'nombre', 'areaM2AlCrear', 'analisisReferenciaId', 'planOrigenId', 'metas', 'lineas', 'estado',
@@ -183,6 +183,10 @@ function leerContenido(lista: ReadonlyArray<unknown>, problemas: ProblemaDato[],
   return contenido;
 }
 
+/** Topes de largo de los datos de origen del producto (los mismos del formulario). */
+export const MAX_REGISTRO_ICA = 40;
+export const MAX_FUENTE_PRECIO = 120;
+
 /**
  * Campos comunes al producto del catálogo y a su copia dentro de un plan. Devuelve los datos
  * válidos aunque otros estén dañados (los dañados quedan en `problemas`).
@@ -200,8 +204,12 @@ function leerCamposParciales(r: Record<string, unknown>, problemas: ProblemaDato
     if (ausente(r.presentacionKg)) l.nota('presentacionKg', 'Kg por bulto', 'Es obligatorio cuando se registra el precio.');
     if (ausente(r.fechaPrecio)) l.nota('fechaPrecio', 'Fecha del precio', 'Es obligatoria cuando se registra el precio.');
   }
+  const registroIca = l.texto('registroIca', 'Registro ICA');
+  if (registroIca && registroIca.length > MAX_REGISTRO_ICA) l.nota('registroIca', 'Registro ICA', `Tiene más de ${MAX_REGISTRO_ICA} caracteres.`);
+  const fuentePrecio = l.texto('fuentePrecio', 'Fuente del precio');
+  if (fuentePrecio && fuentePrecio.length > MAX_FUENTE_PRECIO) l.nota('fuentePrecio', 'Fuente del precio', `Tiene más de ${MAX_FUENTE_PRECIO} caracteres.`);
   const esEjemplo = l.booleano('esEjemplo', 'Dato de EJEMPLO');
-  return { nombre, contenido, presentacionKg, precioPresentacionCop, fechaPrecio, esEjemplo };
+  return { nombre, contenido, presentacionKg, precioPresentacionCop, fechaPrecio, ...(registroIca ? { registroIca } : {}), ...(fuentePrecio ? { fuentePrecio } : {}), esEjemplo };
 }
 
 /** Datos completos solo si ningún campo tiene problemas. */
@@ -268,6 +276,8 @@ export function copiarProducto(producto: ProductoFertilizante): CopiaProducto {
     presentacionKg: producto.presentacionKg,
     precioPresentacionCop: producto.precioPresentacionCop,
     fechaPrecio: producto.fechaPrecio,
+    ...(producto.registroIca ? { registroIca: producto.registroIca } : {}),
+    ...(producto.fuentePrecio ? { fuentePrecio: producto.fuentePrecio } : {}),
     esEjemplo: producto.esEjemplo
   };
 }
@@ -527,11 +537,13 @@ export interface EntradaProducto {
   presentacionKg: string;
   precioPresentacionCop: string;
   fechaPrecio: string;
+  registroIca?: string;
+  fuentePrecio?: string;
   /** null: el usuario aún no indicó si los datos son de una etiqueta real o de EJEMPLO. */
   esEjemplo: boolean | null;
 }
 
-export type ErroresProducto = Partial<Record<'nombre' | 'presentacionKg' | 'precioPresentacionCop' | 'fechaPrecio' | 'esEjemplo', string>> & {
+export type ErroresProducto = Partial<Record<'nombre' | 'presentacionKg' | 'precioPresentacionCop' | 'fechaPrecio' | 'registroIca' | 'fuentePrecio' | 'esEjemplo', string>> & {
   contenido?: Record<number, string>;
   general?: string[];
 };
@@ -594,7 +606,10 @@ export function validarProducto(
 
   if (Object.keys(errores).length) return { ok: false, errores };
   const datos: DatosProducto = {
-    nombre, contenido, presentacionKg: valorDe(kg), precioPresentacionCop: valorDe(precio), fechaPrecio, esEjemplo: entrada.esEjemplo as boolean
+    nombre, contenido, presentacionKg: valorDe(kg), precioPresentacionCop: valorDe(precio), fechaPrecio,
+    ...(entrada.registroIca?.trim() ? { registroIca: entrada.registroIca.trim() } : {}),
+    ...(hayPrecio && entrada.fuentePrecio?.trim() ? { fuentePrecio: entrada.fuentePrecio.trim() } : {}),
+    esEjemplo: entrada.esEjemplo as boolean
   };
   // Misma comprobación que se hace antes de persistir.
   const final = validarDatosProducto(datos, { hoy });
