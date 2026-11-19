@@ -1,1 +1,641 @@
-[]
+[
+  {
+    "id": "papa-castro2005-niveles-ph",
+    "cultivo": "papa",
+    "nutriente": "pH",
+    "metodo": null,
+    "unidad": "unidades de pH",
+    "rangos": [
+      {
+        "nivel": "bajo",
+        "min": null,
+        "max": 4.8
+      },
+      {
+        "nivel": "medio",
+        "min": 4.8,
+        "max": 5.5
+      },
+      {
+        "nivel": "alto",
+        "min": 5.5,
+        "max": null
+      }
+    ],
+    "fuente": {
+      "titulo": "Balance y prospectiva de la investigación en la fertilización de papa en Colombia. En: Memorias I Taller Nacional sobre suelos, fisiología y nutrición vegetal en el cultivo de la papa (CEVIPAPA / MADR, Bogotá, feb. 2005)",
+      "autores": "Castro Franco, Hugo E.",
+      "anio": 2005,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/f3004e2f-1756-45ed-840b-760a9c1b4235/content",
+      "licencia": "CC BY-NC-SA 4.0 (metadatos del repositorio AGROSAVIA, hdl 20.500.12324/17441)",
+      "tipo": "academica-colombia",
+      "paginaImpresa": "35",
+      "paginaPdf": 46,
+      "tabla": "Tabla 3. Niveles críticos aplicables a suelos paperos del Altiplano Cundiboyacense"
+    },
+    "transcripcion": "Elemento | Muy Bajo | Bajo | Medio | Alto → pH | < 4.8 | 4.8-5.5 | >5.5",
+    "verificacion": "ok"
+  },
+  {
+    "id": "papa-castro2005-niveles-saturaciondeal",
+    "cultivo": "papa",
+    "nutriente": "Saturación de Al",
+    "metodo": null,
+    "unidad": "%",
+    "rangos": [
+      {
+        "nivel": "bajo",
+        "min": null,
+        "max": 15
+      },
+      {
+        "nivel": "medio",
+        "min": 15,
+        "max": 30
+      },
+      {
+        "nivel": "alto",
+        "min": 30,
+        "max": null
+      }
+    ],
+    "fuente": {
+      "titulo": "Balance y prospectiva de la investigación en la fertilización de papa en Colombia. En: Memorias I Taller Nacional sobre suelos, fisiología y nutrición vegetal en el cultivo de la papa (CEVIPAPA / MADR, Bogotá, feb. 2005)",
+      "autores": "Castro Franco, Hugo E.",
+      "anio": 2005,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/f3004e2f-1756-45ed-840b-760a9c1b4235/content",
+      "licencia": "CC BY-NC-SA 4.0 (metadatos del repositorio AGROSAVIA, hdl 20.500.12324/17441)",
+      "tipo": "academica-colombia",
+      "paginaImpresa": "35",
+      "paginaPdf": 46,
+      "tabla": "Tabla 3. Niveles críticos aplicables a suelos paperos del Altiplano Cundiboyacense"
+    },
+    "transcripcion": "Elemento | Muy Bajo | Bajo | Medio | Alto → % Sat. Al+++ | <15 | 15-30 | >30",
+    "verificacion": "ok"
+  },
+  {
+    "id": "papa-castro2005-niveles-mo",
+    "cultivo": "papa",
+    "nutriente": "M.O.",
+    "metodo": null,
+    "unidad": "%",
+    "rangos": [
+      {
+        "nivel": "bajo",
+        "min": null,
+        "max": 5
+      },
+      {
+        "nivel": "medio",
+        "min": 5,
+        "max": 10
+      },
+      {
+        "nivel": "alto",
+        "min": 10,
+        "max": null
+      }
+    ],
+    "fuente": {
+      "titulo": "Balance y prospectiva de la investigación en la fertilización de papa en Colombia. En: Memorias I Taller Nacional sobre suelos, fisiología y nutrición vegetal en el cultivo de la papa (CEVIPAPA / MADR, Bogotá, feb. 2005)",
+      "autores": "Castro Franco, Hugo E.",
+      "anio": 2005,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/f3004e2f-1756-45ed-840b-760a9c1b4235/content",
+      "licencia": "CC BY-NC-SA 4.0 (metadatos del repositorio AGROSAVIA, hdl 20.500.12324/17441)",
+      "tipo": "academica-colombia",
+      "paginaImpresa": "35",
+      "paginaPdf": 46,
+      "tabla": "Tabla 3. Niveles críticos aplicables a suelos paperos del Altiplano Cundiboyacense"
+    },
+    "transcripcion": "Elemento | Muy Bajo | Bajo | Medio | Alto → M.O. (%) | <5 | 5 – 10 | >10",
+    "verificacion": "ok"
+  },
+  {
+    "id": "papa-castro2005-niveles-p",
+    "cultivo": "papa",
+    "nutriente": "P",
+    "metodo": "Bray II",
+    "unidad": "mg/kg",
+    "rangos": [
+      {
+        "nivel": "bajo",
+        "min": null,
+        "max": 40
+      },
+      {
+        "nivel": "medio",
+        "min": 40,
+        "max": 60
+      },
+      {
+        "nivel": "alto",
+        "min": 60,
+        "max": null
+      }
+    ],
+    "fuente": {
+      "titulo": "Balance y prospectiva de la investigación en la fertilización de papa en Colombia. En: Memorias I Taller Nacional sobre suelos, fisiología y nutrición vegetal en el cultivo de la papa (CEVIPAPA / MADR, Bogotá, feb. 2005)",
+      "autores": "Castro Franco, Hugo E.",
+      "anio": 2005,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/f3004e2f-1756-45ed-840b-760a9c1b4235/content",
+      "licencia": "CC BY-NC-SA 4.0 (metadatos del repositorio AGROSAVIA, hdl 20.500.12324/17441)",
+      "tipo": "academica-colombia",
+      "paginaImpresa": "35",
+      "paginaPdf": 46,
+      "tabla": "Tabla 3. Niveles críticos aplicables a suelos paperos del Altiplano Cundiboyacense"
+    },
+    "transcripcion": "Elemento | Muy Bajo | Bajo | Medio | Alto → P (ppm).Bray II | <40 | 40-60 | >60",
+    "verificacion": "ok"
+  },
+  {
+    "id": "papa-castro2005-niveles-k",
+    "cultivo": "papa",
+    "nutriente": "K",
+    "metodo": null,
+    "unidad": "cmol(+)/kg",
+    "rangos": [
+      {
+        "nivel": "bajo",
+        "min": null,
+        "max": 0.3
+      },
+      {
+        "nivel": "medio",
+        "min": 0.3,
+        "max": 0.6
+      },
+      {
+        "nivel": "alto",
+        "min": 0.6,
+        "max": null
+      }
+    ],
+    "fuente": {
+      "titulo": "Balance y prospectiva de la investigación en la fertilización de papa en Colombia. En: Memorias I Taller Nacional sobre suelos, fisiología y nutrición vegetal en el cultivo de la papa (CEVIPAPA / MADR, Bogotá, feb. 2005)",
+      "autores": "Castro Franco, Hugo E.",
+      "anio": 2005,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/f3004e2f-1756-45ed-840b-760a9c1b4235/content",
+      "licencia": "CC BY-NC-SA 4.0 (metadatos del repositorio AGROSAVIA, hdl 20.500.12324/17441)",
+      "tipo": "academica-colombia",
+      "paginaImpresa": "35",
+      "paginaPdf": 46,
+      "tabla": "Tabla 3. Niveles críticos aplicables a suelos paperos del Altiplano Cundiboyacense"
+    },
+    "transcripcion": "Elemento | Muy Bajo | Bajo | Medio | Alto → K (cmol+ xKg-1) | <0.3 | 0.3-0.6 | >0.6",
+    "verificacion": "ok"
+  },
+  {
+    "id": "papa-castro2005-niveles-ca",
+    "cultivo": "papa",
+    "nutriente": "Ca",
+    "metodo": null,
+    "unidad": null,
+    "rangos": [
+      {
+        "nivel": "bajo",
+        "min": null,
+        "max": 3
+      },
+      {
+        "nivel": "medio",
+        "min": 3,
+        "max": 6
+      },
+      {
+        "nivel": "alto",
+        "min": 6,
+        "max": null
+      }
+    ],
+    "fuente": {
+      "titulo": "Balance y prospectiva de la investigación en la fertilización de papa en Colombia. En: Memorias I Taller Nacional sobre suelos, fisiología y nutrición vegetal en el cultivo de la papa (CEVIPAPA / MADR, Bogotá, feb. 2005)",
+      "autores": "Castro Franco, Hugo E.",
+      "anio": 2005,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/f3004e2f-1756-45ed-840b-760a9c1b4235/content",
+      "licencia": "CC BY-NC-SA 4.0 (metadatos del repositorio AGROSAVIA, hdl 20.500.12324/17441)",
+      "tipo": "academica-colombia",
+      "paginaImpresa": "35",
+      "paginaPdf": 46,
+      "tabla": "Tabla 3. Niveles críticos aplicables a suelos paperos del Altiplano Cundiboyacense"
+    },
+    "transcripcion": "Elemento | Muy Bajo | Bajo | Medio | Alto → Ca | <3 | 3-6 | >6",
+    "verificacion": "por verificar: la fuente no indica la unidad"
+  },
+  {
+    "id": "papa-castro2005-niveles-mg",
+    "cultivo": "papa",
+    "nutriente": "Mg",
+    "metodo": null,
+    "unidad": null,
+    "rangos": [
+      {
+        "nivel": "muy bajo",
+        "min": null,
+        "max": 0.5
+      },
+      {
+        "nivel": "bajo",
+        "min": 0.5,
+        "max": 1.2
+      },
+      {
+        "nivel": "medio",
+        "min": 1.21,
+        "max": 1.8
+      },
+      {
+        "nivel": "alto",
+        "min": 1.8,
+        "max": null
+      }
+    ],
+    "fuente": {
+      "titulo": "Balance y prospectiva de la investigación en la fertilización de papa en Colombia. En: Memorias I Taller Nacional sobre suelos, fisiología y nutrición vegetal en el cultivo de la papa (CEVIPAPA / MADR, Bogotá, feb. 2005)",
+      "autores": "Castro Franco, Hugo E.",
+      "anio": 2005,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/f3004e2f-1756-45ed-840b-760a9c1b4235/content",
+      "licencia": "CC BY-NC-SA 4.0 (metadatos del repositorio AGROSAVIA, hdl 20.500.12324/17441)",
+      "tipo": "academica-colombia",
+      "paginaImpresa": "35",
+      "paginaPdf": 46,
+      "tabla": "Tabla 3. Niveles críticos aplicables a suelos paperos del Altiplano Cundiboyacense"
+    },
+    "transcripcion": "Elemento | Muy Bajo | Bajo | Medio | Alto → Mg | < 0.5 | 0.5 – 1.2 | 1.21-1.8 | >1.8",
+    "verificacion": "por verificar: la fuente no indica la unidad"
+  },
+  {
+    "id": "papa-castro2005-niveles-s",
+    "cultivo": "papa",
+    "nutriente": "S",
+    "metodo": null,
+    "unidad": null,
+    "rangos": [
+      {
+        "nivel": "muy bajo",
+        "min": null,
+        "max": 5
+      },
+      {
+        "nivel": "bajo",
+        "min": 5,
+        "max": 10
+      },
+      {
+        "nivel": "medio",
+        "min": 10,
+        "max": 15
+      },
+      {
+        "nivel": "alto",
+        "min": 15,
+        "max": null
+      }
+    ],
+    "fuente": {
+      "titulo": "Balance y prospectiva de la investigación en la fertilización de papa en Colombia. En: Memorias I Taller Nacional sobre suelos, fisiología y nutrición vegetal en el cultivo de la papa (CEVIPAPA / MADR, Bogotá, feb. 2005)",
+      "autores": "Castro Franco, Hugo E.",
+      "anio": 2005,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/f3004e2f-1756-45ed-840b-760a9c1b4235/content",
+      "licencia": "CC BY-NC-SA 4.0 (metadatos del repositorio AGROSAVIA, hdl 20.500.12324/17441)",
+      "tipo": "academica-colombia",
+      "paginaImpresa": "35",
+      "paginaPdf": 46,
+      "tabla": "Tabla 3. Niveles críticos aplicables a suelos paperos del Altiplano Cundiboyacense"
+    },
+    "transcripcion": "Elemento | Muy Bajo | Bajo | Medio | Alto → S | < 5 | 5 – 10 | 10-15 | >15",
+    "verificacion": "por verificar: la fuente no indica la unidad"
+  },
+  {
+    "id": "papa-castro2005-niveles-b",
+    "cultivo": "papa",
+    "nutriente": "B",
+    "metodo": null,
+    "unidad": "mg/kg",
+    "rangos": [
+      {
+        "nivel": "bajo",
+        "min": null,
+        "max": 0.3
+      },
+      {
+        "nivel": "medio",
+        "min": 0.3,
+        "max": 0.6
+      },
+      {
+        "nivel": "alto",
+        "min": 0.6,
+        "max": null
+      }
+    ],
+    "fuente": {
+      "titulo": "Balance y prospectiva de la investigación en la fertilización de papa en Colombia. En: Memorias I Taller Nacional sobre suelos, fisiología y nutrición vegetal en el cultivo de la papa (CEVIPAPA / MADR, Bogotá, feb. 2005)",
+      "autores": "Castro Franco, Hugo E.",
+      "anio": 2005,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/f3004e2f-1756-45ed-840b-760a9c1b4235/content",
+      "licencia": "CC BY-NC-SA 4.0 (metadatos del repositorio AGROSAVIA, hdl 20.500.12324/17441)",
+      "tipo": "academica-colombia",
+      "paginaImpresa": "35",
+      "paginaPdf": 46,
+      "tabla": "Tabla 3. Niveles críticos aplicables a suelos paperos del Altiplano Cundiboyacense"
+    },
+    "transcripcion": "Elemento | Muy Bajo | Bajo | Medio | Alto → B (ppm) | < 0.3 | 0.3 – 0.6 | >0.6",
+    "verificacion": "ok"
+  },
+  {
+    "id": "papa-castro2005-niveles-cu",
+    "cultivo": "papa",
+    "nutriente": "Cu",
+    "metodo": null,
+    "unidad": null,
+    "rangos": [
+      {
+        "nivel": "bajo",
+        "min": null,
+        "max": 2
+      },
+      {
+        "nivel": "medio",
+        "min": 2,
+        "max": 4
+      },
+      {
+        "nivel": "alto",
+        "min": 4,
+        "max": null
+      }
+    ],
+    "fuente": {
+      "titulo": "Balance y prospectiva de la investigación en la fertilización de papa en Colombia. En: Memorias I Taller Nacional sobre suelos, fisiología y nutrición vegetal en el cultivo de la papa (CEVIPAPA / MADR, Bogotá, feb. 2005)",
+      "autores": "Castro Franco, Hugo E.",
+      "anio": 2005,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/f3004e2f-1756-45ed-840b-760a9c1b4235/content",
+      "licencia": "CC BY-NC-SA 4.0 (metadatos del repositorio AGROSAVIA, hdl 20.500.12324/17441)",
+      "tipo": "academica-colombia",
+      "paginaImpresa": "35",
+      "paginaPdf": 46,
+      "tabla": "Tabla 3. Niveles críticos aplicables a suelos paperos del Altiplano Cundiboyacense"
+    },
+    "transcripcion": "Elemento | Muy Bajo | Bajo | Medio | Alto → Cu | < 2 | 2 – 4 | > 4",
+    "verificacion": "por verificar: la fuente no indica la unidad"
+  },
+  {
+    "id": "papa-castro2005-niveles-zn",
+    "cultivo": "papa",
+    "nutriente": "Zn",
+    "metodo": null,
+    "unidad": null,
+    "rangos": [
+      {
+        "nivel": "bajo",
+        "min": null,
+        "max": 3
+      },
+      {
+        "nivel": "medio",
+        "min": 3,
+        "max": 6
+      },
+      {
+        "nivel": "alto",
+        "min": 6,
+        "max": null
+      }
+    ],
+    "fuente": {
+      "titulo": "Balance y prospectiva de la investigación en la fertilización de papa en Colombia. En: Memorias I Taller Nacional sobre suelos, fisiología y nutrición vegetal en el cultivo de la papa (CEVIPAPA / MADR, Bogotá, feb. 2005)",
+      "autores": "Castro Franco, Hugo E.",
+      "anio": 2005,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/f3004e2f-1756-45ed-840b-760a9c1b4235/content",
+      "licencia": "CC BY-NC-SA 4.0 (metadatos del repositorio AGROSAVIA, hdl 20.500.12324/17441)",
+      "tipo": "academica-colombia",
+      "paginaImpresa": "35",
+      "paginaPdf": 46,
+      "tabla": "Tabla 3. Niveles críticos aplicables a suelos paperos del Altiplano Cundiboyacense"
+    },
+    "transcripcion": "Elemento | Muy Bajo | Bajo | Medio | Alto → Zn | < 3 | 3 – 6 | > 6",
+    "verificacion": "por verificar: la fuente no indica la unidad"
+  },
+  {
+    "id": "arveja-ica1992-niveles-p",
+    "cultivo": "arveja",
+    "nutriente": "P",
+    "metodo": "no especificado en la fuente secundaria",
+    "unidad": "mg/kg",
+    "rangos": [
+      {
+        "nivel": "bajo",
+        "min": null,
+        "max": 15
+      },
+      {
+        "nivel": "medio",
+        "min": 15,
+        "max": 30
+      },
+      {
+        "nivel": "alto",
+        "min": 30,
+        "max": null
+      }
+    ],
+    "fuente": {
+      "titulo": "Determinación de requerimientos nutricionales y recomendación de fertilización mineral para el cultivo de la arveja china y de la arveja dulce [trabajo de grado, UNAD] — reproduce la tabla de arveja de ICA (1992), Fertilización en diversos cultivos, Quinta aproximación",
+      "autores": "Rodríguez Valenzuela, Jeisson (cita a ICA, 1992)",
+      "anio": 2011,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/bb625172-98f8-4e16-bd3f-51e8aea5331a/content",
+      "licencia": "CC BY-NC-ND 4.0 (metadatos repositorio AGROSAVIA, hdl 20.500.12324/37280)",
+      "tipo": "academica-colombia",
+      "paginaImpresa": "28",
+      "paginaPdf": 28,
+      "tabla": "Tabla 1. Recomendaciones para la fertilización de la arveja, (ICA, 1992)"
+    },
+    "transcripcion": "BAJO <15 | MEDIO 15 – 30 | ALTO >30 (P ppm)",
+    "verificacion": "por verificar: fuente secundaria; método no indicado"
+  },
+  {
+    "id": "arveja-ica1992-niveles-k",
+    "cultivo": "arveja",
+    "nutriente": "K",
+    "metodo": "no especificado",
+    "unidad": "cmol(+)/kg",
+    "rangos": [
+      {
+        "nivel": "bajo",
+        "min": null,
+        "max": 0.15
+      },
+      {
+        "nivel": "medio",
+        "min": 0.15,
+        "max": 0.3
+      },
+      {
+        "nivel": "alto",
+        "min": 0.3,
+        "max": null
+      }
+    ],
+    "fuente": {
+      "titulo": "Determinación de requerimientos nutricionales y recomendación de fertilización mineral para el cultivo de la arveja china y de la arveja dulce [trabajo de grado, UNAD] — reproduce la tabla de arveja de ICA (1992), Fertilización en diversos cultivos, Quinta aproximación",
+      "autores": "Rodríguez Valenzuela, Jeisson (cita a ICA, 1992)",
+      "anio": 2011,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/bb625172-98f8-4e16-bd3f-51e8aea5331a/content",
+      "licencia": "CC BY-NC-ND 4.0 (metadatos repositorio AGROSAVIA, hdl 20.500.12324/37280)",
+      "tipo": "academica-colombia",
+      "paginaImpresa": "28",
+      "paginaPdf": 28,
+      "tabla": "Tabla 1. Recomendaciones para la fertilización de la arveja, (ICA, 1992)"
+    },
+    "transcripcion": "BAJO <0.15 | MEDIO 0.15 – 0.30 | ALTO > 0.30 (K meq/100g)",
+    "verificacion": "por verificar: fuente secundaria"
+  },
+  {
+    "id": "hortalizas-uf2021-niveles-p",
+    "cultivo": "kale",
+    "nutriente": "P",
+    "metodo": "Mehlich-3",
+    "unidad": "mg/kg",
+    "rangos": [
+      {
+        "nivel": "bajo",
+        "min": null,
+        "max": 25
+      },
+      {
+        "nivel": "medio",
+        "min": 26,
+        "max": 45
+      },
+      {
+        "nivel": "alto",
+        "min": 45,
+        "max": null
+      }
+    ],
+    "fuente": {
+      "titulo": "UF/IFAS Standardized Nutrient Recommendations for Vegetable Crop Production in Florida (CIR1152 / CV002)",
+      "autores": "Mylavarapu, Rao; Hochmuth, George; Liu, Guodong (UF/IFAS Extension)",
+      "anio": 2021,
+      "url": "https://ask.ifas.ufl.edu/publication/CV002/pdf",
+      "licencia": "CC BY-NC-ND 4.0 (pie del documento; original 2000, revisado dic. 2021 y ene. 2026)",
+      "tipo": "internacional",
+      "paginaImpresa": "7",
+      "paginaPdf": 7,
+      "tabla": "Table 1. Mehlich-3 soil test interpretations used for vegetable crops on mineral soils"
+    },
+    "transcripcion": "Element | Mehlich-3, mg/kg (ppm) Low | Medium | High → P | ≤ 25 | 26 – 45 | >45",
+    "verificacion": "ok"
+  },
+  {
+    "id": "hortalizas-uf2021-niveles-k",
+    "cultivo": "kale",
+    "nutriente": "K",
+    "metodo": "Mehlich-3",
+    "unidad": "mg/kg",
+    "rangos": [
+      {
+        "nivel": "bajo",
+        "min": null,
+        "max": 35
+      },
+      {
+        "nivel": "medio",
+        "min": 36,
+        "max": 60
+      },
+      {
+        "nivel": "alto",
+        "min": 60,
+        "max": null
+      }
+    ],
+    "fuente": {
+      "titulo": "UF/IFAS Standardized Nutrient Recommendations for Vegetable Crop Production in Florida (CIR1152 / CV002)",
+      "autores": "Mylavarapu, Rao; Hochmuth, George; Liu, Guodong (UF/IFAS Extension)",
+      "anio": 2021,
+      "url": "https://ask.ifas.ufl.edu/publication/CV002/pdf",
+      "licencia": "CC BY-NC-ND 4.0 (pie del documento; original 2000, revisado dic. 2021 y ene. 2026)",
+      "tipo": "internacional",
+      "paginaImpresa": "7",
+      "paginaPdf": 7,
+      "tabla": "Table 1. Mehlich-3 soil test interpretations used for vegetable crops on mineral soils"
+    },
+    "transcripcion": "Element | Mehlich-3, mg/kg (ppm) Low | Medium | High → K | ≤ 35 | 36 – 60 | >60",
+    "verificacion": "ok"
+  },
+  {
+    "id": "hortalizas-uf2021-niveles-mg",
+    "cultivo": "kale",
+    "nutriente": "Mg",
+    "metodo": "Mehlich-3",
+    "unidad": "mg/kg",
+    "rangos": [
+      {
+        "nivel": "bajo",
+        "min": null,
+        "max": 20
+      },
+      {
+        "nivel": "medio",
+        "min": 21,
+        "max": 40
+      },
+      {
+        "nivel": "alto",
+        "min": 40,
+        "max": null
+      }
+    ],
+    "fuente": {
+      "titulo": "UF/IFAS Standardized Nutrient Recommendations for Vegetable Crop Production in Florida (CIR1152 / CV002)",
+      "autores": "Mylavarapu, Rao; Hochmuth, George; Liu, Guodong (UF/IFAS Extension)",
+      "anio": 2021,
+      "url": "https://ask.ifas.ufl.edu/publication/CV002/pdf",
+      "licencia": "CC BY-NC-ND 4.0 (pie del documento; original 2000, revisado dic. 2021 y ene. 2026)",
+      "tipo": "internacional",
+      "paginaImpresa": "7",
+      "paginaPdf": 7,
+      "tabla": "Table 1. Mehlich-3 soil test interpretations used for vegetable crops on mineral soils"
+    },
+    "transcripcion": "Element | Mehlich-3, mg/kg (ppm) Low | Medium | High → Mg | ≤ 20 | 21 – 40 | >40",
+    "verificacion": "ok"
+  },
+  {
+    "id": "lechuga-agrosavia2014-niveles-cic",
+    "cultivo": "lechuga",
+    "nutriente": "CIC",
+    "metodo": null,
+    "unidad": "meq/100 g",
+    "rangos": [
+      {
+        "nivel": "bajo",
+        "min": null,
+        "max": 10
+      },
+      {
+        "nivel": "medio",
+        "min": 10,
+        "max": 20
+      },
+      {
+        "nivel": "alto",
+        "min": 20,
+        "max": null
+      }
+    ],
+    "fuente": {
+      "titulo": "Modelo tecnológico para el cultivo de lechuga (Lactuca sativa) en el oriente antioqueño",
+      "autores": "Jaramillo Noreña, J. E.; Aguilar Aguilar, P. A.; Espitia Malagón, E. M.; Tamayo Molano, P. J.; Arguello Tovar, J. O.; Guzmán Arroyave, M. (CORPOICA, hoy AGROSAVIA)",
+      "anio": 2014,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/b1f58f75-3f30-467c-a724-10a8d615d2cf/content",
+      "licencia": "CC BY-NC-SA 4.0 (metadatos repositorio AGROSAVIA, hdl 20.500.12324/13758)",
+      "tipo": "oficial-colombia",
+      "paginaImpresa": "88",
+      "paginaPdf": 88,
+      "tabla": "sin tabla (viñeta \"Capacidad de intercambio catiónico\")"
+    },
+    "transcripcion": "Capacidad de intercambio catiónico: < 100 meq/100 g (baja); 10 - 20 meq/100 g (media); > 20 meq/100 g (alta) (ICA, 1992).",
+    "verificacion": "por verificar: errata en la fuente (\"< 100\" en vez de \"< 10\"); se asumió 10"
+  }
+]

@@ -1,1 +1,1388 @@
-[]
+[
+  {
+    "id": "papa-castro2005-subparamo-p-bajo",
+    "cultivo": "papa",
+    "region": "Subpáramos de Cundinamarca y Boyacá",
+    "condicion": {
+      "nutriente": "P",
+      "metodo": "Bray II",
+      "unidad": "mg/kg",
+      "min": null,
+      "max": 40
+    },
+    "recomendacion": [
+      {
+        "forma": "P₂O₅",
+        "minKgHa": 350,
+        "maxKgHa": 400
+      }
+    ],
+    "notas": "Rango para producciones de alto rendimiento. El autor indica que queda a consideración del ingeniero agrónomo de la zona. P en ppm por Bray II; K intercambiable (meq/100 g = cmol(+)/kg).",
+    "fuente": {
+      "titulo": "Balance y prospectiva de la investigación en la fertilización de papa en Colombia. En: Memorias I Taller Nacional sobre suelos, fisiología y nutrición vegetal en el cultivo de la papa (CEVIPAPA / MADR, Bogotá, feb. 2005)",
+      "autores": "Castro Franco, Hugo E.",
+      "anio": 2005,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/f3004e2f-1756-45ed-840b-760a9c1b4235/content",
+      "licencia": "CC BY-NC-SA 4.0 (metadatos del repositorio AGROSAVIA, hdl 20.500.12324/17441)",
+      "tipo": "academica-colombia",
+      "paginaImpresa": "34",
+      "paginaPdf": 45,
+      "tabla": "Tabla 2. Recomendaciones para la fertilización de papa (Solanum tuberosum L.) para producciones de alto rendimiento"
+    },
+    "transcripcion": "Región: Subpáramos de Cundinamarca y Boyacá | P (ppm) | K (meqx100g) | N* | P2O5 | K2O (Kg·ha-1) → < 40 | < 0.3 | 350 - 400 | 150 - 180",
+    "verificacion": "ok"
+  },
+  {
+    "id": "papa-castro2005-subparamo-k-bajo",
+    "cultivo": "papa",
+    "region": "Subpáramos de Cundinamarca y Boyacá",
+    "condicion": {
+      "nutriente": "K",
+      "metodo": null,
+      "unidad": "cmol(+)/kg",
+      "min": null,
+      "max": 0.3
+    },
+    "recomendacion": [
+      {
+        "forma": "K₂O",
+        "minKgHa": 150,
+        "maxKgHa": 180
+      }
+    ],
+    "notas": "Rango para producciones de alto rendimiento. El autor indica que queda a consideración del ingeniero agrónomo de la zona. P en ppm por Bray II; K intercambiable (meq/100 g = cmol(+)/kg).",
+    "fuente": {
+      "titulo": "Balance y prospectiva de la investigación en la fertilización de papa en Colombia. En: Memorias I Taller Nacional sobre suelos, fisiología y nutrición vegetal en el cultivo de la papa (CEVIPAPA / MADR, Bogotá, feb. 2005)",
+      "autores": "Castro Franco, Hugo E.",
+      "anio": 2005,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/f3004e2f-1756-45ed-840b-760a9c1b4235/content",
+      "licencia": "CC BY-NC-SA 4.0 (metadatos del repositorio AGROSAVIA, hdl 20.500.12324/17441)",
+      "tipo": "academica-colombia",
+      "paginaImpresa": "34",
+      "paginaPdf": 45,
+      "tabla": "Tabla 2. Recomendaciones para la fertilización de papa (Solanum tuberosum L.) para producciones de alto rendimiento"
+    },
+    "transcripcion": "Región: Subpáramos de Cundinamarca y Boyacá | P (ppm) | K (meqx100g) | N* | P2O5 | K2O (Kg·ha-1) → < 40 | < 0.3 | 350 - 400 | 150 - 180",
+    "verificacion": "ok"
+  },
+  {
+    "id": "papa-castro2005-subparamo-p-medio",
+    "cultivo": "papa",
+    "region": "Subpáramos de Cundinamarca y Boyacá",
+    "condicion": {
+      "nutriente": "P",
+      "metodo": "Bray II",
+      "unidad": "mg/kg",
+      "min": 40,
+      "max": 60
+    },
+    "recomendacion": [
+      {
+        "forma": "P₂O₅",
+        "minKgHa": 300,
+        "maxKgHa": 350
+      }
+    ],
+    "notas": "Rango para producciones de alto rendimiento. El autor indica que queda a consideración del ingeniero agrónomo de la zona. P en ppm por Bray II; K intercambiable (meq/100 g = cmol(+)/kg).",
+    "fuente": {
+      "titulo": "Balance y prospectiva de la investigación en la fertilización de papa en Colombia. En: Memorias I Taller Nacional sobre suelos, fisiología y nutrición vegetal en el cultivo de la papa (CEVIPAPA / MADR, Bogotá, feb. 2005)",
+      "autores": "Castro Franco, Hugo E.",
+      "anio": 2005,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/f3004e2f-1756-45ed-840b-760a9c1b4235/content",
+      "licencia": "CC BY-NC-SA 4.0 (metadatos del repositorio AGROSAVIA, hdl 20.500.12324/17441)",
+      "tipo": "academica-colombia",
+      "paginaImpresa": "34",
+      "paginaPdf": 45,
+      "tabla": "Tabla 2. Recomendaciones para la fertilización de papa (Solanum tuberosum L.) para producciones de alto rendimiento"
+    },
+    "transcripcion": "Región: Subpáramos de Cundinamarca y Boyacá | P (ppm) | K (meqx100g) | N* | P2O5 | K2O (Kg·ha-1) → 40 - 60 | 0.3 – 0.6 | 150-170 | 300 - 350 | 120 - 150",
+    "verificacion": "ok"
+  },
+  {
+    "id": "papa-castro2005-subparamo-k-medio",
+    "cultivo": "papa",
+    "region": "Subpáramos de Cundinamarca y Boyacá",
+    "condicion": {
+      "nutriente": "K",
+      "metodo": null,
+      "unidad": "cmol(+)/kg",
+      "min": 0.3,
+      "max": 0.6
+    },
+    "recomendacion": [
+      {
+        "forma": "K₂O",
+        "minKgHa": 120,
+        "maxKgHa": 150
+      }
+    ],
+    "notas": "Rango para producciones de alto rendimiento. El autor indica que queda a consideración del ingeniero agrónomo de la zona. P en ppm por Bray II; K intercambiable (meq/100 g = cmol(+)/kg).",
+    "fuente": {
+      "titulo": "Balance y prospectiva de la investigación en la fertilización de papa en Colombia. En: Memorias I Taller Nacional sobre suelos, fisiología y nutrición vegetal en el cultivo de la papa (CEVIPAPA / MADR, Bogotá, feb. 2005)",
+      "autores": "Castro Franco, Hugo E.",
+      "anio": 2005,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/f3004e2f-1756-45ed-840b-760a9c1b4235/content",
+      "licencia": "CC BY-NC-SA 4.0 (metadatos del repositorio AGROSAVIA, hdl 20.500.12324/17441)",
+      "tipo": "academica-colombia",
+      "paginaImpresa": "34",
+      "paginaPdf": 45,
+      "tabla": "Tabla 2. Recomendaciones para la fertilización de papa (Solanum tuberosum L.) para producciones de alto rendimiento"
+    },
+    "transcripcion": "Región: Subpáramos de Cundinamarca y Boyacá | P (ppm) | K (meqx100g) | N* | P2O5 | K2O (Kg·ha-1) → 40 - 60 | 0.3 – 0.6 | 150-170 | 300 - 350 | 120 - 150",
+    "verificacion": "ok"
+  },
+  {
+    "id": "papa-castro2005-subparamo-p-alto",
+    "cultivo": "papa",
+    "region": "Subpáramos de Cundinamarca y Boyacá",
+    "condicion": {
+      "nutriente": "P",
+      "metodo": "Bray II",
+      "unidad": "mg/kg",
+      "min": 60,
+      "max": null
+    },
+    "recomendacion": [
+      {
+        "forma": "P₂O₅",
+        "minKgHa": 250,
+        "maxKgHa": 300
+      }
+    ],
+    "notas": "Rango para producciones de alto rendimiento. El autor indica que queda a consideración del ingeniero agrónomo de la zona. P en ppm por Bray II; K intercambiable (meq/100 g = cmol(+)/kg).",
+    "fuente": {
+      "titulo": "Balance y prospectiva de la investigación en la fertilización de papa en Colombia. En: Memorias I Taller Nacional sobre suelos, fisiología y nutrición vegetal en el cultivo de la papa (CEVIPAPA / MADR, Bogotá, feb. 2005)",
+      "autores": "Castro Franco, Hugo E.",
+      "anio": 2005,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/f3004e2f-1756-45ed-840b-760a9c1b4235/content",
+      "licencia": "CC BY-NC-SA 4.0 (metadatos del repositorio AGROSAVIA, hdl 20.500.12324/17441)",
+      "tipo": "academica-colombia",
+      "paginaImpresa": "34",
+      "paginaPdf": 45,
+      "tabla": "Tabla 2. Recomendaciones para la fertilización de papa (Solanum tuberosum L.) para producciones de alto rendimiento"
+    },
+    "transcripcion": "Región: Subpáramos de Cundinamarca y Boyacá | P (ppm) | K (meqx100g) | N* | P2O5 | K2O (Kg·ha-1) → >60 | >0.6 | 250 – 300 | 75 – 120",
+    "verificacion": "ok"
+  },
+  {
+    "id": "papa-castro2005-subparamo-k-alto",
+    "cultivo": "papa",
+    "region": "Subpáramos de Cundinamarca y Boyacá",
+    "condicion": {
+      "nutriente": "K",
+      "metodo": null,
+      "unidad": "cmol(+)/kg",
+      "min": 0.6,
+      "max": null
+    },
+    "recomendacion": [
+      {
+        "forma": "K₂O",
+        "minKgHa": 75,
+        "maxKgHa": 120
+      }
+    ],
+    "notas": "Rango para producciones de alto rendimiento. El autor indica que queda a consideración del ingeniero agrónomo de la zona. P en ppm por Bray II; K intercambiable (meq/100 g = cmol(+)/kg).",
+    "fuente": {
+      "titulo": "Balance y prospectiva de la investigación en la fertilización de papa en Colombia. En: Memorias I Taller Nacional sobre suelos, fisiología y nutrición vegetal en el cultivo de la papa (CEVIPAPA / MADR, Bogotá, feb. 2005)",
+      "autores": "Castro Franco, Hugo E.",
+      "anio": 2005,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/f3004e2f-1756-45ed-840b-760a9c1b4235/content",
+      "licencia": "CC BY-NC-SA 4.0 (metadatos del repositorio AGROSAVIA, hdl 20.500.12324/17441)",
+      "tipo": "academica-colombia",
+      "paginaImpresa": "34",
+      "paginaPdf": 45,
+      "tabla": "Tabla 2. Recomendaciones para la fertilización de papa (Solanum tuberosum L.) para producciones de alto rendimiento"
+    },
+    "transcripcion": "Región: Subpáramos de Cundinamarca y Boyacá | P (ppm) | K (meqx100g) | N* | P2O5 | K2O (Kg·ha-1) → >60 | >0.6 | 250 – 300 | 75 – 120",
+    "verificacion": "ok"
+  },
+  {
+    "id": "papa-castro2005-subparamo-n",
+    "cultivo": "papa",
+    "region": "Subpáramos de Cundinamarca y Boyacá",
+    "condicion": {
+      "nutriente": null,
+      "metodo": null,
+      "unidad": null,
+      "min": null,
+      "max": null
+    },
+    "recomendacion": [
+      {
+        "forma": "N",
+        "minKgHa": 150,
+        "maxKgHa": 170
+      }
+    ],
+    "notas": "El N aparece una sola vez para toda la región (la tabla no lo cambia según el análisis).",
+    "fuente": {
+      "titulo": "Balance y prospectiva de la investigación en la fertilización de papa en Colombia. En: Memorias I Taller Nacional sobre suelos, fisiología y nutrición vegetal en el cultivo de la papa (CEVIPAPA / MADR, Bogotá, feb. 2005)",
+      "autores": "Castro Franco, Hugo E.",
+      "anio": 2005,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/f3004e2f-1756-45ed-840b-760a9c1b4235/content",
+      "licencia": "CC BY-NC-SA 4.0 (metadatos del repositorio AGROSAVIA, hdl 20.500.12324/17441)",
+      "tipo": "academica-colombia",
+      "paginaImpresa": "34",
+      "paginaPdf": 45,
+      "tabla": "Tabla 2. Recomendaciones para la fertilización de papa (Solanum tuberosum L.) para producciones de alto rendimiento"
+    },
+    "transcripcion": "Región: Subpáramos de Cundinamarca y Boyacá | N* | 150-170 (impreso una vez, centrado entre las tres filas de la región)",
+    "verificacion": "por verificar: la celda de N está centrada verticalmente (probable celda combinada para los tres niveles); confirmar visualmente"
+  },
+  {
+    "id": "papa-castro2005-altiplano-p-bajo",
+    "cultivo": "papa",
+    "region": "Altiplano Cundiboyacense, Nariño y Antioquia",
+    "condicion": {
+      "nutriente": "P",
+      "metodo": "Bray II",
+      "unidad": "mg/kg",
+      "min": null,
+      "max": 40
+    },
+    "recomendacion": [
+      {
+        "forma": "P₂O₅",
+        "minKgHa": 300,
+        "maxKgHa": 375
+      }
+    ],
+    "notas": "Rango para producciones de alto rendimiento. El autor indica que queda a consideración del ingeniero agrónomo de la zona. P en ppm por Bray II; K intercambiable (meq/100 g = cmol(+)/kg).",
+    "fuente": {
+      "titulo": "Balance y prospectiva de la investigación en la fertilización de papa en Colombia. En: Memorias I Taller Nacional sobre suelos, fisiología y nutrición vegetal en el cultivo de la papa (CEVIPAPA / MADR, Bogotá, feb. 2005)",
+      "autores": "Castro Franco, Hugo E.",
+      "anio": 2005,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/f3004e2f-1756-45ed-840b-760a9c1b4235/content",
+      "licencia": "CC BY-NC-SA 4.0 (metadatos del repositorio AGROSAVIA, hdl 20.500.12324/17441)",
+      "tipo": "academica-colombia",
+      "paginaImpresa": "34",
+      "paginaPdf": 45,
+      "tabla": "Tabla 2. Recomendaciones para la fertilización de papa (Solanum tuberosum L.) para producciones de alto rendimiento"
+    },
+    "transcripcion": "Región: Altiplano Cundiboyacense, Nariño y Antioquia | P (ppm) | K (meqx100g) | N* | P2O5 | K2O (Kg·ha-1) → < 40 | < 0.3 | 300 – 375 | 125 - 150",
+    "verificacion": "ok"
+  },
+  {
+    "id": "papa-castro2005-altiplano-k-bajo",
+    "cultivo": "papa",
+    "region": "Altiplano Cundiboyacense, Nariño y Antioquia",
+    "condicion": {
+      "nutriente": "K",
+      "metodo": null,
+      "unidad": "cmol(+)/kg",
+      "min": null,
+      "max": 0.3
+    },
+    "recomendacion": [
+      {
+        "forma": "K₂O",
+        "minKgHa": 125,
+        "maxKgHa": 150
+      }
+    ],
+    "notas": "Rango para producciones de alto rendimiento. El autor indica que queda a consideración del ingeniero agrónomo de la zona. P en ppm por Bray II; K intercambiable (meq/100 g = cmol(+)/kg).",
+    "fuente": {
+      "titulo": "Balance y prospectiva de la investigación en la fertilización de papa en Colombia. En: Memorias I Taller Nacional sobre suelos, fisiología y nutrición vegetal en el cultivo de la papa (CEVIPAPA / MADR, Bogotá, feb. 2005)",
+      "autores": "Castro Franco, Hugo E.",
+      "anio": 2005,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/f3004e2f-1756-45ed-840b-760a9c1b4235/content",
+      "licencia": "CC BY-NC-SA 4.0 (metadatos del repositorio AGROSAVIA, hdl 20.500.12324/17441)",
+      "tipo": "academica-colombia",
+      "paginaImpresa": "34",
+      "paginaPdf": 45,
+      "tabla": "Tabla 2. Recomendaciones para la fertilización de papa (Solanum tuberosum L.) para producciones de alto rendimiento"
+    },
+    "transcripcion": "Región: Altiplano Cundiboyacense, Nariño y Antioquia | P (ppm) | K (meqx100g) | N* | P2O5 | K2O (Kg·ha-1) → < 40 | < 0.3 | 300 – 375 | 125 - 150",
+    "verificacion": "ok"
+  },
+  {
+    "id": "papa-castro2005-altiplano-p-medio",
+    "cultivo": "papa",
+    "region": "Altiplano Cundiboyacense, Nariño y Antioquia",
+    "condicion": {
+      "nutriente": "P",
+      "metodo": "Bray II",
+      "unidad": "mg/kg",
+      "min": 40,
+      "max": 60
+    },
+    "recomendacion": [
+      {
+        "forma": "P₂O₅",
+        "minKgHa": 250,
+        "maxKgHa": 300
+      }
+    ],
+    "notas": "Rango para producciones de alto rendimiento. El autor indica que queda a consideración del ingeniero agrónomo de la zona. P en ppm por Bray II; K intercambiable (meq/100 g = cmol(+)/kg).",
+    "fuente": {
+      "titulo": "Balance y prospectiva de la investigación en la fertilización de papa en Colombia. En: Memorias I Taller Nacional sobre suelos, fisiología y nutrición vegetal en el cultivo de la papa (CEVIPAPA / MADR, Bogotá, feb. 2005)",
+      "autores": "Castro Franco, Hugo E.",
+      "anio": 2005,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/f3004e2f-1756-45ed-840b-760a9c1b4235/content",
+      "licencia": "CC BY-NC-SA 4.0 (metadatos del repositorio AGROSAVIA, hdl 20.500.12324/17441)",
+      "tipo": "academica-colombia",
+      "paginaImpresa": "34",
+      "paginaPdf": 45,
+      "tabla": "Tabla 2. Recomendaciones para la fertilización de papa (Solanum tuberosum L.) para producciones de alto rendimiento"
+    },
+    "transcripcion": "Región: Altiplano Cundiboyacense, Nariño y Antioquia | P (ppm) | K (meqx100g) | N* | P2O5 | K2O (Kg·ha-1) → 40-60 | 0.3 – 0.6 | 120- 160 | 250 – 300 | 100 - 125",
+    "verificacion": "ok"
+  },
+  {
+    "id": "papa-castro2005-altiplano-k-medio",
+    "cultivo": "papa",
+    "region": "Altiplano Cundiboyacense, Nariño y Antioquia",
+    "condicion": {
+      "nutriente": "K",
+      "metodo": null,
+      "unidad": "cmol(+)/kg",
+      "min": 0.3,
+      "max": 0.6
+    },
+    "recomendacion": [
+      {
+        "forma": "K₂O",
+        "minKgHa": 100,
+        "maxKgHa": 125
+      }
+    ],
+    "notas": "Rango para producciones de alto rendimiento. El autor indica que queda a consideración del ingeniero agrónomo de la zona. P en ppm por Bray II; K intercambiable (meq/100 g = cmol(+)/kg).",
+    "fuente": {
+      "titulo": "Balance y prospectiva de la investigación en la fertilización de papa en Colombia. En: Memorias I Taller Nacional sobre suelos, fisiología y nutrición vegetal en el cultivo de la papa (CEVIPAPA / MADR, Bogotá, feb. 2005)",
+      "autores": "Castro Franco, Hugo E.",
+      "anio": 2005,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/f3004e2f-1756-45ed-840b-760a9c1b4235/content",
+      "licencia": "CC BY-NC-SA 4.0 (metadatos del repositorio AGROSAVIA, hdl 20.500.12324/17441)",
+      "tipo": "academica-colombia",
+      "paginaImpresa": "34",
+      "paginaPdf": 45,
+      "tabla": "Tabla 2. Recomendaciones para la fertilización de papa (Solanum tuberosum L.) para producciones de alto rendimiento"
+    },
+    "transcripcion": "Región: Altiplano Cundiboyacense, Nariño y Antioquia | P (ppm) | K (meqx100g) | N* | P2O5 | K2O (Kg·ha-1) → 40-60 | 0.3 – 0.6 | 120- 160 | 250 – 300 | 100 - 125",
+    "verificacion": "ok"
+  },
+  {
+    "id": "papa-castro2005-altiplano-p-alto",
+    "cultivo": "papa",
+    "region": "Altiplano Cundiboyacense, Nariño y Antioquia",
+    "condicion": {
+      "nutriente": "P",
+      "metodo": "Bray II",
+      "unidad": "mg/kg",
+      "min": 60,
+      "max": null
+    },
+    "recomendacion": [
+      {
+        "forma": "P₂O₅",
+        "minKgHa": 200,
+        "maxKgHa": 250
+      }
+    ],
+    "notas": "Rango para producciones de alto rendimiento. El autor indica que queda a consideración del ingeniero agrónomo de la zona. P en ppm por Bray II; K intercambiable (meq/100 g = cmol(+)/kg).",
+    "fuente": {
+      "titulo": "Balance y prospectiva de la investigación en la fertilización de papa en Colombia. En: Memorias I Taller Nacional sobre suelos, fisiología y nutrición vegetal en el cultivo de la papa (CEVIPAPA / MADR, Bogotá, feb. 2005)",
+      "autores": "Castro Franco, Hugo E.",
+      "anio": 2005,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/f3004e2f-1756-45ed-840b-760a9c1b4235/content",
+      "licencia": "CC BY-NC-SA 4.0 (metadatos del repositorio AGROSAVIA, hdl 20.500.12324/17441)",
+      "tipo": "academica-colombia",
+      "paginaImpresa": "34",
+      "paginaPdf": 45,
+      "tabla": "Tabla 2. Recomendaciones para la fertilización de papa (Solanum tuberosum L.) para producciones de alto rendimiento"
+    },
+    "transcripcion": "Región: Altiplano Cundiboyacense, Nariño y Antioquia | P (ppm) | K (meqx100g) | N* | P2O5 | K2O (Kg·ha-1) → >60 | > 0.6 | 200 – 250 | 75 – 100",
+    "verificacion": "ok"
+  },
+  {
+    "id": "papa-castro2005-altiplano-k-alto",
+    "cultivo": "papa",
+    "region": "Altiplano Cundiboyacense, Nariño y Antioquia",
+    "condicion": {
+      "nutriente": "K",
+      "metodo": null,
+      "unidad": "cmol(+)/kg",
+      "min": 0.6,
+      "max": null
+    },
+    "recomendacion": [
+      {
+        "forma": "K₂O",
+        "minKgHa": 75,
+        "maxKgHa": 100
+      }
+    ],
+    "notas": "Rango para producciones de alto rendimiento. El autor indica que queda a consideración del ingeniero agrónomo de la zona. P en ppm por Bray II; K intercambiable (meq/100 g = cmol(+)/kg).",
+    "fuente": {
+      "titulo": "Balance y prospectiva de la investigación en la fertilización de papa en Colombia. En: Memorias I Taller Nacional sobre suelos, fisiología y nutrición vegetal en el cultivo de la papa (CEVIPAPA / MADR, Bogotá, feb. 2005)",
+      "autores": "Castro Franco, Hugo E.",
+      "anio": 2005,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/f3004e2f-1756-45ed-840b-760a9c1b4235/content",
+      "licencia": "CC BY-NC-SA 4.0 (metadatos del repositorio AGROSAVIA, hdl 20.500.12324/17441)",
+      "tipo": "academica-colombia",
+      "paginaImpresa": "34",
+      "paginaPdf": 45,
+      "tabla": "Tabla 2. Recomendaciones para la fertilización de papa (Solanum tuberosum L.) para producciones de alto rendimiento"
+    },
+    "transcripcion": "Región: Altiplano Cundiboyacense, Nariño y Antioquia | P (ppm) | K (meqx100g) | N* | P2O5 | K2O (Kg·ha-1) → >60 | > 0.6 | 200 – 250 | 75 – 100",
+    "verificacion": "ok"
+  },
+  {
+    "id": "papa-castro2005-altiplano-n",
+    "cultivo": "papa",
+    "region": "Altiplano Cundiboyacense, Nariño y Antioquia",
+    "condicion": {
+      "nutriente": null,
+      "metodo": null,
+      "unidad": null,
+      "min": null,
+      "max": null
+    },
+    "recomendacion": [
+      {
+        "forma": "N",
+        "minKgHa": 120,
+        "maxKgHa": 160
+      }
+    ],
+    "notas": "El N aparece una sola vez para toda la región (la tabla no lo cambia según el análisis).",
+    "fuente": {
+      "titulo": "Balance y prospectiva de la investigación en la fertilización de papa en Colombia. En: Memorias I Taller Nacional sobre suelos, fisiología y nutrición vegetal en el cultivo de la papa (CEVIPAPA / MADR, Bogotá, feb. 2005)",
+      "autores": "Castro Franco, Hugo E.",
+      "anio": 2005,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/f3004e2f-1756-45ed-840b-760a9c1b4235/content",
+      "licencia": "CC BY-NC-SA 4.0 (metadatos del repositorio AGROSAVIA, hdl 20.500.12324/17441)",
+      "tipo": "academica-colombia",
+      "paginaImpresa": "34",
+      "paginaPdf": 45,
+      "tabla": "Tabla 2. Recomendaciones para la fertilización de papa (Solanum tuberosum L.) para producciones de alto rendimiento"
+    },
+    "transcripcion": "Región: Altiplano Cundiboyacense, Nariño y Antioquia | N* | 120-160 (impreso una vez, centrado entre las tres filas de la región)",
+    "verificacion": "por verificar: la celda de N está centrada verticalmente (probable celda combinada para los tres niveles); confirmar visualmente"
+  },
+  {
+    "id": "arveja-ica1992-p-bajo",
+    "cultivo": "arveja",
+    "region": "Colombia (general)",
+    "condicion": {
+      "nutriente": "P",
+      "metodo": null,
+      "unidad": "mg/kg",
+      "min": null,
+      "max": 15
+    },
+    "recomendacion": [
+      {
+        "forma": "P₂O₅",
+        "minKgHa": 100,
+        "maxKgHa": 150
+      }
+    ],
+    "notas": "Tabla del ICA (1992) leída en una fuente secundaria (tesis UNAD, 2011); no indica el método de laboratorio. Cotejar con el original.",
+    "fuente": {
+      "titulo": "Determinación de requerimientos nutricionales y recomendación de fertilización mineral para el cultivo de la arveja china y de la arveja dulce [trabajo de grado, UNAD] — reproduce la tabla de arveja de ICA (1992), Fertilización en diversos cultivos, Quinta aproximación",
+      "autores": "Rodríguez Valenzuela, Jeisson (cita a ICA, 1992)",
+      "anio": 2011,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/bb625172-98f8-4e16-bd3f-51e8aea5331a/content",
+      "licencia": "CC BY-NC-ND 4.0 (metadatos repositorio AGROSAVIA, hdl 20.500.12324/37280)",
+      "tipo": "academica-colombia",
+      "paginaImpresa": "28",
+      "paginaPdf": 28,
+      "tabla": "Tabla 1. Recomendaciones para la fertilización de la arveja, (ICA, 1992)"
+    },
+    "transcripcion": "Niveles críticos | P ppm | K meq/100g | N kg/ha | P2O5 kg/ha | K2O kg/ha → BAJO | <15 | <0.15 | 15 - 25 | 100 - 150 | 75 - 100",
+    "verificacion": "por verificar: fuente secundaria; cotejar con ICA (1992) original y confirmar el método de P"
+  },
+  {
+    "id": "arveja-ica1992-k-bajo",
+    "cultivo": "arveja",
+    "region": "Colombia (general)",
+    "condicion": {
+      "nutriente": "K",
+      "metodo": null,
+      "unidad": "cmol(+)/kg",
+      "min": null,
+      "max": 0.15
+    },
+    "recomendacion": [
+      {
+        "forma": "K₂O",
+        "minKgHa": 75,
+        "maxKgHa": 100
+      }
+    ],
+    "notas": "Tabla del ICA (1992) leída en una fuente secundaria (tesis UNAD, 2011); no indica el método de laboratorio. Cotejar con el original.",
+    "fuente": {
+      "titulo": "Determinación de requerimientos nutricionales y recomendación de fertilización mineral para el cultivo de la arveja china y de la arveja dulce [trabajo de grado, UNAD] — reproduce la tabla de arveja de ICA (1992), Fertilización en diversos cultivos, Quinta aproximación",
+      "autores": "Rodríguez Valenzuela, Jeisson (cita a ICA, 1992)",
+      "anio": 2011,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/bb625172-98f8-4e16-bd3f-51e8aea5331a/content",
+      "licencia": "CC BY-NC-ND 4.0 (metadatos repositorio AGROSAVIA, hdl 20.500.12324/37280)",
+      "tipo": "academica-colombia",
+      "paginaImpresa": "28",
+      "paginaPdf": 28,
+      "tabla": "Tabla 1. Recomendaciones para la fertilización de la arveja, (ICA, 1992)"
+    },
+    "transcripcion": "Niveles críticos | P ppm | K meq/100g | N kg/ha | P2O5 kg/ha | K2O kg/ha → BAJO | <15 | <0.15 | 15 - 25 | 100 - 150 | 75 - 100",
+    "verificacion": "por verificar: fuente secundaria; cotejar con ICA (1992) original"
+  },
+  {
+    "id": "arveja-ica1992-p-medio",
+    "cultivo": "arveja",
+    "region": "Colombia (general)",
+    "condicion": {
+      "nutriente": "P",
+      "metodo": null,
+      "unidad": "mg/kg",
+      "min": 15,
+      "max": 30
+    },
+    "recomendacion": [
+      {
+        "forma": "P₂O₅",
+        "minKgHa": 50,
+        "maxKgHa": 100
+      }
+    ],
+    "notas": "Tabla del ICA (1992) leída en una fuente secundaria (tesis UNAD, 2011); no indica el método de laboratorio. Cotejar con el original.",
+    "fuente": {
+      "titulo": "Determinación de requerimientos nutricionales y recomendación de fertilización mineral para el cultivo de la arveja china y de la arveja dulce [trabajo de grado, UNAD] — reproduce la tabla de arveja de ICA (1992), Fertilización en diversos cultivos, Quinta aproximación",
+      "autores": "Rodríguez Valenzuela, Jeisson (cita a ICA, 1992)",
+      "anio": 2011,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/bb625172-98f8-4e16-bd3f-51e8aea5331a/content",
+      "licencia": "CC BY-NC-ND 4.0 (metadatos repositorio AGROSAVIA, hdl 20.500.12324/37280)",
+      "tipo": "academica-colombia",
+      "paginaImpresa": "28",
+      "paginaPdf": 28,
+      "tabla": "Tabla 1. Recomendaciones para la fertilización de la arveja, (ICA, 1992)"
+    },
+    "transcripcion": "Niveles críticos | P ppm | K meq/100g | N kg/ha | P2O5 kg/ha | K2O kg/ha → MEDIO | 15 – 30 | 0.15 – 0.30 | (N vacío) | 50 – 100 | 25 - 75",
+    "verificacion": "por verificar: fuente secundaria; cotejar con ICA (1992) original y confirmar el método de P"
+  },
+  {
+    "id": "arveja-ica1992-k-medio",
+    "cultivo": "arveja",
+    "region": "Colombia (general)",
+    "condicion": {
+      "nutriente": "K",
+      "metodo": null,
+      "unidad": "cmol(+)/kg",
+      "min": 0.15,
+      "max": 0.3
+    },
+    "recomendacion": [
+      {
+        "forma": "K₂O",
+        "minKgHa": 25,
+        "maxKgHa": 75
+      }
+    ],
+    "notas": "Tabla del ICA (1992) leída en una fuente secundaria (tesis UNAD, 2011); no indica el método de laboratorio. Cotejar con el original.",
+    "fuente": {
+      "titulo": "Determinación de requerimientos nutricionales y recomendación de fertilización mineral para el cultivo de la arveja china y de la arveja dulce [trabajo de grado, UNAD] — reproduce la tabla de arveja de ICA (1992), Fertilización en diversos cultivos, Quinta aproximación",
+      "autores": "Rodríguez Valenzuela, Jeisson (cita a ICA, 1992)",
+      "anio": 2011,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/bb625172-98f8-4e16-bd3f-51e8aea5331a/content",
+      "licencia": "CC BY-NC-ND 4.0 (metadatos repositorio AGROSAVIA, hdl 20.500.12324/37280)",
+      "tipo": "academica-colombia",
+      "paginaImpresa": "28",
+      "paginaPdf": 28,
+      "tabla": "Tabla 1. Recomendaciones para la fertilización de la arveja, (ICA, 1992)"
+    },
+    "transcripcion": "Niveles críticos | P ppm | K meq/100g | N kg/ha | P2O5 kg/ha | K2O kg/ha → MEDIO | 15 – 30 | 0.15 – 0.30 | (N vacío) | 50 – 100 | 25 - 75",
+    "verificacion": "por verificar: fuente secundaria; cotejar con ICA (1992) original"
+  },
+  {
+    "id": "arveja-ica1992-p-alto",
+    "cultivo": "arveja",
+    "region": "Colombia (general)",
+    "condicion": {
+      "nutriente": "P",
+      "metodo": null,
+      "unidad": "mg/kg",
+      "min": 30,
+      "max": null
+    },
+    "recomendacion": [
+      {
+        "forma": "P₂O₅",
+        "minKgHa": 0,
+        "maxKgHa": 50
+      }
+    ],
+    "notas": "Tabla del ICA (1992) leída en una fuente secundaria (tesis UNAD, 2011); no indica el método de laboratorio. Cotejar con el original.",
+    "fuente": {
+      "titulo": "Determinación de requerimientos nutricionales y recomendación de fertilización mineral para el cultivo de la arveja china y de la arveja dulce [trabajo de grado, UNAD] — reproduce la tabla de arveja de ICA (1992), Fertilización en diversos cultivos, Quinta aproximación",
+      "autores": "Rodríguez Valenzuela, Jeisson (cita a ICA, 1992)",
+      "anio": 2011,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/bb625172-98f8-4e16-bd3f-51e8aea5331a/content",
+      "licencia": "CC BY-NC-ND 4.0 (metadatos repositorio AGROSAVIA, hdl 20.500.12324/37280)",
+      "tipo": "academica-colombia",
+      "paginaImpresa": "28",
+      "paginaPdf": 28,
+      "tabla": "Tabla 1. Recomendaciones para la fertilización de la arveja, (ICA, 1992)"
+    },
+    "transcripcion": "Niveles críticos | P ppm | K meq/100g | N kg/ha | P2O5 kg/ha | K2O kg/ha → ALTO | >30 | > 0.30 | (N vacío) | 0 - 50 | 0 - 25",
+    "verificacion": "por verificar: fuente secundaria; cotejar con ICA (1992) original y confirmar el método de P"
+  },
+  {
+    "id": "arveja-ica1992-k-alto",
+    "cultivo": "arveja",
+    "region": "Colombia (general)",
+    "condicion": {
+      "nutriente": "K",
+      "metodo": null,
+      "unidad": "cmol(+)/kg",
+      "min": 0.3,
+      "max": null
+    },
+    "recomendacion": [
+      {
+        "forma": "K₂O",
+        "minKgHa": 0,
+        "maxKgHa": 25
+      }
+    ],
+    "notas": "Tabla del ICA (1992) leída en una fuente secundaria (tesis UNAD, 2011); no indica el método de laboratorio. Cotejar con el original.",
+    "fuente": {
+      "titulo": "Determinación de requerimientos nutricionales y recomendación de fertilización mineral para el cultivo de la arveja china y de la arveja dulce [trabajo de grado, UNAD] — reproduce la tabla de arveja de ICA (1992), Fertilización en diversos cultivos, Quinta aproximación",
+      "autores": "Rodríguez Valenzuela, Jeisson (cita a ICA, 1992)",
+      "anio": 2011,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/bb625172-98f8-4e16-bd3f-51e8aea5331a/content",
+      "licencia": "CC BY-NC-ND 4.0 (metadatos repositorio AGROSAVIA, hdl 20.500.12324/37280)",
+      "tipo": "academica-colombia",
+      "paginaImpresa": "28",
+      "paginaPdf": 28,
+      "tabla": "Tabla 1. Recomendaciones para la fertilización de la arveja, (ICA, 1992)"
+    },
+    "transcripcion": "Niveles críticos | P ppm | K meq/100g | N kg/ha | P2O5 kg/ha | K2O kg/ha → ALTO | >30 | > 0.30 | (N vacío) | 0 - 50 | 0 - 25",
+    "verificacion": "por verificar: fuente secundaria; cotejar con ICA (1992) original"
+  },
+  {
+    "id": "arveja-ica1992-n",
+    "cultivo": "arveja",
+    "region": "Colombia (general)",
+    "condicion": {
+      "nutriente": null,
+      "metodo": null,
+      "unidad": null,
+      "min": null,
+      "max": null
+    },
+    "recomendacion": [
+      {
+        "forma": "N",
+        "minKgHa": 15,
+        "maxKgHa": 25
+      }
+    ],
+    "notas": "En la fuente, el N solo aparece en la fila de P y K bajos.",
+    "fuente": {
+      "titulo": "Determinación de requerimientos nutricionales y recomendación de fertilización mineral para el cultivo de la arveja china y de la arveja dulce [trabajo de grado, UNAD] — reproduce la tabla de arveja de ICA (1992), Fertilización en diversos cultivos, Quinta aproximación",
+      "autores": "Rodríguez Valenzuela, Jeisson (cita a ICA, 1992)",
+      "anio": 2011,
+      "url": "https://repository.agrosavia.co/server/api/core/bitstreams/bb625172-98f8-4e16-bd3f-51e8aea5331a/content",
+      "licencia": "CC BY-NC-ND 4.0 (metadatos repositorio AGROSAVIA, hdl 20.500.12324/37280)",
+      "tipo": "academica-colombia",
+      "paginaImpresa": "28",
+      "paginaPdf": 28,
+      "tabla": "Tabla 1. Recomendaciones para la fertilización de la arveja, (ICA, 1992)"
+    },
+    "transcripcion": "BAJO | <15 | <0.15 | 15 - 25 | 100 - 150 | 75 - 100",
+    "verificacion": "por verificar: N impreso solo en la fila BAJO; fuente secundaria"
+  },
+  {
+    "id": "kale-uf2021-n",
+    "cultivo": "kale",
+    "region": "Florida, EE. UU. (referencia internacional)",
+    "condicion": {
+      "nutriente": null,
+      "metodo": null,
+      "unidad": null,
+      "min": null,
+      "max": null
+    },
+    "recomendacion": [
+      {
+        "forma": "N",
+        "minKgHa": 134.5,
+        "maxKgHa": 134.5
+      }
+    ],
+    "notas": "Referencia de Florida (EE. UU.), suelos de otra región. P y K con el método Mehlich-3 (poco usado en Colombia). Convertido de lb/acre a kg/ha.",
+    "fuente": {
+      "titulo": "UF/IFAS Standardized Nutrient Recommendations for Vegetable Crop Production in Florida (CIR1152 / CV002)",
+      "autores": "Mylavarapu, Rao; Hochmuth, George; Liu, Guodong (UF/IFAS Extension)",
+      "anio": 2021,
+      "url": "https://ask.ifas.ufl.edu/publication/CV002/pdf",
+      "licencia": "CC BY-NC-ND 4.0 (pie del documento; original 2000, revisado dic. 2021 y ene. 2026)",
+      "tipo": "internacional",
+      "paginaImpresa": "7–8",
+      "paginaPdf": 8,
+      "tabla": "Table 3. Target pH and recommended N, P2O5, and K2O fertilizer rates for commercial vegetable production"
+    },
+    "transcripcion": "MUSTARD Kale, Turnip | 6.5 | N (lb/Ac) 120 | P2O5 L 120 MED 100 HI 0 | K2O L 120 MED 100 HI 0",
+    "verificacion": "ok"
+  },
+  {
+    "id": "kale-uf2021-p-bajo",
+    "cultivo": "kale",
+    "region": "Florida, EE. UU. (referencia internacional)",
+    "condicion": {
+      "nutriente": "P",
+      "metodo": "Mehlich-3",
+      "unidad": "mg/kg",
+      "min": null,
+      "max": 26
+    },
+    "recomendacion": [
+      {
+        "forma": "P₂O₅",
+        "minKgHa": 134.5,
+        "maxKgHa": 134.5
+      }
+    ],
+    "notas": "Referencia de Florida (EE. UU.), suelos de otra región. P y K con el método Mehlich-3 (poco usado en Colombia). Convertido de lb/acre a kg/ha.",
+    "fuente": {
+      "titulo": "UF/IFAS Standardized Nutrient Recommendations for Vegetable Crop Production in Florida (CIR1152 / CV002)",
+      "autores": "Mylavarapu, Rao; Hochmuth, George; Liu, Guodong (UF/IFAS Extension)",
+      "anio": 2021,
+      "url": "https://ask.ifas.ufl.edu/publication/CV002/pdf",
+      "licencia": "CC BY-NC-ND 4.0 (pie del documento; original 2000, revisado dic. 2021 y ene. 2026)",
+      "tipo": "internacional",
+      "paginaImpresa": "7–8",
+      "paginaPdf": 8,
+      "tabla": "Table 3. Target pH and recommended N, P2O5, and K2O fertilizer rates for commercial vegetable production"
+    },
+    "transcripcion": "MUSTARD Kale, Turnip | 6.5 | N (lb/Ac) 120 | P2O5 L 120 MED 100 HI 0 | K2O L 120 MED 100 HI 0",
+    "verificacion": "ok"
+  },
+  {
+    "id": "kale-uf2021-k-bajo",
+    "cultivo": "kale",
+    "region": "Florida, EE. UU. (referencia internacional)",
+    "condicion": {
+      "nutriente": "K",
+      "metodo": "Mehlich-3",
+      "unidad": "mg/kg",
+      "min": null,
+      "max": 36
+    },
+    "recomendacion": [
+      {
+        "forma": "K₂O",
+        "minKgHa": 134.5,
+        "maxKgHa": 134.5
+      }
+    ],
+    "notas": "Referencia de Florida (EE. UU.), suelos de otra región. P y K con el método Mehlich-3 (poco usado en Colombia). Convertido de lb/acre a kg/ha.",
+    "fuente": {
+      "titulo": "UF/IFAS Standardized Nutrient Recommendations for Vegetable Crop Production in Florida (CIR1152 / CV002)",
+      "autores": "Mylavarapu, Rao; Hochmuth, George; Liu, Guodong (UF/IFAS Extension)",
+      "anio": 2021,
+      "url": "https://ask.ifas.ufl.edu/publication/CV002/pdf",
+      "licencia": "CC BY-NC-ND 4.0 (pie del documento; original 2000, revisado dic. 2021 y ene. 2026)",
+      "tipo": "internacional",
+      "paginaImpresa": "7–8",
+      "paginaPdf": 8,
+      "tabla": "Table 3. Target pH and recommended N, P2O5, and K2O fertilizer rates for commercial vegetable production"
+    },
+    "transcripcion": "MUSTARD Kale, Turnip | 6.5 | N (lb/Ac) 120 | P2O5 L 120 MED 100 HI 0 | K2O L 120 MED 100 HI 0",
+    "verificacion": "ok"
+  },
+  {
+    "id": "kale-uf2021-p-medio",
+    "cultivo": "kale",
+    "region": "Florida, EE. UU. (referencia internacional)",
+    "condicion": {
+      "nutriente": "P",
+      "metodo": "Mehlich-3",
+      "unidad": "mg/kg",
+      "min": 26,
+      "max": 46
+    },
+    "recomendacion": [
+      {
+        "forma": "P₂O₅",
+        "minKgHa": 112.1,
+        "maxKgHa": 112.1
+      }
+    ],
+    "notas": "Referencia de Florida (EE. UU.), suelos de otra región. P y K con el método Mehlich-3 (poco usado en Colombia). Convertido de lb/acre a kg/ha.",
+    "fuente": {
+      "titulo": "UF/IFAS Standardized Nutrient Recommendations for Vegetable Crop Production in Florida (CIR1152 / CV002)",
+      "autores": "Mylavarapu, Rao; Hochmuth, George; Liu, Guodong (UF/IFAS Extension)",
+      "anio": 2021,
+      "url": "https://ask.ifas.ufl.edu/publication/CV002/pdf",
+      "licencia": "CC BY-NC-ND 4.0 (pie del documento; original 2000, revisado dic. 2021 y ene. 2026)",
+      "tipo": "internacional",
+      "paginaImpresa": "7–8",
+      "paginaPdf": 8,
+      "tabla": "Table 3. Target pH and recommended N, P2O5, and K2O fertilizer rates for commercial vegetable production"
+    },
+    "transcripcion": "MUSTARD Kale, Turnip | 6.5 | N (lb/Ac) 120 | P2O5 L 120 MED 100 HI 0 | K2O L 120 MED 100 HI 0",
+    "verificacion": "ok"
+  },
+  {
+    "id": "kale-uf2021-k-medio",
+    "cultivo": "kale",
+    "region": "Florida, EE. UU. (referencia internacional)",
+    "condicion": {
+      "nutriente": "K",
+      "metodo": "Mehlich-3",
+      "unidad": "mg/kg",
+      "min": 36,
+      "max": 61
+    },
+    "recomendacion": [
+      {
+        "forma": "K₂O",
+        "minKgHa": 112.1,
+        "maxKgHa": 112.1
+      }
+    ],
+    "notas": "Referencia de Florida (EE. UU.), suelos de otra región. P y K con el método Mehlich-3 (poco usado en Colombia). Convertido de lb/acre a kg/ha.",
+    "fuente": {
+      "titulo": "UF/IFAS Standardized Nutrient Recommendations for Vegetable Crop Production in Florida (CIR1152 / CV002)",
+      "autores": "Mylavarapu, Rao; Hochmuth, George; Liu, Guodong (UF/IFAS Extension)",
+      "anio": 2021,
+      "url": "https://ask.ifas.ufl.edu/publication/CV002/pdf",
+      "licencia": "CC BY-NC-ND 4.0 (pie del documento; original 2000, revisado dic. 2021 y ene. 2026)",
+      "tipo": "internacional",
+      "paginaImpresa": "7–8",
+      "paginaPdf": 8,
+      "tabla": "Table 3. Target pH and recommended N, P2O5, and K2O fertilizer rates for commercial vegetable production"
+    },
+    "transcripcion": "MUSTARD Kale, Turnip | 6.5 | N (lb/Ac) 120 | P2O5 L 120 MED 100 HI 0 | K2O L 120 MED 100 HI 0",
+    "verificacion": "ok"
+  },
+  {
+    "id": "kale-uf2021-p-alto",
+    "cultivo": "kale",
+    "region": "Florida, EE. UU. (referencia internacional)",
+    "condicion": {
+      "nutriente": "P",
+      "metodo": "Mehlich-3",
+      "unidad": "mg/kg",
+      "min": 46,
+      "max": null
+    },
+    "recomendacion": [
+      {
+        "forma": "P₂O₅",
+        "minKgHa": 0,
+        "maxKgHa": 0
+      }
+    ],
+    "notas": "Referencia de Florida (EE. UU.), suelos de otra región. P y K con el método Mehlich-3 (poco usado en Colombia). Convertido de lb/acre a kg/ha.",
+    "fuente": {
+      "titulo": "UF/IFAS Standardized Nutrient Recommendations for Vegetable Crop Production in Florida (CIR1152 / CV002)",
+      "autores": "Mylavarapu, Rao; Hochmuth, George; Liu, Guodong (UF/IFAS Extension)",
+      "anio": 2021,
+      "url": "https://ask.ifas.ufl.edu/publication/CV002/pdf",
+      "licencia": "CC BY-NC-ND 4.0 (pie del documento; original 2000, revisado dic. 2021 y ene. 2026)",
+      "tipo": "internacional",
+      "paginaImpresa": "7–8",
+      "paginaPdf": 8,
+      "tabla": "Table 3. Target pH and recommended N, P2O5, and K2O fertilizer rates for commercial vegetable production"
+    },
+    "transcripcion": "MUSTARD Kale, Turnip | 6.5 | N (lb/Ac) 120 | P2O5 L 120 MED 100 HI 0 | K2O L 120 MED 100 HI 0",
+    "verificacion": "ok"
+  },
+  {
+    "id": "kale-uf2021-k-alto",
+    "cultivo": "kale",
+    "region": "Florida, EE. UU. (referencia internacional)",
+    "condicion": {
+      "nutriente": "K",
+      "metodo": "Mehlich-3",
+      "unidad": "mg/kg",
+      "min": 61,
+      "max": null
+    },
+    "recomendacion": [
+      {
+        "forma": "K₂O",
+        "minKgHa": 0,
+        "maxKgHa": 0
+      }
+    ],
+    "notas": "Referencia de Florida (EE. UU.), suelos de otra región. P y K con el método Mehlich-3 (poco usado en Colombia). Convertido de lb/acre a kg/ha.",
+    "fuente": {
+      "titulo": "UF/IFAS Standardized Nutrient Recommendations for Vegetable Crop Production in Florida (CIR1152 / CV002)",
+      "autores": "Mylavarapu, Rao; Hochmuth, George; Liu, Guodong (UF/IFAS Extension)",
+      "anio": 2021,
+      "url": "https://ask.ifas.ufl.edu/publication/CV002/pdf",
+      "licencia": "CC BY-NC-ND 4.0 (pie del documento; original 2000, revisado dic. 2021 y ene. 2026)",
+      "tipo": "internacional",
+      "paginaImpresa": "7–8",
+      "paginaPdf": 8,
+      "tabla": "Table 3. Target pH and recommended N, P2O5, and K2O fertilizer rates for commercial vegetable production"
+    },
+    "transcripcion": "MUSTARD Kale, Turnip | 6.5 | N (lb/Ac) 120 | P2O5 L 120 MED 100 HI 0 | K2O L 120 MED 100 HI 0",
+    "verificacion": "ok"
+  },
+  {
+    "id": "lechuga-uf2021-n",
+    "cultivo": "lechuga",
+    "region": "Florida, EE. UU. (referencia internacional)",
+    "condicion": {
+      "nutriente": null,
+      "metodo": null,
+      "unidad": null,
+      "min": null,
+      "max": null
+    },
+    "recomendacion": [
+      {
+        "forma": "N",
+        "minKgHa": 224.2,
+        "maxKgHa": 224.2
+      }
+    ],
+    "notas": "Referencia de Florida (EE. UU.), suelos de otra región. P y K con el método Mehlich-3 (poco usado en Colombia). Convertido de lb/acre a kg/ha.",
+    "fuente": {
+      "titulo": "UF/IFAS Standardized Nutrient Recommendations for Vegetable Crop Production in Florida (CIR1152 / CV002)",
+      "autores": "Mylavarapu, Rao; Hochmuth, George; Liu, Guodong (UF/IFAS Extension)",
+      "anio": 2021,
+      "url": "https://ask.ifas.ufl.edu/publication/CV002/pdf",
+      "licencia": "CC BY-NC-ND 4.0 (pie del documento; original 2000, revisado dic. 2021 y ene. 2026)",
+      "tipo": "internacional",
+      "paginaImpresa": "7–8",
+      "paginaPdf": 8,
+      "tabla": "Table 3. Target pH and recommended N, P2O5, and K2O fertilizer rates for commercial vegetable production"
+    },
+    "transcripcion": "LETTUCE Crisphead, Romaine, Endive, Escarole | 6.5 | N (lb/Ac) 200 | P2O5 L 120 MED 100 HI 0 | K2O L 120 MED 100 HI 0",
+    "verificacion": "ok"
+  },
+  {
+    "id": "lechuga-uf2021-p-bajo",
+    "cultivo": "lechuga",
+    "region": "Florida, EE. UU. (referencia internacional)",
+    "condicion": {
+      "nutriente": "P",
+      "metodo": "Mehlich-3",
+      "unidad": "mg/kg",
+      "min": null,
+      "max": 26
+    },
+    "recomendacion": [
+      {
+        "forma": "P₂O₅",
+        "minKgHa": 134.5,
+        "maxKgHa": 134.5
+      }
+    ],
+    "notas": "Referencia de Florida (EE. UU.), suelos de otra región. P y K con el método Mehlich-3 (poco usado en Colombia). Convertido de lb/acre a kg/ha.",
+    "fuente": {
+      "titulo": "UF/IFAS Standardized Nutrient Recommendations for Vegetable Crop Production in Florida (CIR1152 / CV002)",
+      "autores": "Mylavarapu, Rao; Hochmuth, George; Liu, Guodong (UF/IFAS Extension)",
+      "anio": 2021,
+      "url": "https://ask.ifas.ufl.edu/publication/CV002/pdf",
+      "licencia": "CC BY-NC-ND 4.0 (pie del documento; original 2000, revisado dic. 2021 y ene. 2026)",
+      "tipo": "internacional",
+      "paginaImpresa": "7–8",
+      "paginaPdf": 8,
+      "tabla": "Table 3. Target pH and recommended N, P2O5, and K2O fertilizer rates for commercial vegetable production"
+    },
+    "transcripcion": "LETTUCE Crisphead, Romaine, Endive, Escarole | 6.5 | N (lb/Ac) 200 | P2O5 L 120 MED 100 HI 0 | K2O L 120 MED 100 HI 0",
+    "verificacion": "ok"
+  },
+  {
+    "id": "lechuga-uf2021-k-bajo",
+    "cultivo": "lechuga",
+    "region": "Florida, EE. UU. (referencia internacional)",
+    "condicion": {
+      "nutriente": "K",
+      "metodo": "Mehlich-3",
+      "unidad": "mg/kg",
+      "min": null,
+      "max": 36
+    },
+    "recomendacion": [
+      {
+        "forma": "K₂O",
+        "minKgHa": 134.5,
+        "maxKgHa": 134.5
+      }
+    ],
+    "notas": "Referencia de Florida (EE. UU.), suelos de otra región. P y K con el método Mehlich-3 (poco usado en Colombia). Convertido de lb/acre a kg/ha.",
+    "fuente": {
+      "titulo": "UF/IFAS Standardized Nutrient Recommendations for Vegetable Crop Production in Florida (CIR1152 / CV002)",
+      "autores": "Mylavarapu, Rao; Hochmuth, George; Liu, Guodong (UF/IFAS Extension)",
+      "anio": 2021,
+      "url": "https://ask.ifas.ufl.edu/publication/CV002/pdf",
+      "licencia": "CC BY-NC-ND 4.0 (pie del documento; original 2000, revisado dic. 2021 y ene. 2026)",
+      "tipo": "internacional",
+      "paginaImpresa": "7–8",
+      "paginaPdf": 8,
+      "tabla": "Table 3. Target pH and recommended N, P2O5, and K2O fertilizer rates for commercial vegetable production"
+    },
+    "transcripcion": "LETTUCE Crisphead, Romaine, Endive, Escarole | 6.5 | N (lb/Ac) 200 | P2O5 L 120 MED 100 HI 0 | K2O L 120 MED 100 HI 0",
+    "verificacion": "ok"
+  },
+  {
+    "id": "lechuga-uf2021-p-medio",
+    "cultivo": "lechuga",
+    "region": "Florida, EE. UU. (referencia internacional)",
+    "condicion": {
+      "nutriente": "P",
+      "metodo": "Mehlich-3",
+      "unidad": "mg/kg",
+      "min": 26,
+      "max": 46
+    },
+    "recomendacion": [
+      {
+        "forma": "P₂O₅",
+        "minKgHa": 112.1,
+        "maxKgHa": 112.1
+      }
+    ],
+    "notas": "Referencia de Florida (EE. UU.), suelos de otra región. P y K con el método Mehlich-3 (poco usado en Colombia). Convertido de lb/acre a kg/ha.",
+    "fuente": {
+      "titulo": "UF/IFAS Standardized Nutrient Recommendations for Vegetable Crop Production in Florida (CIR1152 / CV002)",
+      "autores": "Mylavarapu, Rao; Hochmuth, George; Liu, Guodong (UF/IFAS Extension)",
+      "anio": 2021,
+      "url": "https://ask.ifas.ufl.edu/publication/CV002/pdf",
+      "licencia": "CC BY-NC-ND 4.0 (pie del documento; original 2000, revisado dic. 2021 y ene. 2026)",
+      "tipo": "internacional",
+      "paginaImpresa": "7–8",
+      "paginaPdf": 8,
+      "tabla": "Table 3. Target pH and recommended N, P2O5, and K2O fertilizer rates for commercial vegetable production"
+    },
+    "transcripcion": "LETTUCE Crisphead, Romaine, Endive, Escarole | 6.5 | N (lb/Ac) 200 | P2O5 L 120 MED 100 HI 0 | K2O L 120 MED 100 HI 0",
+    "verificacion": "ok"
+  },
+  {
+    "id": "lechuga-uf2021-k-medio",
+    "cultivo": "lechuga",
+    "region": "Florida, EE. UU. (referencia internacional)",
+    "condicion": {
+      "nutriente": "K",
+      "metodo": "Mehlich-3",
+      "unidad": "mg/kg",
+      "min": 36,
+      "max": 61
+    },
+    "recomendacion": [
+      {
+        "forma": "K₂O",
+        "minKgHa": 112.1,
+        "maxKgHa": 112.1
+      }
+    ],
+    "notas": "Referencia de Florida (EE. UU.), suelos de otra región. P y K con el método Mehlich-3 (poco usado en Colombia). Convertido de lb/acre a kg/ha.",
+    "fuente": {
+      "titulo": "UF/IFAS Standardized Nutrient Recommendations for Vegetable Crop Production in Florida (CIR1152 / CV002)",
+      "autores": "Mylavarapu, Rao; Hochmuth, George; Liu, Guodong (UF/IFAS Extension)",
+      "anio": 2021,
+      "url": "https://ask.ifas.ufl.edu/publication/CV002/pdf",
+      "licencia": "CC BY-NC-ND 4.0 (pie del documento; original 2000, revisado dic. 2021 y ene. 2026)",
+      "tipo": "internacional",
+      "paginaImpresa": "7–8",
+      "paginaPdf": 8,
+      "tabla": "Table 3. Target pH and recommended N, P2O5, and K2O fertilizer rates for commercial vegetable production"
+    },
+    "transcripcion": "LETTUCE Crisphead, Romaine, Endive, Escarole | 6.5 | N (lb/Ac) 200 | P2O5 L 120 MED 100 HI 0 | K2O L 120 MED 100 HI 0",
+    "verificacion": "ok"
+  },
+  {
+    "id": "lechuga-uf2021-p-alto",
+    "cultivo": "lechuga",
+    "region": "Florida, EE. UU. (referencia internacional)",
+    "condicion": {
+      "nutriente": "P",
+      "metodo": "Mehlich-3",
+      "unidad": "mg/kg",
+      "min": 46,
+      "max": null
+    },
+    "recomendacion": [
+      {
+        "forma": "P₂O₅",
+        "minKgHa": 0,
+        "maxKgHa": 0
+      }
+    ],
+    "notas": "Referencia de Florida (EE. UU.), suelos de otra región. P y K con el método Mehlich-3 (poco usado en Colombia). Convertido de lb/acre a kg/ha.",
+    "fuente": {
+      "titulo": "UF/IFAS Standardized Nutrient Recommendations for Vegetable Crop Production in Florida (CIR1152 / CV002)",
+      "autores": "Mylavarapu, Rao; Hochmuth, George; Liu, Guodong (UF/IFAS Extension)",
+      "anio": 2021,
+      "url": "https://ask.ifas.ufl.edu/publication/CV002/pdf",
+      "licencia": "CC BY-NC-ND 4.0 (pie del documento; original 2000, revisado dic. 2021 y ene. 2026)",
+      "tipo": "internacional",
+      "paginaImpresa": "7–8",
+      "paginaPdf": 8,
+      "tabla": "Table 3. Target pH and recommended N, P2O5, and K2O fertilizer rates for commercial vegetable production"
+    },
+    "transcripcion": "LETTUCE Crisphead, Romaine, Endive, Escarole | 6.5 | N (lb/Ac) 200 | P2O5 L 120 MED 100 HI 0 | K2O L 120 MED 100 HI 0",
+    "verificacion": "ok"
+  },
+  {
+    "id": "lechuga-uf2021-k-alto",
+    "cultivo": "lechuga",
+    "region": "Florida, EE. UU. (referencia internacional)",
+    "condicion": {
+      "nutriente": "K",
+      "metodo": "Mehlich-3",
+      "unidad": "mg/kg",
+      "min": 61,
+      "max": null
+    },
+    "recomendacion": [
+      {
+        "forma": "K₂O",
+        "minKgHa": 0,
+        "maxKgHa": 0
+      }
+    ],
+    "notas": "Referencia de Florida (EE. UU.), suelos de otra región. P y K con el método Mehlich-3 (poco usado en Colombia). Convertido de lb/acre a kg/ha.",
+    "fuente": {
+      "titulo": "UF/IFAS Standardized Nutrient Recommendations for Vegetable Crop Production in Florida (CIR1152 / CV002)",
+      "autores": "Mylavarapu, Rao; Hochmuth, George; Liu, Guodong (UF/IFAS Extension)",
+      "anio": 2021,
+      "url": "https://ask.ifas.ufl.edu/publication/CV002/pdf",
+      "licencia": "CC BY-NC-ND 4.0 (pie del documento; original 2000, revisado dic. 2021 y ene. 2026)",
+      "tipo": "internacional",
+      "paginaImpresa": "7–8",
+      "paginaPdf": 8,
+      "tabla": "Table 3. Target pH and recommended N, P2O5, and K2O fertilizer rates for commercial vegetable production"
+    },
+    "transcripcion": "LETTUCE Crisphead, Romaine, Endive, Escarole | 6.5 | N (lb/Ac) 200 | P2O5 L 120 MED 100 HI 0 | K2O L 120 MED 100 HI 0",
+    "verificacion": "ok"
+  },
+  {
+    "id": "arveja-uf2021-n",
+    "cultivo": "arveja",
+    "region": "Florida, EE. UU. (referencia internacional)",
+    "condicion": {
+      "nutriente": null,
+      "metodo": null,
+      "unidad": null,
+      "min": null,
+      "max": null
+    },
+    "recomendacion": [
+      {
+        "forma": "N",
+        "minKgHa": 67.3,
+        "maxKgHa": 67.3
+      }
+    ],
+    "notas": "Referencia de Florida (EE. UU.), suelos de otra región. P y K con el método Mehlich-3 (poco usado en Colombia). Convertido de lb/acre a kg/ha.",
+    "fuente": {
+      "titulo": "UF/IFAS Standardized Nutrient Recommendations for Vegetable Crop Production in Florida (CIR1152 / CV002)",
+      "autores": "Mylavarapu, Rao; Hochmuth, George; Liu, Guodong (UF/IFAS Extension)",
+      "anio": 2021,
+      "url": "https://ask.ifas.ufl.edu/publication/CV002/pdf",
+      "licencia": "CC BY-NC-ND 4.0 (pie del documento; original 2000, revisado dic. 2021 y ene. 2026)",
+      "tipo": "internacional",
+      "paginaImpresa": "7–8",
+      "paginaPdf": 8,
+      "tabla": "Table 3. Target pH and recommended N, P2O5, and K2O fertilizer rates for commercial vegetable production"
+    },
+    "transcripcion": "PEA Southern, Snow, English | 6.5 | N (lb/Ac) 60 | P2O5 L 80 MED 60 HI 0 | K2O L 80 MED 60 HI 0",
+    "verificacion": "ok"
+  },
+  {
+    "id": "arveja-uf2021-p-bajo",
+    "cultivo": "arveja",
+    "region": "Florida, EE. UU. (referencia internacional)",
+    "condicion": {
+      "nutriente": "P",
+      "metodo": "Mehlich-3",
+      "unidad": "mg/kg",
+      "min": null,
+      "max": 26
+    },
+    "recomendacion": [
+      {
+        "forma": "P₂O₅",
+        "minKgHa": 89.7,
+        "maxKgHa": 89.7
+      }
+    ],
+    "notas": "Referencia de Florida (EE. UU.), suelos de otra región. P y K con el método Mehlich-3 (poco usado en Colombia). Convertido de lb/acre a kg/ha.",
+    "fuente": {
+      "titulo": "UF/IFAS Standardized Nutrient Recommendations for Vegetable Crop Production in Florida (CIR1152 / CV002)",
+      "autores": "Mylavarapu, Rao; Hochmuth, George; Liu, Guodong (UF/IFAS Extension)",
+      "anio": 2021,
+      "url": "https://ask.ifas.ufl.edu/publication/CV002/pdf",
+      "licencia": "CC BY-NC-ND 4.0 (pie del documento; original 2000, revisado dic. 2021 y ene. 2026)",
+      "tipo": "internacional",
+      "paginaImpresa": "7–8",
+      "paginaPdf": 8,
+      "tabla": "Table 3. Target pH and recommended N, P2O5, and K2O fertilizer rates for commercial vegetable production"
+    },
+    "transcripcion": "PEA Southern, Snow, English | 6.5 | N (lb/Ac) 60 | P2O5 L 80 MED 60 HI 0 | K2O L 80 MED 60 HI 0",
+    "verificacion": "ok"
+  },
+  {
+    "id": "arveja-uf2021-k-bajo",
+    "cultivo": "arveja",
+    "region": "Florida, EE. UU. (referencia internacional)",
+    "condicion": {
+      "nutriente": "K",
+      "metodo": "Mehlich-3",
+      "unidad": "mg/kg",
+      "min": null,
+      "max": 36
+    },
+    "recomendacion": [
+      {
+        "forma": "K₂O",
+        "minKgHa": 89.7,
+        "maxKgHa": 89.7
+      }
+    ],
+    "notas": "Referencia de Florida (EE. UU.), suelos de otra región. P y K con el método Mehlich-3 (poco usado en Colombia). Convertido de lb/acre a kg/ha.",
+    "fuente": {
+      "titulo": "UF/IFAS Standardized Nutrient Recommendations for Vegetable Crop Production in Florida (CIR1152 / CV002)",
+      "autores": "Mylavarapu, Rao; Hochmuth, George; Liu, Guodong (UF/IFAS Extension)",
+      "anio": 2021,
+      "url": "https://ask.ifas.ufl.edu/publication/CV002/pdf",
+      "licencia": "CC BY-NC-ND 4.0 (pie del documento; original 2000, revisado dic. 2021 y ene. 2026)",
+      "tipo": "internacional",
+      "paginaImpresa": "7–8",
+      "paginaPdf": 8,
+      "tabla": "Table 3. Target pH and recommended N, P2O5, and K2O fertilizer rates for commercial vegetable production"
+    },
+    "transcripcion": "PEA Southern, Snow, English | 6.5 | N (lb/Ac) 60 | P2O5 L 80 MED 60 HI 0 | K2O L 80 MED 60 HI 0",
+    "verificacion": "ok"
+  },
+  {
+    "id": "arveja-uf2021-p-medio",
+    "cultivo": "arveja",
+    "region": "Florida, EE. UU. (referencia internacional)",
+    "condicion": {
+      "nutriente": "P",
+      "metodo": "Mehlich-3",
+      "unidad": "mg/kg",
+      "min": 26,
+      "max": 46
+    },
+    "recomendacion": [
+      {
+        "forma": "P₂O₅",
+        "minKgHa": 67.3,
+        "maxKgHa": 67.3
+      }
+    ],
+    "notas": "Referencia de Florida (EE. UU.), suelos de otra región. P y K con el método Mehlich-3 (poco usado en Colombia). Convertido de lb/acre a kg/ha.",
+    "fuente": {
+      "titulo": "UF/IFAS Standardized Nutrient Recommendations for Vegetable Crop Production in Florida (CIR1152 / CV002)",
+      "autores": "Mylavarapu, Rao; Hochmuth, George; Liu, Guodong (UF/IFAS Extension)",
+      "anio": 2021,
+      "url": "https://ask.ifas.ufl.edu/publication/CV002/pdf",
+      "licencia": "CC BY-NC-ND 4.0 (pie del documento; original 2000, revisado dic. 2021 y ene. 2026)",
+      "tipo": "internacional",
+      "paginaImpresa": "7–8",
+      "paginaPdf": 8,
+      "tabla": "Table 3. Target pH and recommended N, P2O5, and K2O fertilizer rates for commercial vegetable production"
+    },
+    "transcripcion": "PEA Southern, Snow, English | 6.5 | N (lb/Ac) 60 | P2O5 L 80 MED 60 HI 0 | K2O L 80 MED 60 HI 0",
+    "verificacion": "ok"
+  },
+  {
+    "id": "arveja-uf2021-k-medio",
+    "cultivo": "arveja",
+    "region": "Florida, EE. UU. (referencia internacional)",
+    "condicion": {
+      "nutriente": "K",
+      "metodo": "Mehlich-3",
+      "unidad": "mg/kg",
+      "min": 36,
+      "max": 61
+    },
+    "recomendacion": [
+      {
+        "forma": "K₂O",
+        "minKgHa": 67.3,
+        "maxKgHa": 67.3
+      }
+    ],
+    "notas": "Referencia de Florida (EE. UU.), suelos de otra región. P y K con el método Mehlich-3 (poco usado en Colombia). Convertido de lb/acre a kg/ha.",
+    "fuente": {
+      "titulo": "UF/IFAS Standardized Nutrient Recommendations for Vegetable Crop Production in Florida (CIR1152 / CV002)",
+      "autores": "Mylavarapu, Rao; Hochmuth, George; Liu, Guodong (UF/IFAS Extension)",
+      "anio": 2021,
+      "url": "https://ask.ifas.ufl.edu/publication/CV002/pdf",
+      "licencia": "CC BY-NC-ND 4.0 (pie del documento; original 2000, revisado dic. 2021 y ene. 2026)",
+      "tipo": "internacional",
+      "paginaImpresa": "7–8",
+      "paginaPdf": 8,
+      "tabla": "Table 3. Target pH and recommended N, P2O5, and K2O fertilizer rates for commercial vegetable production"
+    },
+    "transcripcion": "PEA Southern, Snow, English | 6.5 | N (lb/Ac) 60 | P2O5 L 80 MED 60 HI 0 | K2O L 80 MED 60 HI 0",
+    "verificacion": "ok"
+  },
+  {
+    "id": "arveja-uf2021-p-alto",
+    "cultivo": "arveja",
+    "region": "Florida, EE. UU. (referencia internacional)",
+    "condicion": {
+      "nutriente": "P",
+      "metodo": "Mehlich-3",
+      "unidad": "mg/kg",
+      "min": 46,
+      "max": null
+    },
+    "recomendacion": [
+      {
+        "forma": "P₂O₅",
+        "minKgHa": 0,
+        "maxKgHa": 0
+      }
+    ],
+    "notas": "Referencia de Florida (EE. UU.), suelos de otra región. P y K con el método Mehlich-3 (poco usado en Colombia). Convertido de lb/acre a kg/ha.",
+    "fuente": {
+      "titulo": "UF/IFAS Standardized Nutrient Recommendations for Vegetable Crop Production in Florida (CIR1152 / CV002)",
+      "autores": "Mylavarapu, Rao; Hochmuth, George; Liu, Guodong (UF/IFAS Extension)",
+      "anio": 2021,
+      "url": "https://ask.ifas.ufl.edu/publication/CV002/pdf",
+      "licencia": "CC BY-NC-ND 4.0 (pie del documento; original 2000, revisado dic. 2021 y ene. 2026)",
+      "tipo": "internacional",
+      "paginaImpresa": "7–8",
+      "paginaPdf": 8,
+      "tabla": "Table 3. Target pH and recommended N, P2O5, and K2O fertilizer rates for commercial vegetable production"
+    },
+    "transcripcion": "PEA Southern, Snow, English | 6.5 | N (lb/Ac) 60 | P2O5 L 80 MED 60 HI 0 | K2O L 80 MED 60 HI 0",
+    "verificacion": "ok"
+  },
+  {
+    "id": "arveja-uf2021-k-alto",
+    "cultivo": "arveja",
+    "region": "Florida, EE. UU. (referencia internacional)",
+    "condicion": {
+      "nutriente": "K",
+      "metodo": "Mehlich-3",
+      "unidad": "mg/kg",
+      "min": 61,
+      "max": null
+    },
+    "recomendacion": [
+      {
+        "forma": "K₂O",
+        "minKgHa": 0,
+        "maxKgHa": 0
+      }
+    ],
+    "notas": "Referencia de Florida (EE. UU.), suelos de otra región. P y K con el método Mehlich-3 (poco usado en Colombia). Convertido de lb/acre a kg/ha.",
+    "fuente": {
+      "titulo": "UF/IFAS Standardized Nutrient Recommendations for Vegetable Crop Production in Florida (CIR1152 / CV002)",
+      "autores": "Mylavarapu, Rao; Hochmuth, George; Liu, Guodong (UF/IFAS Extension)",
+      "anio": 2021,
+      "url": "https://ask.ifas.ufl.edu/publication/CV002/pdf",
+      "licencia": "CC BY-NC-ND 4.0 (pie del documento; original 2000, revisado dic. 2021 y ene. 2026)",
+      "tipo": "internacional",
+      "paginaImpresa": "7–8",
+      "paginaPdf": 8,
+      "tabla": "Table 3. Target pH and recommended N, P2O5, and K2O fertilizer rates for commercial vegetable production"
+    },
+    "transcripcion": "PEA Southern, Snow, English | 6.5 | N (lb/Ac) 60 | P2O5 L 80 MED 60 HI 0 | K2O L 80 MED 60 HI 0",
+    "verificacion": "ok"
+  }
+]

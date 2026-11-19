@@ -120,3 +120,19 @@ test('sugerencias: la cita incluye autor, año, tabla, página y el rango', () =
   const r = sugerirMetas({ cultivo: 'papa', region: 'Región EJEMPLO', analisis: analisisEjemplo(), reglas });
   assert.match(citaDeSugerencia(r.sugerencias[0]), /Fuente EJEMPLO \(2005\), Tabla 2, p\. 34 · rango sugerido \d+-\d+ kg\/ha/);
 });
+
+test('datos cargados: papa en el Altiplano con un análisis de EJEMPLO (Bray II) da los rangos de la Tabla 2 de Castro (2005)', () => {
+  const datos = JSON.parse(readFileSync(new URL('../data/referencias/dosis.json', import.meta.url), 'utf8')) as unknown[];
+  const cargadas = datos.map(leerReglaDosis).filter(r => r !== null);
+  const analisis = analisisEjemplo({
+    metodoLaboratorio: 'Bray II (fósforo), acetato de amonio 1 N (potasio)',
+    nutrientes: [{ elemento: 'Fósforo', forma: 'P', valor: 35, unidad: 'mg/kg' }, { elemento: 'Potasio', forma: 'K', valor: 0.45, unidad: 'cmol(+)/kg' }]
+  });
+  const r = sugerirMetas({ cultivo: 'papa', region: 'Altiplano Cundiboyacense, Nariño y Antioquia', analisis, reglas: cargadas });
+  const rango = (forma: string) => r.sugerencias.filter(s => s.forma === forma).map(s => `${s.minKgHa}-${s.maxKgHa}`);
+  assert.deepEqual([rango('P₂O₅'), rango('K₂O'), rango('N')], [['300-375'], ['100-125'], ['120-160']]);
+  // Una referencia con método Mehlich-3 no se usa con un análisis Bray II.
+  const kale = sugerirMetas({ cultivo: 'kale', region: 'Florida, EE. UU. (referencia internacional)', analisis, reglas: cargadas });
+  assert.deepEqual(kale.sugerencias.map(s => s.forma), ['N'], 'solo el N, que no depende del análisis');
+  assert.ok(kale.noAplican.some(n => /Mehlich-3/.test(n.motivo)));
+});
