@@ -16,6 +16,7 @@ import {
 import type { AnalisisVerificado, NutrienteLeido, ProblemaDato } from '../types';
 import type { DatoLeido } from '../lib/lecturaAnalisis';
 import { LecturaAnalisis } from './LecturaAnalisis';
+import { MetodosLaboratorio } from './MetodosLaboratorio';
 
 export interface OpcionesFormulario {
   actualizarArea: boolean;
@@ -38,19 +39,6 @@ type CampoSimple = Exclude<keyof EntradaAnalisis, 'nutrientes'>;
 
 const OTRO = '__otro';
 
-/** Métodos de laboratorio de suelos más comunes, como sugerencia; se puede escribir cualquier otro. */
-const METODOS_LABORATORIO = [
-  'Bray II (fósforo)',
-  'Olsen (fósforo)',
-  'Acetato de amonio 1 N pH 7 (potasio, calcio, magnesio, sodio)',
-  'Walkley-Black (materia orgánica)',
-  'Potenciómetro, suelo:agua 1:1 (pH)',
-  'KCl 1 N (aluminio intercambiable)',
-  'Fosfato monocálcico (azufre)',
-  'Olsen modificado (cobre, hierro, manganeso, zinc)',
-  'DTPA (cobre, hierro, manganeso, zinc)',
-  'Agua caliente (boro)'
-];
 let siguienteClave = 0;
 const filaVacia = (): FilaNutriente => ({ clave: siguienteClave++, elemento: '', forma: '', valor: '', unidad: 'mg/kg', elementoLibre: false, formaLibre: false });
 const claveFila = (origen: number) => `nutrientes.${origen}`;
@@ -90,6 +78,8 @@ function entradaInicial(inicial?: AnalisisVerificado): EntradaFormulario {
 export function AnalisisSueloForm({ inicial, areaActualM2, onGuardar, onCancelar }: Props) {
   const [entrada, setEntrada] = useState(() => entradaInicial(inicial));
   const [actualizarArea, setActualizarArea] = useState(false);
+  // Cambia cuando la lectura de un archivo trae el método: vuelve a armar las listas desde el texto.
+  const [versionMetodo, setVersionMetodo] = useState(0);
   const [confirmados, setConfirmados] = useState<ReadonlySet<string>>(new Set());
   const [quitados, setQuitados] = useState<ReadonlySet<string>>(new Set());
   const [errores, setErrores] = useState<ErroresAnalisis>({});
@@ -129,6 +119,7 @@ export function AnalisisSueloForm({ inicial, areaActualM2, onGuardar, onCancelar
       }
       return nueva;
     });
+    if (datos.some(d => d.campo === 'metodo')) setVersionMetodo(v => v + 1);
     setErrores({});
     setErrorGeneral([]);
   }
@@ -258,14 +249,8 @@ export function AnalisisSueloForm({ inicial, areaActualM2, onGuardar, onCancelar
             <input value={entrada.laboratorio} onChange={e => cambiar('laboratorio', e.target.value)} maxLength={100} placeholder="Nombre del laboratorio" />
             {avisoCampo('laboratorio')}
           </label>
-          <label>Método de análisis del laboratorio
-            <input value={entrada.metodoLaboratorio} onChange={e => cambiar('metodoLaboratorio', e.target.value)} maxLength={100} placeholder="Ej. Bray II (fósforo)" list="metodos-laboratorio" aria-describedby="ayuda-metodo" />
-            <datalist id="metodos-laboratorio">
-              {METODOS_LABORATORIO.map(m => <option key={m} value={m} />)}
-            </datalist>
-            <small id="ayuda-metodo">Es la técnica con la que el laboratorio midió cada nutriente. Aparece en el informe, junto a cada resultado o al pie de la tabla. Si hay varios, escríbelos separados por coma (ej. «Bray II, acetato de amonio»). Puedes elegir uno de la lista o escribirlo tal como aparece.</small>
-            {avisoCampo('metodoLaboratorio')}
-          </label>
+          <MetodosLaboratorio key={versionMetodo} valor={entrada.metodoLaboratorio} onChange={t => cambiar('metodoLaboratorio', t)} />
+          {avisoCampo('metodoLaboratorio')}
         </div>
         {faltaTrazabilidad && <p className="hint hint-warn">Puedes guardar sin laboratorio o sin método, pero el análisis quedará como <strong>Registro incompleto</strong>. La app no completa estos datos por ti.</p>}
       </fieldset>
