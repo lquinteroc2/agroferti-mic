@@ -196,7 +196,7 @@ export function PlanDetalle({
 
       <div className="warning-box" role="note">
         <span className="badge badge-warn">Importante</span>
-        <p>Las cantidades se calculan con las metas que escribiste y con lo que declara la etiqueta. <strong>La app no propone metas ni dosis</strong>, no las deduce del análisis de suelo y no convierte entre formas químicas (P y P₂O₅, K y K₂O). Revisa el plan con un profesional antes de aplicarlo. Los valores con “≈” están redondeados para mostrarlos; el cálculo usa el valor completo.</p>
+        <p>Las cantidades se calculan con las metas del plan y con lo que declara la etiqueta. Las metas propuestas por la app salen de las referencias técnicas citadas en cada meta; la app no convierte entre formas químicas (P y P₂O₅, K y K₂O). Revisa el plan con un profesional antes de aplicarlo. Los valores con “≈” están redondeados para mostrarlos; el cálculo usa el valor completo.</p>
       </div>
 
       {plan.id && <PlanEstado plan={plan} calculo={calculo} onCambiarEstado={onCambiarEstado} onCopiar={onCopiar} />}

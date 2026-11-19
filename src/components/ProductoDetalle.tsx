@@ -95,7 +95,7 @@ export function ProductoDetalle({ producto: v, onEditar, onEliminar }: Props) {
 
       <div className="warning-box" role="note">
         <span className="badge badge-warn">Importante</span>
-        <p>El catálogo solo guarda lo que dice la etiqueta. <strong>La app no recomienda productos ni dosis.</strong> Los planes guardan su propia copia de cada producto: editarlo o eliminarlo aquí no cambia los planes ya creados.</p>
+        <p>El catálogo guarda lo que dice la etiqueta. Las sugerencias de productos del plan solo ordenan lo que declara el registro del ICA; no son una recomendación agronómica. Los planes guardan su propia copia de cada producto: editarlo o eliminarlo aquí no cambia los planes ya creados.</p>
       </div>
     </article>
   );

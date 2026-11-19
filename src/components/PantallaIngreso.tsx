@@ -64,7 +64,7 @@ function TextoAutorizacion() {
 
 const VENTAJAS: ReadonlyArray<[titulo: string, texto: string]> = [
   ['Tus lotes en un solo lugar', 'Área, cultivo, siembra, análisis de suelo e historial de cultivos anteriores.'],
-  ['Plan de fertilización explicado', 'Cantidad y costo de producto para las metas de tu fuente técnica, con cada operación paso a paso.'],
+  ['Plan de fertilización explicado', 'La app propone metas según tu análisis de suelo y fertilizantes con registro ICA; calcula cantidad y costo, con cada operación paso a paso.'],
   ['Funciona sin internet', 'Registra en el campo; se sincroniza solo cuando hay conexión.'],
   ['Informes en PDF', 'Imprime o guarda en PDF el informe de un lote o de todos tus lotes.']
 ];

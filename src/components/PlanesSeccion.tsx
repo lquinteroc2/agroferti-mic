@@ -6,6 +6,7 @@ import { PlanForm, type OpcionesPlanFormulario } from './PlanForm';
 import { useSeleccionViva, type ModoSeccion } from './useSeleccionViva';
 import { calcularPlan } from '../lib/calculos';
 import { leerReferencias, repositorioAnalisis, repositorioPlanes, repositorioProductos, repositorioSeguimiento } from '../lib/db';
+import { productoDesdeReferencia, type FertilizanteReferencia } from '../lib/referencias';
 import { fechaDeMarca, fechaLegible, formatearExacto, formatearResultado } from '../lib/formato';
 import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import type { DatosPlan } from '../lib/validacionPlan';
@@ -94,6 +95,10 @@ export function PlanesSeccion({ lote, onIrAProductos }: { lote: Lote; onIrAProdu
 
   // Reglas de dosis de referencia (descargadas de la nube); undefined mientras no haya copia en el teléfono.
   const reglas = useLiveQuery(async () => (await leerReferencias())?.conjunto.reglasDosis ?? null, []);
+  const fertilizantes = useLiveQuery(async () => (await leerReferencias())?.conjunto.fertilizantes ?? [], [], []);
+  /** Agrega al catálogo del usuario un fertilizante del registro ICA (con el precio DANE del departamento, si hay). */
+  const agregarProducto = (r: FertilizanteReferencia, departamento?: string) =>
+    repositorioProductos.guardar({ ...productoDesdeReferencia(r, departamento), esEjemplo: false });
   const productos = lectura?.ok ? lectura.productos : [];
   const analisis = lectura?.ok ? lectura.analisis : [];
   const registros = lectura?.ok ? lectura.registros : [];
@@ -117,7 +122,7 @@ export function PlanesSeccion({ lote, onIrAProductos }: { lote: Lote; onIrAProdu
         <div>
           <div className="section-kicker">PASO 3 · PLAN</div>
           <h2 id="titulo-planes">Plan de fertilización</h2>
-          <p>Escribe las metas con su fuente técnica y elige un producto del catálogo para cada una. La app calcula cantidad y costo, y explica cada operación. No propone metas ni dosis.</p>
+          <p>La app propone metas según tu análisis de suelo y fertilizantes con registro ICA para cubrirlas; calcula cantidad y costo y explica cada operación.</p>
         </div>
         {modoVisible === 'lista' && lectura?.ok && <button className="btn btn-outline" onClick={() => abrir('nuevo', null)}>+ Nueva propuesta</button>}
       </div>
@@ -132,8 +137,8 @@ export function PlanesSeccion({ lote, onIrAProductos }: { lote: Lote; onIrAProdu
         No se pudieron leer los planes guardados en este navegador. Tus datos no se han borrado. Recarga la página; si el problema sigue, revisa que el navegador permita almacenamiento local y no esté en modo privado.
       </div>}
 
-      {modo === 'nuevo' && <PlanForm lote={lote} productos={productos} analisis={analisis} reglas={reglas ?? undefined} onGuardar={guardar} onCancelar={() => abrir('lista', null)} />}
-      {modo === 'editar' && seleccionado && <PlanForm key={seleccionado.id} inicial={seleccionado} lote={lote} productos={productos} analisis={analisis} reglas={reglas ?? undefined} onGuardar={guardar} onCancelar={() => abrir('ver')} />}
+      {modo === 'nuevo' && <PlanForm lote={lote} productos={productos} analisis={analisis} reglas={reglas ?? undefined} referencias={fertilizantes} onAgregarProducto={agregarProducto} onGuardar={guardar} onCancelar={() => abrir('lista', null)} />}
+      {modo === 'editar' && seleccionado && <PlanForm key={seleccionado.id} inicial={seleccionado} lote={lote} productos={productos} analisis={analisis} reglas={reglas ?? undefined} referencias={fertilizantes} onAgregarProducto={agregarProducto} onGuardar={guardar} onCancelar={() => abrir('ver')} />}
       {modo === 'ver' && seleccionado && <>
         <button className="back" onClick={() => abrir('lista', null)}>← Volver a los planes del lote</button>
         <PlanDetalle
@@ -158,7 +163,7 @@ export function PlanesSeccion({ lote, onIrAProductos }: { lote: Lote; onIrAProdu
           : !planes ? null
           : planes.length === 0 ? <div className="empty soil-empty">
             <h3>Este lote aún no tiene planes</h3>
-            <p>Necesitas las metas nutricionales de tu fuente técnica (con su fecha) y los productos registrados en el catálogo.</p>
+            <p>Registra primero el análisis de suelo del lote: con él, la app te propone las metas y los fertilizantes. También puedes escribir las metas de tu propia fuente técnica.</p>
             <button className="btn btn-primary" onClick={() => abrir('nuevo', null)}>Crear la primera propuesta</button>
             {productos.length === 0 && <p className="hint hint-warn">Tu catálogo todavía no tiene productos. <button type="button" className="link-button" onClick={onIrAProductos}>Ir a Productos</button></p>}
           </div>

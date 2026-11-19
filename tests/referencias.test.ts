@@ -64,7 +64,7 @@ test('llenar el formulario de producto: composición, registro ICA y precio del 
 
 test('los archivos de data/referencias/ son válidos: cada referencia pasa la verificación y los ids no se repiten', () => {
   const leer = (a: string) => JSON.parse(readFileSync(new URL(`../data/referencias/${a}`, import.meta.url), 'utf8')) as unknown[];
-  for (const [archivo, verificar] of [['fertilizantes.json', leerFertilizante], ['dosis.json', leerReglaDosis], ['niveles.json', leerNivelSuelo]] as const) {
+  for (const [archivo, verificar] of [['fertilizantes.json', leerFertilizante], ['fertilizantes-ica.json', leerFertilizante], ['dosis.json', leerReglaDosis], ['niveles.json', leerNivelSuelo]] as const) {
     const datos = leer(archivo);
     const ids = new Set<string>();
     datos.forEach((item, i) => {
@@ -133,4 +133,28 @@ test('datos cargados: papa en el Altiplano con un análisis de EJEMPLO (Bray II)
   assert.deepEqual([rango('P₂O₅'), rango('K₂O'), rango('N')], [['300-375'], ['100-125'], ['120-160']]);
   // La app trabaja solo con papa (decisión del 19 de noviembre de 2026).
   assert.ok(cargadas.every(r => r.cultivo === 'papa'));
+});
+
+import { buscarFertilizantes, fertilizantesQueAportan } from '../src/lib/referencias.ts';
+
+test('catálogo: buscar por nombre o grado y elegir los que aportan una forma química', () => {
+  const lista = [
+    fertilizante(),
+    leerFertilizante(fertilizante({ id: 'dap', nombre: 'Fosfato Diamónico DAP 18-46-0', registroIca: '9', contenido: [{ elemento: 'Nitrógeno', forma: 'N', porcentaje: 18 }, { elemento: 'Fósforo', forma: 'P₂O₅', porcentaje: 46 }], precios: [] })),
+    leerFertilizante(fertilizante({ id: 'tsp', nombre: 'Superfosfato triple', registroIca: '10', contenido: [{ elemento: 'Fósforo', forma: 'P₂O₅', porcentaje: 46 }], precios: [], verificacion: 'por verificar: ejemplo' }))
+  ].map(f => leerFertilizante(f)!);
+  assert.deepEqual(buscarFertilizantes(lista, 'diamonico 18-46').map(f => f.id), ['dap'], 'sin tildes y por grado');
+  assert.deepEqual(buscarFertilizantes(lista, '   '), []);
+  const p = fertilizantesQueAportan(lista, 'P₂O₅');
+  assert.deepEqual(p.map(f => f.id), ['dap-ejemplo', 'dap', 'tsp'], 'primero el que tiene precio; a igual concentración, el verificado');
+  assert.deepEqual(fertilizantesQueAportan(lista, 'Mo'), []);
+});
+
+import { departamentoDeUbicacion } from '../src/lib/referencias.ts';
+
+test('catálogo: el precio del departamento se toma de la ubicación del lote', () => {
+  const f = leerFertilizante(fertilizante())!;
+  assert.equal(departamentoDeUbicacion(f, 'Vereda El Rosal, Zipaquirá, CUNDINAMARCA'), 'Cundinamarca');
+  assert.equal(departamentoDeUbicacion(f, 'Tunja, Boyacá'), undefined);
+  assert.equal(departamentoDeUbicacion(f, undefined), undefined);
 });

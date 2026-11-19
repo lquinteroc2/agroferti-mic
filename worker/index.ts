@@ -243,16 +243,16 @@ async function referencias(request: Request, env: Env): Promise<Response> {
   if (!meta) return json({ version: '', fertilizantes: [], reglasDosis: [], niveles: [] });
   if (new URL(request.url).searchParams.get('version') === meta.valor) return json({ sinCambios: true, version: meta.valor });
   const filas = (await env.DB.prepare('SELECT tipo, datos FROM referencias ORDER BY tipo, id').all<{ tipo: string; datos: string }>()).results;
-  const conjunto: Record<string, unknown> & { version: string; fertilizantes: unknown[]; reglasDosis: unknown[]; niveles: unknown[] } =
-    { version: meta.valor, fertilizantes: [], reglasDosis: [], niveles: [] };
+  // Con miles de fertilizantes, leer y volver a escribir cada fila gastaría el tiempo de CPU del plan
+  // gratuito: se unen los textos tal como están (los escribió scripts/referencias-sql.ts con
+  // JSON.stringify, y la app verifica cada referencia al recibirla).
+  const partes: Record<'fertilizantes' | 'reglasDosis' | 'niveles', string[]> = { fertilizantes: [], reglasDosis: [], niveles: [] };
   for (const f of filas) {
     const destino = TIPOS_REFERENCIA[f.tipo];
-    if (!destino) continue;
-    try {
-      conjunto[destino].push(JSON.parse(f.datos));
-    } catch { /* una fila ilegible se omite; la app verifica cada referencia */ }
+    if (destino && f.datos.startsWith('{') && f.datos.endsWith('}')) partes[destino].push(f.datos);
   }
-  return json(conjunto);
+  const cuerpo = `{"version":${JSON.stringify(meta.valor)},"fertilizantes":[${partes.fertilizantes.join(',')}],"reglasDosis":[${partes.reglasDosis.join(',')}],"niveles":[${partes.niveles.join(',')}]}`;
+  return new Response(cuerpo, { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });
 }
 
 /** Derecho de supresión (Ley 1581): borra todos los datos del usuario en la nube. El teléfono no cambia. */

@@ -12,6 +12,8 @@ const leer = (archivo: string): unknown[] => JSON.parse(readFileSync(new URL(`da
 
 const conjuntos = [
   { tipo: 'fertilizante', archivo: 'fertilizantes.json', leer: leerFertilizante },
+  // Todo el registro del ICA (generado con scripts/catalogo-ica.ts); sin precios.
+  { tipo: 'fertilizante', archivo: 'fertilizantes-ica.json', leer: leerFertilizante },
   { tipo: 'dosis', archivo: 'dosis.json', leer: leerReglaDosis },
   { tipo: 'nivel', archivo: 'niveles.json', leer: leerNivelSuelo }
 ] as const;

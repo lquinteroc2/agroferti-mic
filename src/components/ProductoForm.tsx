@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { precioPorKgCop } from '../lib/calculos';
 import { CATALOGO_NUTRIENTES, OPCION_OTRO, buscarElemento } from '../lib/catalogoNutrientes';
 import { formatearExacto, formatearResultado, numeroATexto } from '../lib/formato';
@@ -14,7 +14,7 @@ import {
   type EntradaProducto,
   type ErroresProducto
 } from '../lib/validacionPlan';
-import { nombreMes, productoDesdeReferencia, type FertilizanteReferencia } from '../lib/referencias';
+import { buscarFertilizantes, nombreMes, productoDesdeReferencia, resumenComposicion, type FertilizanteReferencia } from '../lib/referencias';
 import type { ContenidoDeclarado, ProductoVerificado } from '../types';
 
 interface Props {
@@ -90,6 +90,8 @@ export function ProductoForm({ inicial, onGuardar, onCancelar, referencias = [] 
   const [referenciaId, setReferenciaId] = useState('');
   const [departamento, setDepartamento] = useState('');
   const referencia = referencias.find(r => r.id === referenciaId);
+  const [busqueda, setBusqueda] = useState('');
+  const resultados = useMemo(() => buscarFertilizantes(referencias, busqueda), [referencias, busqueda]);
 
   /** Llena el formulario con la referencia elegida; el usuario puede revisar y cambiar todo antes de guardar. */
   function usarReferencia() {
@@ -218,18 +220,23 @@ export function ProductoForm({ inicial, onGuardar, onCancelar, referencias = [] 
 
       {referencias.length > 0 && <fieldset className="form-group referencia-picker">
         <legend>Llenar desde el catálogo de referencia</legend>
-        <p className="hint">Fertilizantes comerciales registrados ante el <strong>ICA</strong>, con su composición garantizada y el precio promedio que publica el <strong>DANE</strong> por departamento. Elige uno para llenar el formulario; después revisa que coincida con la etiqueta de tu bulto.</p>
+        <p className="hint">Los {formatearExacto(referencias.length)} fertilizantes de aplicación al suelo con registro <strong>vigente ante el ICA</strong>, con su composición garantizada. Los más comunes traen además el precio promedio que publica el <strong>DANE</strong> por departamento. Busca el tuyo para llenar el formulario; después revisa que coincida con la etiqueta de tu bulto.</p>
         <div className="fields">
-          <label className="full">Fertilizante
-            <select value={referenciaId} onChange={e => { setReferenciaId(e.target.value); setDepartamento(''); }}>
-              <option value="">Elige…</option>
-              {referencias.map(r => <option key={r.id} value={r.id}>{r.nombre} · {r.empresa}</option>)}
-            </select>
+          <label className="full">Buscar fertilizante
+            <input type="search" value={busqueda} onChange={e => { setBusqueda(e.target.value); setReferenciaId(''); setDepartamento(''); }} placeholder="Nombre, empresa o grado: urea, DAP, 15-15-15, Yara…" />
           </label>
+          {busqueda.trim() && !referencia && <div className="full referencia-resultados" role="list">
+            {resultados.length === 0 && <p className="hint">No se encontró. Prueba con otra palabra o con el grado (ej. 10-30-10).</p>}
+            {resultados.map(r => <button key={r.id} type="button" role="listitem" className="referencia-opcion" onClick={() => setReferenciaId(r.id)}>
+              <strong>{r.nombre}</strong>
+              <span>{resumenComposicion(r)} · {r.empresa}{r.precios.length > 0 ? ' · con precio DANE' : ''}</span>
+            </button>)}
+          </div>}
+          {referencia && <p className="full"><button type="button" className="link-button" onClick={() => setReferenciaId('')}>← Volver a los resultados</button></p>}
           {referencia && referencia.precios.length > 0 && <label className="full">Precio de referencia del departamento
             <select value={departamento} onChange={e => setDepartamento(e.target.value)}>
               <option value="">Sin precio</option>
-              {referencia.precios.map(p => <option key={p.departamento} value={p.departamento}>{p.departamento}: {formatearExacto(p.precioPromedioCop)} COP ({p.presentacion}, {nombreMes(p.periodo)})</option>)}
+              {referencia.precios.map(p => <option key={p.departamento} value={p.departamento}>{p.departamento}: {formatearExacto(Math.round(p.precioPromedioCop))} COP ({p.presentacion}, {nombreMes(p.periodo)})</option>)}
             </select>
           </label>}
         </div>

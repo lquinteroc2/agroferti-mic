@@ -190,9 +190,56 @@ export function productoDesdeReferencia(f: FertilizanteReferencia, departamento?
     nombre: f.nombre,
     contenido: f.contenido.map(c => ({ ...c })),
     presentacionKg: f.presentacionKg,
-    precioPresentacionCop: precio?.precioPromedioCop,
+    // El promedio del DANE puede traer decimales; un precio de bulto se escribe en pesos enteros.
+    precioPresentacionCop: precio ? Math.round(precio.precioPromedioCop) : undefined,
     fechaPrecio: precio ? finDeMes(precio.periodo) : undefined,
     registroIca: f.registroIca,
     fuentePrecio: precio ? `Precio promedio DANE-SIPSA, ${precio.departamento}, ${nombreMes(precio.periodo)}` : undefined
   };
+}
+
+const sinTildes = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
+/** Resumen de la composición para listas: "N 18 · P₂O₅ 46". */
+export const resumenComposicion = (f: FertilizanteReferencia) =>
+  f.contenido.map(c => `${c.forma} ${String(c.porcentaje).replace('.', ',')}`).join(' · ');
+
+/**
+ * Busca en el catálogo de referencia por nombre, empresa, registro ICA o grado ("urea", "dap",
+ * "15-15-15", "yara"). Todas las palabras deben aparecer. Primero los que tienen precio del DANE
+ * (los más vendidos) y los verificados.
+ */
+export function buscarFertilizantes(lista: ReadonlyArray<FertilizanteReferencia>, texto: string, limite = 20): FertilizanteReferencia[] {
+  const palabras = sinTildes(texto).split(/\s+/).filter(Boolean);
+  if (!palabras.length) return [];
+  const encontrados = lista.filter(f => {
+    const donde = sinTildes(`${f.nombre} ${f.empresa} ${f.registroIca} ${resumenComposicion(f)}`);
+    return palabras.every(p => donde.includes(p));
+  });
+  const puntaje = (f: FertilizanteReferencia) => (f.precios.length ? 2 : 0) + (f.verificacion === 'ok' ? 1 : 0);
+  return encontrados.sort((a, b) => puntaje(b) - puntaje(a) || a.nombre.localeCompare(b.nombre)).slice(0, limite);
+}
+
+/**
+ * Fertilizantes del catálogo que aportan una forma química (p. ej. P₂O₅), para cubrir una meta.
+ * Orden: primero los que tienen precio del DANE (se consiguen en el mercado y se puede estimar el
+ * costo), luego los verificados y, entre ellos, los de mayor concentración de esa forma. Solo ordena
+ * lo que declara el registro: no es una recomendación agronómica.
+ */
+export function fertilizantesQueAportan(lista: ReadonlyArray<FertilizanteReferencia>, forma: string, limite = 5): FertilizanteReferencia[] {
+  const porcentaje = (f: FertilizanteReferencia) => f.contenido.find(c => c.forma === forma)?.porcentaje ?? 0;
+  return lista
+    .filter(f => porcentaje(f) > 0)
+    .sort((a, b) => Number(b.precios.length > 0) - Number(a.precios.length > 0)
+      || Number(b.verificacion === 'ok') - Number(a.verificacion === 'ok')
+      || porcentaje(b) - porcentaje(a)
+      || a.nombre.localeCompare(b.nombre))
+    .slice(0, limite);
+}
+
+/** Departamento con precio DANE que aparece en la ubicación del lote ("Ventaquemada, Boyacá" → "Boyacá"), o undefined. */
+export function departamentoDeUbicacion(f: FertilizanteReferencia, ubicacion?: string): string | undefined {
+  if (!ubicacion?.trim()) return undefined;
+  const donde = sinTildes(ubicacion);
+  return f.precios.find(p => donde.includes(sinTildes(p.departamento)))?.departamento;
 }

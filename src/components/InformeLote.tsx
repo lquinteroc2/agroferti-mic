@@ -222,7 +222,7 @@ export function AdvertenciasInforme({ hayEjemplo, aprobadoPor }: { hayEjemplo: b
   return <section className="informe-advertencias">
     <h2>Importante</h2>
     <ul>
-      <li>Lo que hay que aplicar sale del <strong>plan aprobado</strong>{aprobadoPor ? ` por ${aprobadoPor}` : ''}. Sus metas vienen de la fuente técnica indicada; <strong>la app no calcula dosis por su cuenta</strong> ni a partir del análisis de suelo.</li>
+      <li>Lo que hay que aplicar sale del <strong>plan aprobado</strong>{aprobadoPor ? ` por ${aprobadoPor}` : ''}. Sus metas vienen de la fuente técnica indicada en cada una (las propuestas por la app citan su referencia) y el plan fue revisado y aprobado por una persona.</li>
       <li>Antes de aplicar, revisa el plan con tu asistente técnico: la dosis adecuada depende del suelo, la variedad, el rendimiento esperado y el clima.</li>
       <li>El nombre de quien aprobó lo escribió el usuario de la app; la app no verifica identidades.</li>
       <li>El seguimiento es un registro manual, no una medición de campo. Los valores con “≈” están redondeados.</li>

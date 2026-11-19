@@ -16,7 +16,8 @@ import {
 import type { AnalisisVerificado, CopiaProducto, Lote, MetaNutrimental, PlanVerificado, ProductoFertilizante } from '../types';
 import { resumenContenido } from './ProductoDetalle';
 import { SugerenciasPlan } from './SugerenciasPlan';
-import type { ReglaDosis } from '../lib/referencias';
+import type { FertilizanteReferencia, ReglaDosis } from '../lib/referencias';
+import { ProductosSugeridos } from './ProductosSugeridos';
 import type { Sugerencia } from '../lib/sugerencias';
 import { citaDeSugerencia } from '../lib/sugerencias';
 
@@ -36,6 +37,10 @@ interface Props {
   onCancelar: () => void;
   /** Reglas de dosis de referencia (de la nube); undefined si aún no se han descargado. */
   reglas?: ReadonlyArray<ReglaDosis>;
+  /** Catálogo de referencia (registro ICA) para sugerir fertilizantes por meta. */
+  referencias?: ReadonlyArray<FertilizanteReferencia>;
+  /** Agrega un fertilizante de referencia al catálogo del usuario y devuelve su id. */
+  onAgregarProducto?: (referencia: FertilizanteReferencia, departamento?: string) => Promise<string>;
 }
 
 /** Con rangoSugerido, la meta vino de una sugerencia: se muestra el rango junto al valor. */
@@ -71,7 +76,7 @@ function avisoProducto(fila: FilaMeta, producto?: Pick<CopiaProducto, 'nombre' |
   return <p className="hint hint-warn">{declara} <strong>Esta meta no se calculará:</strong> la meta está en {forma} y la etiqueta no declara esa forma. La app no convierte entre formas químicas (P y P₂O₅, K y K₂O).</p>;
 }
 
-export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCancelar, reglas }: Props) {
+export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCancelar, reglas, referencias = [], onAgregarProducto }: Props) {
   // Si el análisis de referencia se eliminó, la referencia se quita al guardar (con aviso), en lugar de impedir guardar.
   const [referenciaPerdida] = useState(() =>
     !!inicial?.analisisReferenciaId && !analisis.some(a => a.id === inicial.analisisReferenciaId));
@@ -114,7 +119,10 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
     setErrores(({ metas: _, ...resto }) => resto);
   }
 
-  /** Agrega una meta a partir de una sugerencia: nutriente, forma y fuente; el valor en kg/ha lo escribe el usuario. */
+  /**
+   * Agrega una meta a partir de una sugerencia: nutriente, forma, fuente y, como propuesta, el punto
+   * medio del rango (el usuario puede cambiarlo). Si ya hay una meta de esa forma, se actualiza.
+   */
   function usarSugerencia(s: Sugerencia) {
     const el = CATALOGO_NUTRIENTES.find(e => e.formas.includes(s.forma));
     const fila: FilaMeta = {
@@ -123,9 +131,15 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
       fuente: citaDeSugerencia(s),
       fechaFuente: s.regla.fuente.anio ? String(s.regla.fuente.anio) + '-01-01' : '',
       origen: 'real',
+      kgHa: numeroSinAmbiguedad((s.minKgHa + s.maxKgHa) / 2),
       rangoSugerido: { min: s.minKgHa, max: s.maxKgHa }
     };
     setEntrada(e => {
+      const misma = e.metas.findIndex(m => m.forma === s.forma && m.elemento === fila.elemento);
+      if (misma >= 0) {
+        const { clave: _, productoId: __, ...datos } = fila;
+        return { ...e, metas: e.metas.map((m, i) => (i === misma ? { ...m, ...datos } : m)) };
+      }
       // Una primera meta nueva y vacía se reemplaza en lugar de dejarla en blanco.
       const vacia = e.metas.length === 1 && !e.metas[0].existente && !e.metas[0].elemento && !e.metas[0].kgHa;
       return { ...e, metas: vacia ? [fila] : [...e.metas, fila] };
@@ -169,7 +183,7 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
     <form className="form-card" onSubmit={enviar} noValidate aria-labelledby="titulo-form-plan">
       <div className="section-kicker">PLAN DE FERTILIZACIÓN</div>
       <h2 id="titulo-form-plan">{inicial ? 'Editar propuesta de plan' : 'Nueva propuesta de plan'}</h2>
-      <p className="muted">Escribe cada meta nutricional <strong>tal como la indica tu fuente técnica</strong> (documento, profesional o laboratorio) y elige un producto del catálogo para cubrirla. La app calcula la cantidad y el costo, pero <strong>no propone metas ni dosis</strong> ni las deduce del análisis de suelo.</p>
+      <p className="muted">La app te <strong>propone las metas</strong> (cuántos kg/ha de cada nutriente) según tu análisis de suelo y las referencias técnicas para papa, y te <strong>sugiere fertilizantes</strong> con registro ICA que las cubren. Con eso calcula la dosis de cada producto (kg/ha y kg del lote), los bultos y el costo. Revisa la propuesta con un agrónomo; tú decides qué guardar.</p>
 
       <fieldset className="form-group">
         <legend>Plan</legend>
@@ -194,11 +208,11 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
       </fieldset>
 
       <SugerenciasPlan cultivo={lote.cultivo} analisis={analisis.find(a => a.id === entrada.analisisReferenciaId)}
-        reglas={reglas ?? []} descargadas={reglas !== undefined} onUsar={usarSugerencia} />
+        reglas={reglas ?? []} descargadas={reglas !== undefined} onUsar={usarSugerencia} onUsarTodas={s => s.forEach(usarSugerencia)} />
 
       <fieldset className="form-group">
         <legend>Metas y productos</legend>
-        <p className="hint">Para cada meta escribe el nutriente, su <strong>forma química</strong>, la cantidad en kg/ha y de dónde sale (fuente y fecha). Luego elige el producto que la cubrirá. Solo se calcula si la meta y la etiqueta usan la misma forma química: una meta en P no se calcula con una etiqueta en P₂O₅. Puedes guardar una meta sin producto y completarla después.</p>
+        <p className="hint">Cada meta tiene el nutriente, su <strong>forma química</strong>, la cantidad en kg/ha y de dónde sale. Para cada una, elige el producto que la cubrirá: la app te muestra los fertilizantes que aportan esa forma. Solo se calcula si la meta y la etiqueta usan la misma forma química (una meta en P no se calcula con una etiqueta en P₂O₅). Puedes guardar una meta sin producto y completarla después.</p>
         {productos.length === 0 && <p className="hint hint-warn">Tu catálogo no tiene productos disponibles. Puedes guardar las metas ahora y registrar los productos en <strong>Productos</strong>.</p>}
         {entrada.metas.map((m, i) => {
           const el = m.elementoLibre ? undefined : buscarElemento(m.elemento);
@@ -234,7 +248,7 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
                 </label>}
                 <label>Meta (kg/ha)
                   <input inputMode="decimal" value={m.kgHa} onChange={e => cambiarCampo(i, 'kgHa', e.target.value)} placeholder={m.rangoSugerido ? `Entre ${m.rangoSugerido.min} y ${m.rangoSugerido.max}` : 'Según tu fuente'} aria-invalid={!!error} />
-                  {m.rangoSugerido && <small>Rango de la referencia: {m.rangoSugerido.min} a {m.rangoSugerido.max} kg/ha. Escribe el valor que decidas.</small>}
+                  {m.rangoSugerido && <small>Propuesta: punto medio del rango de la referencia ({m.rangoSugerido.min} a {m.rangoSugerido.max} kg/ha). Puedes cambiarla.</small>}
                 </label>
                 <label>Fuente técnica
                   <input value={m.fuente} onChange={e => cambiarCampo(i, 'fuente', e.target.value)} maxLength={200} placeholder="Documento, profesional o laboratorio" aria-invalid={!!error} />
@@ -258,6 +272,8 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
                 </label>
               </div>
               <button type="button" className="row-remove" onClick={() => quitarFila(i)}>Quitar meta {i + 1}</button>
+              {!m.productoId && m.forma && onAgregarProducto && <ProductosSugeridos forma={m.forma} productos={productos} referencias={referencias}
+                ubicacion={lote.ubicacion} onElegir={id => cambiarCampo(i, 'productoId', id)} onAgregar={onAgregarProducto} />}
               <div className="full-row">
                 {avisoProducto(m, elegido)}
                 {m.productoId === COPIA_GUARDADA && guardada && enCatalogo && copiaDesactualizada(guardada, enCatalogo) &&
