@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { areaM2AHa } from '../lib/calculos';
 import { formatearExacto, formatearNumero } from '../lib/formato';
 import { ErrorPersistencia } from '../lib/repositorioAnalisis';
-import { areaLoteATexto, validarAreaLote } from '../lib/validacion';
+import { areaLoteATexto, UNIDADES_AREA, validarAreaEnUnidad, type UnidadArea } from '../lib/validacion';
 import { CULTIVOS, type Cultivo, type Lote } from '../types';
 
 export interface DatosLote {
@@ -23,19 +23,22 @@ interface Props {
 export function LoteForm({ inicial, onGuardar, onCancelar }: Props) {
   const [versionInicial] = useState(inicial?.updatedAt);
   const [nombre, setNombre] = useState(inicial?.nombre ?? '');
-  const [cultivo, setCultivo] = useState<Cultivo>(inicial?.cultivo ?? 'papa');
+  // Un lote nuevo empieza sin cultivo elegido: no se asume papa.
+  const [cultivo, setCultivo] = useState<Cultivo | ''>(inicial?.cultivo ?? '');
   const [area, setArea] = useState(inicial ? areaLoteATexto(inicial.areaM2) : '');
+  const [unidad, setUnidad] = useState<UnidadArea>('m2');
   const [fecha, setFecha] = useState(inicial?.fechaSiembra ?? '');
   const [ubicacion, setUbicacion] = useState(inicial?.ubicacion ?? '');
   const [error, setError] = useState('');
   const [guardando, setGuardando] = useState(false);
   // Muestra cómo se interpretó el número antes de guardarlo.
-  const lecturaArea = validarAreaLote(area);
+  const lecturaArea = validarAreaEnUnidad(area, unidad);
 
   async function enviar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError('');
     if (!nombre.trim()) return setError('Escribe el nombre del lote.');
+    if (!cultivo) return setError('Elige el cultivo del lote.');
     if (!lecturaArea.ok) return setError(lecturaArea.error);
     setGuardando(true);
     try {
@@ -54,25 +57,32 @@ export function LoteForm({ inicial, onGuardar, onCancelar }: Props) {
   }
 
   return (
-    <form className="form-card" onSubmit={enviar}>
-      <div className="section-kicker">PASO 1 DE 3 · CREAR EL LOTE</div>
+    <form className="form-card" onSubmit={enviar} noValidate>
+      <div className="section-kicker">PASO 1 · EL LOTE</div>
       <h2>{inicial ? 'Editar lote' : 'Registrar un nuevo lote'}</h2>
-      <p className="muted">Estos datos identifican tu terreno. No se calcula ninguna dosis de fertilización todavía.</p>
+      <p className="muted">Estos datos identifican tu terreno.</p>
       <div className="fields">
         <label><span className="campo-titulo">Nombre del lote <span className="required" aria-hidden="true">*</span></span>
           <input value={nombre} onChange={e => { setNombre(e.target.value); setError(''); }} placeholder="Ej. Parcela de papa A" maxLength={70} required autoFocus />
         </label>
         <label><span className="campo-titulo">Cultivo <span className="required" aria-hidden="true">*</span></span>
-          <select value={cultivo} onChange={e => setCultivo(e.target.value as Cultivo)}>
+          <select value={cultivo} onChange={e => { setCultivo(e.target.value as Cultivo); setError(''); }} required>
+            {!cultivo && <option value="">Elige…</option>}
             {CULTIVOS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
           </select>
           {inicial && <small>Para cambiar de cultivo sin perder el anterior, usa «Cerrar ciclo y empezar otro cultivo» en el historial del lote.</small>}
         </label>
-        <label><span className="campo-titulo">Área del lote en m² <span className="required" aria-hidden="true">*</span></span>
-          <input inputMode="decimal" value={area} onChange={e => { setArea(e.target.value); setError(''); }} placeholder="Ej. 500 o 1500,5" required />
-          <small>{lecturaArea.ok
+        <label><span className="campo-titulo">Área del lote <span className="required" aria-hidden="true">*</span></span>
+          <span className="area-unidad">
+            <input inputMode="decimal" value={area} onChange={e => { setArea(e.target.value); setError(''); }} placeholder={unidad === 'm2' ? 'Ej. 500 o 1500,5' : 'Ej. 1,5'} required aria-describedby="ayuda-area" />
+            <select value={unidad} onChange={e => { setUnidad(e.target.value as UnidadArea); setError(''); }} aria-label="Unidad del área">
+              {UNIDADES_AREA.map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
+            </select>
+          </span>
+          <small id="ayuda-area">{lecturaArea.ok
             ? `Se guardará como ${formatearExacto(lecturaArea.valor)} m² (${formatearNumero(areaM2AHa(lecturaArea.valor), 4)} ha).`
-            : 'Sin punto de miles (1500, no 1.500); usa coma para decimales. 1 hectárea = 10.000 m².'}</small>
+            : 'Sin punto de miles (1500, no 1.500); usa coma para decimales.'}
+            {' '}1 hectárea = 10.000 m²; 1 fanegada = 6.400 m² (80 m × 80 m, la usual en Cundinamarca y Boyacá).</small>
         </label>
         <label>Fecha de siembra
           <input type="date" value={fecha} onChange={e => setFecha(e.target.value)} />

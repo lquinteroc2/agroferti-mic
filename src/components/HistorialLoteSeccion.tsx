@@ -16,6 +16,7 @@ import {
 } from '../lib/historial';
 import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import { fechaLocalISO } from '../lib/validacion';
+import { useCapaAtras } from '../lib/navegacion';
 import { resumenErrores } from '../lib/validacionPlan';
 import { CULTIVOS, MOTIVOS_CIERRE, type CicloCultivo, type CicloVerificado, type Lote, type MotivoCierre } from '../types';
 import { OrigenBadge } from './ProductoDetalle';
@@ -183,6 +184,18 @@ function NotasForm({ ciclo, onGuardar, onCancelar }: {
   );
 }
 
+/** "1 análisis de suelo, 2 planes y 3 registros de seguimiento" (o "Sin registros en este periodo"). */
+function conteo(p: PeriodoHistorial): string {
+  const n = (cantidad: number, uno: string, varios: string) => cantidad ? `${cantidad} ${cantidad === 1 ? uno : varios}` : '';
+  const partes = [
+    n(p.analisis.length, 'análisis de suelo', 'análisis de suelo'),
+    n(p.planes.length, 'plan', 'planes'),
+    n(p.registros.length, 'registro de seguimiento', 'registros de seguimiento')
+  ].filter(Boolean);
+  if (!partes.length) return 'Sin registros en este periodo';
+  return partes.length === 1 ? partes[0] : `${partes.slice(0, -1).join(', ')} y ${partes[partes.length - 1]}`;
+}
+
 /** Lo registrado en un periodo, en listas cortas. Los registros se editan en su propia sección. */
 function contenidoPeriodo(p: PeriodoHistorial) {
   const aplicaciones = p.registros.filter(r => r.registro?.tipo === 'aplicacion');
@@ -211,6 +224,7 @@ function contenidoPeriodo(p: PeriodoHistorial) {
 /** Historial del lote: el cultivo actual y los ciclos cerrados, con lo registrado en cada uno. Montar con key={lote.id}. */
 export function HistorialLoteSeccion({ lote }: { lote: Lote }) {
   const [modo, setModo] = useState<Modo>({ tipo: 'lista' });
+  useCapaAtras(modo.tipo !== 'lista', () => setModo({ tipo: 'lista' }), 'titulo-historial');
   const [aviso, setAviso] = useState<Aviso>(null);
   const [ocupado, setOcupado] = useState(false);
   const lectura = useLiveQuery<Lectura>(async () => {
@@ -261,12 +275,13 @@ export function HistorialLoteSeccion({ lote }: { lote: Lote }) {
   }
 
   function periodo(p: PeriodoHistorial) {
-    const total = p.analisis.length + p.planes.length + p.registros.length;
+    const total = conteo(p);
     if (!p.ciclo) {
       return <details key="actual" className="historial-ciclo historial-actual">
         <summary>
           <span className="registro-cabeza"><strong>{nombreCultivo(lote.cultivo)}</strong> <span className="badge badge-entered">Cultivo actual</span></span>
-          <span>Siembra: {fechaLegible(lote.fechaSiembra)}{p.desdeCierre ? ` · registros posteriores al cierre del ${fechaLegible(p.desdeCierre)}` : ''} · {total} {total === 1 ? 'registro' : 'registros'}</span>
+          <span>Siembra: {fechaLegible(lote.fechaSiembra)}{p.desdeCierre ? ` · desde el ${fechaLegible(diaSiguiente(p.desdeCierre))}` : ''}</span>
+          <span>{total}</span>
         </summary>
         {contenidoPeriodo(p)}
       </details>;
@@ -276,7 +291,8 @@ export function HistorialLoteSeccion({ lote }: { lote: Lote }) {
     return <details key={c.id} className="historial-ciclo">
       <summary>
         <span className="registro-cabeza"><strong>{nombreCultivo(c.cultivo)}</strong> · {nombreMotivo(c.motivo).toLowerCase()} el {fechaLegible(c.fechaCierre)} <OrigenBadge esEjemplo={c.esEjemplo} real="Dato real" /></span>
-        <span>Siembra: {fechaLegible(c.fechaSiembra)}{dias !== undefined ? ` · ${dias} días` : ''} · {formatearExacto(c.areaM2)} m² · {total} {total === 1 ? 'registro' : 'registros'}</span>
+        <span>Siembra: {fechaLegible(c.fechaSiembra)}{dias !== undefined ? ` · ${dias} días` : ''} · {formatearExacto(c.areaM2)} m²</span>
+        <span>{total}</span>
       </summary>
       {c.notas && <p className="registro-texto"><strong>Resultado y notas:</strong> {c.notas}</p>}
       {contenidoPeriodo(p)}
@@ -294,7 +310,7 @@ export function HistorialLoteSeccion({ lote }: { lote: Lote }) {
     <section className="soil-section" aria-labelledby="titulo-historial">
       <div className="section-header">
         <div>
-          <div className="section-kicker">HISTORIAL</div>
+          <div className="section-kicker">PASO 5 · CIERRE E HISTORIAL</div>
           <h2 id="titulo-historial">Historial del lote</h2>
           <p>Los cultivos que ha tenido este lote y lo registrado en cada uno, para comparar con cultivos anteriores. Al cosechar, cierra el ciclo y empieza el siguiente cultivo.</p>
         </div>

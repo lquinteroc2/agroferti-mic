@@ -151,6 +151,30 @@ export function validarAreaLote(texto: string): Resultado<number> {
 export const areaLoteATexto = numeroSinAmbiguedad;
 
 /**
+ * Unidades en que se puede escribir el área del lote. Siempre se guarda en m² (lo que usan las
+ * fórmulas). La fanegada varía por región: se usa la usual en Cundinamarca y Boyacá (80 m × 80 m).
+ */
+export const UNIDADES_AREA = [
+  { value: 'm2', label: 'm²', plural: 'm²', m2: 1 },
+  { value: 'ha', label: 'hectáreas (ha)', plural: 'hectáreas', m2: 10_000 },
+  { value: 'fanegada', label: 'fanegadas', plural: 'fanegadas', m2: 6_400 }
+] as const;
+export type UnidadArea = typeof UNIDADES_AREA[number]['value'];
+
+/** Área escrita en la unidad elegida, convertida a m² (redondeada a 4 decimales para evitar restos binarios). */
+export function validarAreaEnUnidad(texto: string, unidad: UnidadArea): Resultado<number> {
+  const factor = UNIDADES_AREA.find(u => u.value === unidad)?.m2;
+  if (!factor) return { ok: false, error: 'Área: elige una unidad válida.' };
+  if (factor === 1) return validarAreaLote(texto);
+  const lectura = validarNumeroSinAmbiguedad(texto, { campo: 'Área', requerido: true, positivo: true });
+  if (!lectura.ok) return lectura;
+  const m2 = Math.round((lectura.valor as number) * factor * 10_000) / 10_000;
+  if (m2 < AREA_LOTE_MIN_M2) return { ok: false, error: 'Área: debe ser de al menos 0,01 m².' };
+  if (m2 > AREA_LOTE_MAX_M2) return { ok: false, error: 'Área: supera un valor razonable para esta aplicación; revisa el dato.' };
+  return { ok: true, valor: m2 };
+}
+
+/**
  * Lote leído (p. ej. de una copia de seguridad): lo que la lista de lotes necesita para mostrarse
  * sin romperse, con las mismas reglas de área y fecha que el formulario. Devuelve el motivo o null.
  */

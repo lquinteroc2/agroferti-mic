@@ -33,7 +33,7 @@ export function ProductosSeccion() {
     }
   }, []);
   const productos = lectura?.ok ? lectura.productos : undefined;
-  const seleccion = useSeleccionViva(productos);
+  const seleccion = useSeleccionViva(productos, 'titulo-productos');
   const { modo, modoVisible, seleccionado, esperando } = seleccion;
 
   function abrir(m: ModoSeccion, id?: string | null) {
@@ -62,14 +62,15 @@ export function ProductosSeccion() {
 
   return (
     <section className="soil-section" aria-labelledby="titulo-productos">
-      <div className="section-header">
+      {/* Con un formulario abierto, el título del catálogo no se repite (el formulario tiene el suyo). */}
+      {modoVisible === 'lista' ? <div className="section-header">
         <div>
           <div className="section-kicker">FERTILIZANTES</div>
           <h1 id="titulo-productos">Catálogo de productos</h1>
-          <p>Registra los fertilizantes tal como aparecen en su etiqueta. Este catálogo sirve para todos tus lotes. La app no recomienda productos ni dosis.</p>
+          <p>Registra los fertilizantes tal como aparecen en su etiqueta. Este catálogo sirve para todos tus lotes.</p>
         </div>
-        {modoVisible === 'lista' && lectura?.ok && <button className="btn btn-outline" onClick={() => abrir('nuevo', null)}>+ Agregar producto</button>}
-      </div>
+        {lectura?.ok && <button className="btn btn-outline" onClick={() => abrir('nuevo', null)}>+ Agregar producto</button>}
+      </div> : <h1 id="titulo-productos" className="sr-only">Catálogo de productos</h1>}
 
       {aviso && <div role={aviso.tipo === 'error' ? 'alert' : 'status'} className={`notice ${aviso.tipo === 'error' ? 'notice-error' : 'notice-ok'}`}>
         <span aria-hidden="true">{aviso.tipo === 'error' ? '!' : '✓'}</span>{aviso.texto}
@@ -81,7 +82,11 @@ export function ProductosSeccion() {
         No se pudieron leer los productos guardados en este navegador. Tus datos no se han borrado. Recarga la página; si el problema sigue, revisa que el navegador permita almacenamiento local y no esté en modo privado.
       </div>}
 
-      {modo === 'nuevo' && <ProductoForm onGuardar={guardar} onCancelar={() => abrir('lista', null)} />}
+      {modo === 'nuevo' && <>
+        <button className="back" onClick={() => abrir('lista', null)}>← Volver al catálogo</button>
+        <ProductoForm onGuardar={guardar} onCancelar={() => abrir('lista', null)} />
+      </>}
+      {modo === 'editar' && seleccionado && <button className="back" onClick={() => abrir('ver')}>← Volver al producto</button>}
       {modo === 'editar' && seleccionado && <ProductoForm key={seleccionado.id} inicial={seleccionado} onGuardar={guardar} onCancelar={() => abrir('ver')} />}
       {modo === 'ver' && seleccionado && <>
         <button className="back" onClick={() => abrir('lista', null)}>← Volver al catálogo</button>

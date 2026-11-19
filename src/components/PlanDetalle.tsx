@@ -109,6 +109,22 @@ export function PlanDetalle({
             : 'Es de solo lectura y no se puede eliminar: es el registro de lo aprobado. Para cambiarlo, crea una copia como nueva propuesta en «Estado del plan», al final.'}</p>
       </div>}
 
+      {calculo.lineas.length > 0 && <section className="plan-resumen" aria-labelledby={`resumen-plan-${plan.id}`}>
+        <h4 id={`resumen-plan-${plan.id}`}>Qué comprar y aplicar en el lote</h4>
+        <div className="table-wrap"><table className="soil-table">
+          <caption className="sr-only">Resumen del plan: producto, cantidad para el lote, bultos y costo</caption>
+          <thead><tr><th scope="col">Producto</th><th scope="col">Para</th><th scope="col">Kg en el lote</th><th scope="col">Bultos</th><th scope="col">Costo</th></tr></thead>
+          <tbody>{calculo.lineas.map(r => <tr key={r.linea.id}>
+            <td>{r.linea.producto.nombre}</td>
+            <td>{r.meta ? r.meta.forma : '—'}</td>
+            <td>{r.estado === 'calculada' && r.productoKgLote.ok ? kg(r.productoKgLote.valor) : <span className="missing">No calculado</span>}</td>
+            <td>{r.estado === 'calculada' && r.bultos.ok ? formatearResultado(r.bultos.valor, 2) : '—'}</td>
+            <td>{r.estado === 'calculada' && r.costoCop.ok ? `${cop(r.costoCop.valor)} COP` : '—'}</td>
+          </tr>)}</tbody>
+        </table></div>
+        <p className="plan-resumen-total">Costo total estimado: <strong>{calculo.costoTotalCop.ok ? `${cop(calculo.costoTotalCop.valor)} COP` : 'sin calcular (falta el precio de algún producto)'}</strong></p>
+      </section>}
+
       <section className="soil-block entered" aria-labelledby={`metas-plan-${plan.id}`}>
         <h4 id={`metas-plan-${plan.id}`}><span className="badge badge-entered">Datos ingresados</span> Metas y su fuente técnica</h4>
         <dl className="data-list">
@@ -135,6 +151,8 @@ export function PlanDetalle({
           </table></div>}
       </section>
 
+      <details className="plan-detalle-calculo">
+      <summary>Ver cómo se calculó cada cantidad</summary>
       <section className="soil-block calculated" aria-labelledby={`calc-plan-${plan.id}`}>
         <h4 id={`calc-plan-${plan.id}`}><span className="badge badge-calc">Resultados calculados</span> Cantidad y costo de cada producto</h4>
         <p className="calc-intro">Cada cantidad sale de la meta que escribiste y del porcentaje que declara la etiqueta para <strong>la misma forma química</strong>. Los datos del producto son la copia guardada en el plan.</p>
@@ -169,6 +187,7 @@ export function PlanDetalle({
             : <Falta calculo={calculo.costoTotalCop} />}
         </div>
       </section>
+      </details>
 
       {/* Lo aplicado solo se registra contra un plan aprobado y sin datos dañados. */}
       {plan.estado === 'aprobado' && plan.problemas.length === 0 &&

@@ -24,7 +24,7 @@ export function AnalisisSueloSeccion({ lote }: { lote: Lote }) {
     }
   }, [lote.id]);
   const analisis = lectura?.ok ? lectura.analisis : undefined;
-  const seleccion = useSeleccionViva(analisis);
+  const seleccion = useSeleccionViva(analisis, 'titulo-suelo');
   const { modo, modoVisible, seleccionado, esperando } = seleccion;
 
   function abrir(m: ModoSeccion, id?: string | null) {

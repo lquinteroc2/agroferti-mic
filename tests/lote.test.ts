@@ -3,7 +3,7 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { AREA_LOTE_MAX_M2, AREA_LOTE_MIN_M2, areaLoteATexto, validarAreaLote } from '../src/lib/validacion.ts';
+import { AREA_LOTE_MAX_M2, AREA_LOTE_MIN_M2, areaLoteATexto, UNIDADES_AREA, validarAreaEnUnidad, validarAreaLote } from '../src/lib/validacion.ts';
 
 test('área del lote: acepta coma o punto decimal', () => {
   assert.deepEqual(validarAreaLote('1500,5'), { ok: true, valor: 1500.5 });
@@ -52,4 +52,18 @@ test('área del lote: al editar, el texto precargado se lee igual que el valor g
   }
   assert.equal(areaLoteATexto(1.125), '1,1250');
   assert.equal(areaLoteATexto(1500), '1500');
+});
+
+test('área en hectáreas o fanegadas: se convierte a m² para guardar y calcular', () => {
+  assert.deepEqual(validarAreaEnUnidad('1,5', 'ha'), { ok: true, valor: 15_000 });
+  assert.deepEqual(validarAreaEnUnidad('0.25', 'ha'), { ok: true, valor: 2_500 });
+  assert.deepEqual(validarAreaEnUnidad('1', 'fanegada'), { ok: true, valor: 6_400 });
+  assert.deepEqual(validarAreaEnUnidad('0,3', 'fanegada'), { ok: true, valor: 1_920 }, 'sin restos binarios (0,3 × 6400)');
+  assert.deepEqual(validarAreaEnUnidad('2,75', 'fanegada'), { ok: true, valor: 17_600 });
+  assert.deepEqual(validarAreaEnUnidad('500', 'm2'), { ok: true, valor: 500 });
+  assert.equal(validarAreaEnUnidad('1.500', 'ha').ok, false, 'la escritura ambigua se rechaza en cualquier unidad');
+  assert.equal(validarAreaEnUnidad('0', 'fanegada').ok, false);
+  assert.equal(validarAreaEnUnidad('-1', 'ha').ok, false);
+  assert.equal(validarAreaEnUnidad('2000000', 'ha').ok, false, 'más de 10.000 millones de m²');
+  assert.deepEqual(UNIDADES_AREA.map(u => [u.value, u.m2]), [['m2', 1], ['ha', 10_000], ['fanegada', 6_400]]);
 });

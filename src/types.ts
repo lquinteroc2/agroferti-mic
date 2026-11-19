@@ -2,7 +2,7 @@
 export type Cultivo = 'papa' | 'lechuga' | 'kale' | 'arveja' | 'otro';
 
 export const CULTIVOS: ReadonlyArray<{ value: Cultivo; label: string }> = [
-  { value: 'papa', label: 'Papa (piloto)' },
+  { value: 'papa', label: 'Papa' },
   { value: 'lechuga', label: 'Lechuga' },
   { value: 'kale', label: 'Kale' },
   { value: 'arveja', label: 'Arveja' },

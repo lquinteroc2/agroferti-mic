@@ -139,10 +139,15 @@ function PasosAvance({ a, areaM2 }: { a: AvanceLinea<RegistroAplicacion>; areaM2
   const porcentajeEtiqueta = a.porcentajeEtiqueta;
   return <>
     <code>Planeado en el lote: <b>{kg(planeado)} kg</b> <em>(del plan aprobado)</em></code>
-    <code>Aplicado: {sumandos} = <b>{kg(aplicado)} kg</b> <em>({propias.length} {propias.length === 1 ? 'aplicación' : 'aplicaciones'})</em></code>
+    {propias.length === 1
+      ? <code>Aplicado: <b>{kg(aplicado)} kg</b> <em>(1 aplicación)</em></code>
+      : <code>Aplicado: {sumandos} = <b>{kg(aplicado)} kg</b> <em>({propias.length} aplicaciones)</em></code>}
     {a.diferenciaKg?.ok && (() => {
-      const d = formatearDiferencia(a.diferenciaKg.valor);
-      return <code>Aplicado − planeado: {kg(aplicado)} − {kg(planeado)} = <b>{d.texto} kg</b> <em>({d.signo < 0 ? 'falta por aplicar' : d.signo > 0 ? 'se aplicó más de lo planeado' : 'igual a lo planeado'})</em></code>;
+      const { signo } = formatearDiferencia(a.diferenciaKg.valor);
+      const cantidad = kg(Math.abs(a.diferenciaKg.valor));
+      if (signo < 0) return <code>Falta por aplicar: {kg(planeado)} − {kg(aplicado)} = <b>{cantidad} kg</b></code>;
+      if (signo > 0) return <code>Se aplicó de más: {kg(aplicado)} − {kg(planeado)} = <b>{cantidad} kg</b> <em>(más de lo planeado)</em></code>;
+      return <code>Se aplicó exactamente lo planeado.</code>;
     })()}
     {a.porcentaje?.ok && <code>Avance: {kg(aplicado)} ÷ {kg(planeado)} × 100 = <b>{formatearResultado(a.porcentaje.valor, 1)} %</b></code>}
     {a.aplicadoFormaKgHa?.ok && areaM2 !== undefined && porcentajeEtiqueta !== undefined &&

@@ -44,7 +44,7 @@ export function InformeGeneral({ usuario, onVolver }: { usuario: string; onVolve
             <h1 id="titulo-informe-general">Mis lotes</h1>
             <p>{usuario} · Generado el {fechaHoraDeMarca(lectura.generado)}</p>
           </header>
-          {hayEjemplo && <p className="informe-aviso-ejemplo"><strong>Contiene datos de EJEMPLO (ficticios).</strong> No los use para decidir sobre un cultivo real.</p>}
+          {hayEjemplo && <p className="informe-aviso-ejemplo"><strong>Contiene datos de EJEMPLO (ficticios).</strong> No los uses para decidir sobre un cultivo real.</p>}
 
           <section>
             <h2>Resumen</h2>

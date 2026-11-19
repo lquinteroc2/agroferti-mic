@@ -35,6 +35,20 @@ type EntradaFormulario = Omit<EntradaAnalisis, 'nutrientes'> & { nutrientes: Fil
 type CampoSimple = Exclude<keyof EntradaAnalisis, 'nutrientes'>;
 
 const OTRO = '__otro';
+
+/** Métodos de laboratorio de suelos más comunes, como sugerencia; se puede escribir cualquier otro. */
+const METODOS_LABORATORIO = [
+  'Bray II (fósforo)',
+  'Olsen (fósforo)',
+  'Acetato de amonio 1 N pH 7 (potasio, calcio, magnesio, sodio)',
+  'Walkley-Black (materia orgánica)',
+  'Potenciómetro, suelo:agua 1:1 (pH)',
+  'KCl 1 N (aluminio intercambiable)',
+  'Fosfato monocálcico (azufre)',
+  'Olsen modificado (cobre, hierro, manganeso, zinc)',
+  'DTPA (cobre, hierro, manganeso, zinc)',
+  'Agua caliente (boro)'
+];
 let siguienteClave = 0;
 const filaVacia = (): FilaNutriente => ({ clave: siguienteClave++, elemento: '', forma: '', valor: '', unidad: 'mg/kg', elementoLibre: false, formaLibre: false });
 const claveFila = (origen: number) => `nutrientes.${origen}`;
@@ -210,8 +224,12 @@ export function AnalisisSueloForm({ inicial, areaActualM2, onGuardar, onCancelar
             <input value={entrada.laboratorio} onChange={e => cambiar('laboratorio', e.target.value)} maxLength={100} placeholder="Nombre del laboratorio" />
             {avisoCampo('laboratorio')}
           </label>
-          <label>Método de análisis
-            <input value={entrada.metodoLaboratorio} onChange={e => cambiar('metodoLaboratorio', e.target.value)} maxLength={100} placeholder="Como aparece en el informe" />
+          <label>Método de análisis del laboratorio
+            <input value={entrada.metodoLaboratorio} onChange={e => cambiar('metodoLaboratorio', e.target.value)} maxLength={100} placeholder="Ej. Bray II (fósforo)" list="metodos-laboratorio" aria-describedby="ayuda-metodo" />
+            <datalist id="metodos-laboratorio">
+              {METODOS_LABORATORIO.map(m => <option key={m} value={m} />)}
+            </datalist>
+            <small id="ayuda-metodo">Es la técnica con la que el laboratorio midió cada nutriente. Aparece en el informe, junto a cada resultado o al pie de la tabla. Si hay varios, escríbelos separados por coma (ej. «Bray II, acetato de amonio»). Puedes elegir uno de la lista o escribirlo tal como aparece.</small>
             {avisoCampo('metodoLaboratorio')}
           </label>
         </div>

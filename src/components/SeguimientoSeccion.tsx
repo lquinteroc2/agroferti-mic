@@ -4,6 +4,7 @@ import { repositorioPlanes, repositorioSeguimiento } from '../lib/db';
 import { fechaLegible, formatearExacto } from '../lib/formato';
 import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import { fechaLocalISO } from '../lib/validacion';
+import { useCapaAtras } from '../lib/navegacion';
 import { resumenErrores } from '../lib/validacionPlan';
 import {
   MAX_DESCRIPCION,
@@ -178,6 +179,7 @@ function RegistroForm({ clase, inicial, onGuardar, onCancelar }: {
 /** Seguimiento manual del lote: aplicaciones (de los planes), observaciones y tareas. Montar con key={lote.id}. */
 export function SeguimientoSeccion({ lote }: { lote: Lote }) {
   const [modo, setModo] = useState<Modo>({ tipo: 'lista' });
+  useCapaAtras(modo.tipo !== 'lista', () => setModo({ tipo: 'lista' }), 'titulo-seguimiento');
   const [filtro, setFiltro] = useState<Filtro>('todos');
   const [aviso, setAviso] = useState<Aviso>(null);
   const [ocupado, setOcupado] = useState(false);

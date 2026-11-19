@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useCapaAtras } from '../lib/navegacion';
 
 export type ModoSeccion = 'lista' | 'nuevo' | 'editar' | 'ver';
 
@@ -6,8 +7,9 @@ export type ModoSeccion = 'lista' | 'nuevo' | 'editar' | 'ver';
  * Registro abierto en una sección (lista, nuevo, editar, ver) sobre una consulta en vivo.
  * - Tras guardar, espera a que la consulta traiga el registro en lugar de mostrar la lista un instante.
  * - Si el registro abierto deja de existir (p. ej. se eliminó en otra pestaña), vuelve a la lista.
+ * - El botón "atrás" del celular vuelve a la lista; al abrir, la vista va al título de la sección indicado por anclaId.
  */
-export function useSeleccionViva<T extends { id: string }>(lista: ReadonlyArray<T> | undefined) {
+export function useSeleccionViva<T extends { id: string }>(lista: ReadonlyArray<T> | undefined, anclaId?: string) {
   const [modo, setModo] = useState<ModoSeccion>('lista');
   const [seleccionId, setSeleccionId] = useState<string | null>(null);
   const [pendienteId, setPendienteId] = useState<string | null>(null);
@@ -17,6 +19,7 @@ export function useSeleccionViva<T extends { id: string }>(lista: ReadonlyArray<
   useEffect(() => {
     if (seleccionado && seleccionado.id === pendienteId) setPendienteId(null);
   }, [seleccionado, pendienteId]);
+  useCapaAtras(modo !== 'lista', () => setModo('lista'), anclaId);
 
   return {
     /** Modo pedido por el usuario (para montar formularios y detalle). */

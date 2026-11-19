@@ -38,7 +38,7 @@ export function PlanesSeccion({ lote, onIrAProductos }: { lote: Lote; onIrAProdu
     }
   }, [lote.id]);
   const planes = lectura?.ok ? lectura.planes : undefined;
-  const seleccion = useSeleccionViva(planes);
+  const seleccion = useSeleccionViva(planes, 'titulo-planes');
   const { modo, modoVisible, seleccionado, esperando } = seleccion;
 
   function abrir(m: ModoSeccion, id?: string | null) {

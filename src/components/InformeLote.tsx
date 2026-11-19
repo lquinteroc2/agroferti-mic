@@ -73,7 +73,7 @@ function AvisoAprobadosDanados({ d }: { d: DatosInforme }) {
   const lista = nombres.map(n => `«${n}»`).join(', ');
   return <p className="informe-aviso-ejemplo">
     {masReciente && d.recomendacion
-      ? <><strong>Atención:</strong> hay un plan aprobado más reciente con datos por corregir ({lista}). Este informe muestra el anterior; corrija o revise ese plan en la app.</>
+      ? <><strong>Atención:</strong> hay un plan aprobado más reciente con datos por corregir ({lista}). Este informe muestra el anterior; corrige o revisa ese plan en la app.</>
       : <><strong>Atención:</strong> {nombres.length === 1 ? 'un plan aprobado tiene' : 'hay planes aprobados con'} datos por corregir ({lista}) y no se usa en este informe.</>}
   </p>;
 }
@@ -83,7 +83,7 @@ function SeccionRecomendacion({ d }: { d: DatosInforme }) {
   if (!r) {
     return <>
       <AvisoAprobadosDanados d={d} />
-      <p><strong>Este lote no tiene un plan de fertilización aprobado que se pueda usar</strong>, así que el informe no incluye recomendación. Para incluirla, apruebe un plan en la ficha del lote.</p>
+      <p><strong>Este lote no tiene un plan de fertilización aprobado que se pueda usar</strong>, así que el informe no indica qué aplicar. Para incluirlo, aprueba un plan en la ficha del lote.</p>
     </>;
   }
   const area = r.plan.areaM2AlCrear;
@@ -92,11 +92,11 @@ function SeccionRecomendacion({ d }: { d: DatosInforme }) {
   return <>
     <AvisoAprobadosDanados d={d} />
     <p className="informe-destacado">
-      Según el plan <strong>«{r.plan.nombre}»</strong>, aprobado{aprobado ? ` ${aprobado}` : ''}, se recomienda aplicar en este lote{area !== undefined ? ` (${formatearExacto(area)} m²)` : ''}:
+      Según el plan <strong>«{r.plan.nombre}»</strong>, aprobado{aprobado ? ` ${aprobado}` : ''}, hay que aplicar en este lote{area !== undefined ? ` (${formatearExacto(area)} m²)` : ''}:
     </p>
     <table className="soil-table informe-tabla-recomendacion">
-      <caption className="sr-only">Fertilizantes y dosis recomendados</caption>
-      <thead><tr><th scope="col">Fertilizante</th><th scope="col">Para</th><th scope="col">Dosis por hectárea</th><th scope="col">Para su lote</th><th scope="col">Bultos</th><th scope="col">Costo estimado</th></tr></thead>
+      <caption className="sr-only">Fertilizantes y dosis del plan aprobado</caption>
+      <thead><tr><th scope="col">Fertilizante</th><th scope="col">Para</th><th scope="col">Dosis por hectárea</th><th scope="col">Para tu lote</th><th scope="col">Bultos</th><th scope="col">Costo estimado</th></tr></thead>
       <tbody>{r.calculo.lineas.map(l => {
         const p = l.linea.producto;
         return <tr key={l.linea.id}>
@@ -126,7 +126,7 @@ function SeccionRecomendacion({ d }: { d: DatosInforme }) {
         <td><Valor c={x.aportadoKgHa} formato={kg} /></td>
       </tr>)}</tbody>
     </table>
-    <p className="informe-nota">Cómo se calculó: dosis por hectárea = meta ÷ (% del nutriente en la etiqueta ÷ 100). Para su lote = dosis × área ÷ 10.000. Bultos = kg ÷ kg del bulto (número exacto; al comprar se redondea a bultos enteros). Costo = kg × precio por kg.</p>
+    <p className="informe-nota">Cómo se calculó: dosis por hectárea = meta ÷ (% del nutriente en la etiqueta ÷ 100). Para tu lote = dosis × área ÷ 10.000. Bultos = kg ÷ kg del bulto (número exacto; al comprar se redondea a bultos enteros). Costo = kg × precio por kg.</p>
   </>;
 }
 
@@ -143,8 +143,8 @@ function SeccionAvance({ d }: { d: DatosInforme }) {
   const costoTexto = textoCostoRegistrado(costo, delPlan.length);
   return <>
     <table className="soil-table">
-      <caption className="sr-only">Lo aplicado frente a lo recomendado</caption>
-      <thead><tr><th scope="col">Fertilizante</th><th scope="col">Recomendado para el lote</th><th scope="col">Aplicado</th><th scope="col">Avance</th></tr></thead>
+      <caption className="sr-only">Lo aplicado frente al plan</caption>
+      <thead><tr><th scope="col">Fertilizante</th><th scope="col">Plan para el lote</th><th scope="col">Aplicado</th><th scope="col">Avance</th></tr></thead>
       <tbody>{avance.map(a => <tr key={a.linea.id}>
         <td>{a.linea.producto.nombre}</td>
         <td><Valor c={a.planeadoKg} formato={n => `${kg(n)} kg`} /></td>
@@ -201,12 +201,12 @@ export function SeccionesLote({ lote, d, desdeCierre }: { lote: Lote; d: DatosIn
     </section>
 
     <section className="informe-recomendacion">
-      <h2>3. Recomendación de fertilización</h2>
+      <h2>3. Plan aprobado: qué aplicar</h2>
       <SeccionRecomendacion d={d} />
     </section>
 
     <section>
-      <h2>4. Lo aplicado frente a lo recomendado</h2>
+      <h2>4. Lo aplicado frente al plan</h2>
       <SeccionAvance d={d} />
     </section>
 
@@ -222,8 +222,8 @@ export function AdvertenciasInforme({ hayEjemplo, aprobadoPor }: { hayEjemplo: b
   return <section className="informe-advertencias">
     <h2>Importante</h2>
     <ul>
-      <li>La recomendación es la del <strong>plan aprobado</strong>{aprobadoPor ? ` por ${aprobadoPor}` : ''}. Sus metas vienen de la fuente técnica indicada; <strong>la app no calcula dosis por su cuenta</strong> ni a partir del análisis de suelo.</li>
-      <li>Antes de aplicar, revise la recomendación con su asistente técnico: la dosis adecuada depende del suelo, la variedad, el rendimiento esperado y el clima.</li>
+      <li>Lo que hay que aplicar sale del <strong>plan aprobado</strong>{aprobadoPor ? ` por ${aprobadoPor}` : ''}. Sus metas vienen de la fuente técnica indicada; <strong>la app no calcula dosis por su cuenta</strong> ni a partir del análisis de suelo.</li>
+      <li>Antes de aplicar, revisa el plan con tu asistente técnico: la dosis adecuada depende del suelo, la variedad, el rendimiento esperado y el clima.</li>
       <li>El nombre de quien aprobó lo escribió el usuario de la app; la app no verifica identidades.</li>
       <li>El seguimiento es un registro manual, no una medición de campo. Los valores con “≈” están redondeados.</li>
       {hayEjemplo && <li>Los datos marcados EJEMPLO son ficticios.</li>}
@@ -257,7 +257,7 @@ export function InformeLote({ lote, onVolver }: { lote: Lote; onVolver: () => vo
             <h1 id="titulo-informe">{lote.nombre}</h1>
             <p>Generado el {fechaHoraDeMarca(d.generado)}</p>
           </header>
-          {d.hayEjemplo && <p className="informe-aviso-ejemplo"><strong>Contiene datos de EJEMPLO (ficticios).</strong> No los use para decidir sobre un cultivo real.</p>}
+          {d.hayEjemplo && <p className="informe-aviso-ejemplo"><strong>Contiene datos de EJEMPLO (ficticios).</strong> No los uses para decidir sobre un cultivo real.</p>}
           <SeccionesLote lote={lote} d={d} desdeCierre={lectura.desdeCierre} />
           <AdvertenciasInforme hayEjemplo={d.hayEjemplo} aprobadoPor={d.recomendacion?.aprobadoPor} />
           <footer className="informe-pie">Generado con AgroFerti MIC · Prototipo académico · Grupo 1 · SENA</footer>
