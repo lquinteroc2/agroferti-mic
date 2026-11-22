@@ -1,6 +1,6 @@
 import { useState, type ChangeEvent } from 'react';
 import { extraerDatosAnalisis, type DatoLeido } from '../lib/lecturaAnalisis';
-import { FORMATOS_ADJUNTO, FormatoNoAdmitido, textoDeArchivo } from '../lib/textoDeArchivo';
+import { FORMATOS_ADJUNTO, FormatoNoAdmitido, formatoDe, leerArchivo } from '../lib/textoDeArchivo';
 
 /**
  * Leer el informe del laboratorio desde un archivo adjunto (PDF, imagen o texto). Muestra lo que se leyó con la línea de
@@ -10,6 +10,8 @@ import { FORMATOS_ADJUNTO, FormatoNoAdmitido, textoDeArchivo } from '../lib/text
 export function LecturaAnalisis({ onAplicar }: { onAplicar: (datos: DatoLeido[]) => void }) {
   const [estado, setEstado] = useState<'inicio' | 'leyendo' | 'revisar' | 'error'>('inicio');
   const [mensaje, setMensaje] = useState('');
+  /** Error técnico de la lectura, para quien dé soporte (el mensaje principal es para el productor). */
+  const [detalle, setDetalle] = useState('');
   const [datos, setDatos] = useState<DatoLeido[]>([]);
   const [confirmados, setConfirmados] = useState<ReadonlySet<string>>(new Set());
 
@@ -19,18 +21,22 @@ export function LecturaAnalisis({ onAplicar }: { onAplicar: (datos: DatoLeido[])
     if (!archivo) return;
     setEstado('leyendo');
     setConfirmados(new Set());
+    setDetalle('');
     try {
-      const texto = await textoDeArchivo(archivo, setMensaje);
-      const leidos = extraerDatosAnalisis(texto);
+      const { texto, celdas } = await leerArchivo(archivo, setMensaje);
+      const leidos = extraerDatosAnalisis(texto, celdas);
       setDatos(leidos);
       setEstado(leidos.length ? 'revisar' : 'error');
       if (!leidos.length) setMensaje('No se reconocieron datos en el archivo. Escríbelos en el formulario. Si es una imagen, intenta con una foto más nítida, de frente y con buena luz.');
     } catch (error) {
       setEstado('error');
       if (error instanceof FormatoNoAdmitido) { setMensaje(error.message); return; }
+      setDetalle(error instanceof Error ? `${error.name}: ${error.message}` : String(error));
       setMensaje(navigator.onLine
         ? 'No se pudo leer el archivo. Intenta con otro archivo o escribe los datos en el formulario.'
-        : 'Para leer imágenes se necesita internet la primera vez (descarga el idioma español). Conéctate o escribe los datos en el formulario.');
+        : formatoDe(archivo.name, archivo.type) === 'pdf'
+          ? 'Para leer un PDF se necesita internet (la lectura se descarga al usarla). Conéctate o escribe los datos en el formulario.'
+          : 'Para leer imágenes se necesita internet la primera vez (descarga el idioma español). Conéctate o escribe los datos en el formulario.');
     }
   }
 
@@ -55,14 +61,17 @@ export function LecturaAnalisis({ onAplicar }: { onAplicar: (datos: DatoLeido[])
         <input type="file" accept={FORMATOS_ADJUNTO} className="sr-only" onChange={e => void elegir(e)} />
       </label>}
       {estado === 'leyendo' && <p className="hint" role="status">{mensaje || 'Leyendo…'}</p>}
-      {estado === 'error' && <p className="hint hint-warn" role="alert">{mensaje}</p>}
+      {estado === 'error' && <div role="alert">
+        <p className="hint hint-warn">{mensaje}</p>
+        {detalle && <details className="muted"><summary>Ver detalle para soporte</summary><small>{detalle}</small></details>}
+      </div>}
       {estado === 'revisar' && <div className="lectura-revision">
         <p><strong>Revisa lo que se leyó.</strong> Compara cada valor con la línea del informe y marca solo los que estén bien. Puedes corregir el valor antes de confirmarlo.</p>
         <ul>
           {datos.map((d, i) => <li key={d.clave}>
             <label className="check">
               <input type="checkbox" checked={confirmados.has(d.clave)} onChange={e => alternar(d.clave, e.target.checked)} />
-              <span><strong>{d.etiqueta}</strong>{d.nutriente ? ` (${d.nutriente.unidad})` : ''}</span>
+              <span><strong>{d.etiqueta}</strong>{d.nutriente ? ` (${d.nutriente.unidad || 'unidad sin identificar: elígela en el formulario'})` : ''}</span>
             </label>
             <input aria-label={`Valor leído: ${d.etiqueta}`} value={d.valor} onChange={e => { const valor = e.target.value; setDatos(ds => ds.map((x, j) => (j === i ? { ...x, valor } : x))); }} />
             <small>Del informe: «{d.linea}»</small>

@@ -123,7 +123,8 @@ export function AnalisisSueloForm({ inicial, areaActualM2, cultivo, zona, reglas
           };
           const igual = nueva.nutrientes.findIndex(n => n.elemento === fila.elemento && n.forma === fila.forma);
           const vacia = nueva.nutrientes.findIndex(n => !n.existente && !n.elemento && !n.valor);
-          if (igual >= 0) nueva.nutrientes[igual] = { ...nueva.nutrientes[igual], valor: fila.valor, unidad: fila.unidad };
+          // Sin unidad clara en la lectura se conserva la que ya tenía la fila (no se borra en silencio).
+          if (igual >= 0) nueva.nutrientes[igual] = { ...nueva.nutrientes[igual], valor: fila.valor, unidad: fila.unidad || nueva.nutrientes[igual].unidad };
           else if (vacia >= 0) nueva.nutrientes[vacia] = fila;
           else nueva.nutrientes.push(fila);
         }

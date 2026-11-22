@@ -1,6 +1,10 @@
+import type { CeldaPdf } from './lecturaAnalisis';
+
 /**
  * Texto de un informe de laboratorio a partir de un archivo, sin servicios de pago:
- * - PDF con texto (lo usual en informes de laboratorio): PDF.js, en el navegador.
+ * - PDF con texto (lo usual en informes de laboratorio): PDF.js, en el navegador. Se usa la versión
+ *   "legacy" de PDF.js, que funciona también en navegadores de hace uno o dos años (la normal exige
+ *   funciones muy recientes y falla, por ejemplo, en celulares que no se han actualizado).
  * - Foto o PDF escaneado: Tesseract.js (reconocimiento de texto en español), en el navegador. La
  *   primera vez descarga el idioma español (unos pocos MB), por eso necesita internet.
  * Las librerías se cargan solo cuando se usan, para no hacer más pesada la app.
@@ -57,25 +61,40 @@ export function formatoDe(nombre: string, tipo: string): Formato {
   return 'otro';
 }
 
-export async function textoDeArchivo(archivo: File, alAvanzar: (texto: string) => void = () => undefined): Promise<string> {
+/** Lo leído de un archivo: el texto y, en un PDF con texto, la posición de cada fragmento (para leer tablas). */
+export interface ContenidoArchivo {
+  texto: string;
+  celdas: CeldaPdf[];
+}
+
+type ItemTexto = { str?: string; transform?: number[]; width?: number; height?: number };
+
+export async function leerArchivo(archivo: File, alAvanzar: (texto: string) => void = () => undefined): Promise<ContenidoArchivo> {
   const formato = formatoDe(archivo.name, archivo.type);
   if (formato === 'heic') throw new FormatoNoAdmitido('Las fotos HEIC del iPhone no se pueden leer aquí. Guárdala como JPG (o toma una captura de pantalla) y adjúntala de nuevo.');
   if (formato === 'otro') throw new FormatoNoAdmitido('Ese tipo de archivo no se puede leer. Adjunta un PDF, una imagen (JPG, PNG, WEBP, BMP o GIF) o un texto (TXT o CSV).');
-  if (formato === 'texto') return archivo.text();
-  if (formato === 'imagen') return ocr([archivo], alAvanzar);
+  if (formato === 'texto') return { texto: await archivo.text(), celdas: [] };
+  if (formato === 'imagen') return { texto: await ocr([archivo], alAvanzar), celdas: [] };
 
   alAvanzar('Leyendo el PDF…');
-  const pdfjs = await import('pdfjs-dist');
-  pdfjs.GlobalWorkerOptions.workerSrc = (await import('pdfjs-dist/build/pdf.worker.min.mjs?url')).default;
+  const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
+  pdfjs.GlobalWorkerOptions.workerSrc = (await import('pdfjs-dist/legacy/build/pdf.worker.min.mjs?url')).default;
   const documento = await pdfjs.getDocument({ data: new Uint8Array(await archivo.arrayBuffer()) }).promise;
   const paginas = Math.min(documento.numPages, MAX_PAGINAS);
   const lineas: string[] = [];
+  const celdas: CeldaPdf[] = [];
   for (let n = 1; n <= paginas; n++) {
     const pagina = await documento.getPage(n);
-    const contenido = await pagina.getTextContent();
-    lineas.push(...lineasDePagina(contenido.items as Array<{ str?: string; transform?: number[] }>));
+    const items = (await pagina.getTextContent()).items as ItemTexto[];
+    lineas.push(...lineasDePagina(items));
+    for (const it of items) {
+      if (!it.str?.trim() || !it.transform) continue;
+      const [, b, c, d, x, y] = it.transform;
+      if (Math.abs(b) > 0.01 || Math.abs(c) > 0.01) continue; // texto girado: no es una celda de la tabla
+      celdas.push({ pagina: n, x, y, ancho: it.width ?? 0, alto: it.height || Math.abs(d), texto: it.str });
+    }
   }
-  if (lineas.join('').trim().length >= 20) return lineas.join('\n');
+  if (lineas.join('').trim().length >= 20) return { texto: lineas.join('\n'), celdas };
 
   // PDF escaneado (sin texto): se dibuja cada página y se lee como imagen.
   const lienzos: HTMLCanvasElement[] = [];
@@ -88,5 +107,5 @@ export async function textoDeArchivo(archivo: File, alAvanzar: (texto: string) =
     await pagina.render({ canvas: lienzo, canvasContext: lienzo.getContext('2d')!, viewport: vista }).promise;
     lienzos.push(lienzo);
   }
-  return ocr(lienzos, alAvanzar);
+  return { texto: await ocr(lienzos, alAvanzar), celdas: [] };
 }
