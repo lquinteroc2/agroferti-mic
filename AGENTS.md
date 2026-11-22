@@ -20,6 +20,11 @@ Contexto: AgroFerti MIC es un prototipo académico SENA del Grupo 1 para el cult
 - Distinguir propuesta, revisado, aprobado y aplicado; el seguimiento manual no es un sensor.
 - Cualquier valor ficticio debe mostrar "EJEMPLO" en la interfaz y documentación.
 
+## Experiencia de uso
+- **Decisión del 22 de noviembre de 2026 (dueño del proyecto):** se aplican en cinco tandas las mejoras de la revisión de experiencia de uso: (1) textos sin contradicciones, obligatorios marcados y pesos con "$"; (2) glosario dentro de la app; (3) propuesta de metas sin condiciones ocultas (análisis preseleccionado, zona guardada en el lote y requisitos visibles); (4) camino guiado en la ficha del lote y en Mis lotes; (5) formularios más cortos. Cada tanda se revisa a fondo y pasa `npm run test` y `npm run build` antes de subirla.
+- Estas mejoras no cambian cálculos, fuentes, metas ni dosis. Se mantienen los estados propuesta, revisado y aprobado, la marca EJEMPLO y las advertencias de seguridad agronómica (pueden reubicarse o resumirse, no eliminarse).
+- Escribe para el productor: palabras que reconoce, una sola advertencia por pantalla y los términos técnicos explicados en el glosario.
+
 ## Calidad de ingeniería
 - Código en `src/`, funciones matemáticas puras en `src/lib/calculos.ts`, persistencia en `src/lib/db.ts`.
 - Crear/actualizar tests cuando se agregan cálculos. Validar números finitos, no negativos, unidades y cero en denominador.

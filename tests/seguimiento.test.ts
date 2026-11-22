@@ -10,6 +10,7 @@ import { crearRepositorioSeguimiento, type AlmacenSeguimiento } from '../src/lib
 import { formatearDiferencia } from '../src/lib/formato.ts';
 import { copiarProducto, fechaAprobacion } from '../src/lib/validacionPlan.ts';
 import {
+  contarTareasPendientes,
   ordenarRegistros,
   tareaVencida,
   validarAplicacionFormulario,
@@ -382,4 +383,25 @@ test('revisión 4c: al corregir una tarea con estado dañado, el estado se elige
   const r = validarTareaFormulario(formTarea({ estado: '' }), HOY);
   assert.ok(!r.ok);
   if (!r.ok) assert.match(r.errores.estado ?? '', /pendiente o hecha/);
+});
+
+// ---- Revisión UX (tanda 1): tarjeta "Tareas pendientes" de Mis lotes ----
+
+test('tareas pendientes: tareas pendientes de lotes que existen (también con datos por corregir); cuenta las de fecha pasada', () => {
+  const marca = { createdAt: 'x', updatedAt: 'x' };
+  const registros = [
+    { id: 't1', loteId: 'l1', ...tarea({ fechaPrevista: '2026-10-28' }), ...marca },
+    { id: 't2', loteId: 'l1', ...tarea({ fechaPrevista: '2026-10-29' }), ...marca },
+    { id: 't3', loteId: 'l2', ...tarea(), ...marca },
+    { id: 't4', loteId: 'l1', ...tarea({ estado: 'hecha', fechaRealizada: '2026-10-20' }), ...marca },
+    { id: 't5', loteId: 'borrado', ...tarea(), ...marca },
+    { id: 't6', loteId: 'l1', ...tarea({ descripcion: 42, fechaPrevista: '2026-10-01' }), ...marca },
+    { id: 't7', loteId: 'l1', ...tarea({ estado: 'otro' }), ...marca },
+    { id: 'o1', loteId: 'l1', ...observacion(), ...marca },
+    null
+  ];
+  // t6 tiene la descripción dañada pero sigue pendiente (y vencida): la ficha la muestra para corregirla.
+  // t7 tiene el estado dañado: no se sabe si está pendiente y no se cuenta.
+  assert.deepEqual(contarTareasPendientes(registros, new Set(['l1', 'l2']), HOY), { pendientes: 4, vencidas: 2 });
+  assert.deepEqual(contarTareasPendientes([], new Set(['l1']), HOY), { pendientes: 0, vencidas: 0 });
 });

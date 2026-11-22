@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { formatearExacto } from '../lib/formato';
+import { formatearExacto, pesos } from '../lib/formato';
 import { departamentoDeUbicacion, fertilizantesQueAportan, nombreMes, resumenComposicion, type FertilizanteReferencia } from '../lib/referencias';
 import type { ProductoFertilizante } from '../types';
 
@@ -49,7 +49,7 @@ export function ProductosSugeridos({ forma, productos, referencias, ubicacion, o
           return <li key={r.id}>
             <span>
               <strong>{r.nombre}</strong> · {resumenComposicion(r)} · registro ICA {r.registroIca}
-              <small>{precio ? `Precio DANE ${precio.departamento}: ${formatearExacto(Math.round(precio.precioPromedioCop))} COP (${precio.presentacion}, ${nombreMes(precio.periodo)})`
+              <small>{precio ? `Precio DANE ${precio.departamento}: ${pesos(Math.round(precio.precioPromedioCop))} (${precio.presentacion}, ${nombreMes(precio.periodo)})`
                 : r.precios.length ? 'Con precio DANE en otros departamentos: escribe el departamento en la ubicación del lote para usarlo.'
                 : 'Sin precio: agrégalo después en Productos para calcular el costo.'}{r.verificacion !== 'ok' && ' · composición pendiente de verificar'}</small>
             </span>

@@ -113,7 +113,7 @@ export function PantallaIngreso({ estado, enLinea }: { estado?: EstadoNube; enLi
       <section className="ingreso-presentacion">
         <div className="eyebrow">GRUPO 1 · SENA · PROTOTIPO ACADÉMICO</div>
         <h1>Tu cultivo, más organizado.</h1>
-        <p>AgroFerti MIC te ayuda a registrar tus lotes, el análisis de suelo y tus fertilizantes, y a preparar el plan de fertilización con cada cálculo explicado. Para papa y otros cultivos.</p>
+        <p>AgroFerti MIC te ayuda a registrar tus lotes, el análisis de suelo y tus fertilizantes, y a preparar el plan de fertilización con cada cálculo explicado. Para el cultivo de papa.</p>
         <ul className="ingreso-ventajas">
           {VENTAJAS.map(([titulo, texto]) => <li key={titulo}><span aria-hidden="true">✓</span><div><strong>{titulo}</strong><small>{texto}</small></div></li>)}
         </ul>

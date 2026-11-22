@@ -4,7 +4,7 @@ import { OrigenBadge, ProductoDetalle, resumenContenido } from './ProductoDetall
 import { ProductoForm } from './ProductoForm';
 import { useSeleccionViva, type ModoSeccion } from './useSeleccionViva';
 import { leerReferencias, repositorioProductos } from '../lib/db';
-import { fechaLegible, formatearExacto } from '../lib/formato';
+import { fechaLegible, formatearExacto, pesos } from '../lib/formato';
 import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import type { DatosProducto } from '../lib/validacionPlan';
 import type { ProductoVerificado } from '../types';
@@ -20,7 +20,7 @@ function precioResumido(v: ProductoVerificado): string {
   if (!p) return 'Datos por corregir';
   const bulto = p.presentacionKg !== undefined ? `Bulto de ${formatearExacto(p.presentacionKg)} kg` : 'Sin kg por bulto';
   return p.precioPresentacionCop !== undefined && p.fechaPrecio
-    ? `${bulto} · ${formatearExacto(p.precioPresentacionCop)} COP (${fechaLegible(p.fechaPrecio)})`
+    ? `${bulto} · ${pesos(p.precioPresentacionCop)} (${fechaLegible(p.fechaPrecio)})`
     : `${bulto} · Sin precio registrado`;
 }
 

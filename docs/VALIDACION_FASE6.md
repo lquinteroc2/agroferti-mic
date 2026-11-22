@@ -42,7 +42,7 @@ Para cada lote de papa (la app trabaja solo con papa desde el 19 de noviembre de
 | Profundidad de muestreo (cm) | Sí | Ej.: 0–20 cm → escribir `20`. |
 | Densidad aparente (g/cm³) | Para calcular kg/ha | Si el laboratorio no la reporta, **dejarla vacía**. No se inventa: sin densidad la app no calcula kg/ha, y eso es correcto. |
 | Laboratorio y método | Sí, para trazabilidad | Sin método el análisis queda como "Registro incompleto". |
-| Cada nutriente: elemento, **forma química**, valor y **unidad** | Sí | Copiar la forma tal como la escribe el informe: **P no es P₂O₅, K no es K₂O.** Unidad `mg/kg` (= ppm) o `cmol(+)/kg`. |
+| Cada nutriente: elemento, **forma química**, valor y **unidad** | Sí | Copiar la forma tal como la escribe el informe: **P no es P₂O₅, K no es K₂O.** Unidad `mg/kg (ppm)` o `cmol(+)/kg (meq/100 g)`. |
 
 ### 2.3 Etiqueta de cada fertilizante
 - Nombre comercial.
@@ -68,7 +68,7 @@ Para cada lote de papa (la app trabaja solo con papa desde el 19 de noviembre de
 4. **Productos** (barra superior) **→ + Agregar producto**: copia la etiqueta. Marca **"etiqueta real"** solo si es real; si no, **EJEMPLO**.
 5. En la ficha del lote, **Plan de fertilización → + Nueva propuesta**: **+ Agregar meta** (nutriente, forma, kg/ha, fuente, fecha, origen real o EJEMPLO) y elige el producto de cada meta.
 6. Abre el plan y copia en la hoja cada resultado del bloque **"Resultados calculados"**.
-7. **Estado del plan**: Marcar como revisado → Aprobar el plan (con el nombre de quien revisa/aprueba).
+7. **Estado del plan**: «Ya se revisó este plan» → «Aprobar: este es el plan que voy a aplicar» (con el nombre de quien revisa/aprueba).
 8. En el plan aprobado, **+ Registrar aplicación** para cada aplicación real y copia el bloque "Lo aplicado frente al plan".
 9. **Informe para el productor**: revisa que los números coincidan con los del plan.
 10. Al terminar cada sesión: en **Mis lotes → Mi cuenta** verifica que diga **Todo sincronizado**, y guarda en PDF el informe de cada lote (ficha del lote → **Informe para el productor** → **Imprimir o guardar como PDF**) en la carpeta del equipo.
@@ -100,7 +100,7 @@ Para cada lote de papa (la app trabaja solo con papa desde el 19 de noviembre de
 - **Datos que escribiste** (área, meta, %, precio): se muestran completos, sin "≈".
 - **Resultados calculados**: la app calcula con el valor completo y **solo redondea para mostrar**. Si lo mostrado está redondeado, antepone **"≈"**.
   - Suelo: hectáreas con 4 decimales, masa de suelo con 0, kg/ha y kg del lote con 3.
-  - Plan y aplicaciones: kg, kg/ha y bultos con 2 decimales; COP con 0; avance (%) con 1.
+  - Plan y aplicaciones: kg, kg/ha y bultos con 2 decimales; pesos ($) con 0; avance (%) con 1.
 - Formato colombiano: punto de miles y coma decimal (`2.200.000`, `19,25`).
 
 **Regla para el cálculo manual:** usa todos los decimales de la calculadora en los pasos intermedios y **redondea solo al final**, con los mismos decimales que la app. Si redondeas antes, puedes obtener otra cifra (ver A12) y eso **no** es un error de la app.
@@ -143,16 +143,16 @@ Ojo: 77 kg/ha es de **P**, no de P₂O₅, y **no es una dosis**.
 | A8 | DAP: 120 ÷ (46 ÷ 100) = 120 ÷ 0,46 | 260,869565… | `120 kg/ha de P₂O₅ ÷ (46 % ÷ 100) = ≈ 260,87 kg/ha de DAP EJEMPLO` |
 | A9 | 260,869565… × 2.500 ÷ 10.000 | 65,2173913… | `≈ 65,22 kg de DAP EJEMPLO en el lote` |
 | A10 | 65,2173913… ÷ 50 | 1,304347… | `≈ 1,3 bultos` |
-| A11 | 145.000 ÷ 50 | 2.900 | `145.000 COP ÷ 50 kg = 2.900 COP por kg` |
-| A12 | 65,2173913… × 2.900 | 189.130,43… | `≈ 65,22 kg × 2.900 COP/kg = ≈ 189.130 COP` |
-| A13 | N acompañante: 260,869565… × 18 ÷ 100 | 46,956521… | `≈ 46,96 kg/ha de N (aporte acompañante)` |
+| A11 | 145.000 ÷ 50 | 2.900 | `$ 145.000 ÷ 50 kg = $ 2.900 por kg` |
+| A12 | 65,2173913… × 2.900 | 189.130,43… | `≈ 65,22 kg × $ 2.900 por kg = ≈ $ 189.130` |
+| A13 | N acompañante: 260,869565… × 18 ÷ 100 | 46,956521… | `≈ 46,96 kg/ha de N (también aporta)` |
 | A14 | KCl: 150 ÷ 0,60 | 250 | `250 kg/ha de KCl EJEMPLO` |
 | A15 | 250 × 2.500 ÷ 10.000 | 62,5 | `62,5 kg … en el lote` |
 | A16 | 62,5 ÷ 50 | 1,25 | `1,25 bultos` |
-| A17 | 130.000 ÷ 50 = 2.600; 62,5 × 2.600 | 162.500 | `2.600 COP por kg` · `162.500 COP` |
+| A17 | 130.000 ÷ 50 = 2.600; 62,5 × 2.600 | 162.500 | `$ 2.600 por kg` · `$ 162.500` |
 | A18 | Urea: 100 ÷ 0,46 | 217,391304… | `≈ 217,39 kg/ha` |
 | A19 | 217,391304… × 0,25 = 54,347826…; ÷ 50 | 54,347826… · 1,086956… | `≈ 54,35 kg` · `≈ 1,09 bultos` |
-| A20 | 54,347826… × 2.500 | 135.869,56… | `≈ 135.870 COP` |
+| A20 | 54,347826… × 2.500 | 135.869,56… | `≈ $ 135.870` |
 
 > **A12, trampa del redondeo:** si se usa 65,22 (ya redondeado) × 2.900 = **189.138**. La app da **189.130** porque usa 65,2173913…. La app está bien; el cálculo manual debe usar todos los decimales.
 
@@ -161,8 +161,8 @@ Ojo: 77 kg/ha es de **P**, no de P₂O₅, y **no es una dosis**.
 | # | Operación | Resultado exacto | La app muestra |
 |---|---|---|---|
 | A21 | P₂O₅: aportado 120 − meta 120; K₂O: 150 − 150 | 0 y 0 | `0` |
-| A22 | N: 46,956521… (DAP) + 100 (Urea) = 146,956521…; − 100 | 146,956… · +46,956… | Aportado `≈ 146,96`; diferencia con signo + y `46,96` (hoy se ve `+≈ 46,96`) |
-| A23 | 189.130,43… + 162.500 + 135.869,56… | 487.500 | `Suma del costo de cada producto = 487.500 COP` |
+| A22 | N: 46,956521… (DAP) + 100 (Urea) = 146,956521…; − 100 | 146,956… · +46,956… | Aportan los productos `≈ 146,96`; diferencia con la meta con signo + y `46,96` (hoy se ve `+≈ 46,96`) |
+| A23 | 189.130,43… + 162.500 + 135.869,56… | 487.500 | `Suma del costo de cada producto = $ 487.500` |
 
 La diferencia del N es solo aritmética: la app no dice si sobra o falta agronómicamente.
 
@@ -175,7 +175,7 @@ La diferencia del N es solo aritmética: la app no dice si sobra o falta agronó
 | A24c | 50 ÷ 65,2173913… × 100 | 76,666… | `≈ 76,7 %` |
 | A25 | 50 × 10.000 ÷ 2.500 × 46 ÷ 100 = 200 × 0,46 | 92 | `= 92 kg/ha de P₂O₅ (meta: 120 kg/ha)` |
 | A26 | KCl: 62,5 − 62,5; 62,5 ÷ 62,5 × 100; 62,5 × 10.000 ÷ 2.500 × 0,60 | 0 · 100 · 150 | `0 kg (igual a lo planeado)` · `100 %` · `150 kg/ha de K₂O` |
-| A27 | Costo registrado del DAP: solo se suman los costos escritos | 87.000 | `87.000 COP (1 aplicación sin costo registrado)` |
+| A27 | Costo registrado del DAP: solo se suman los costos escritos | 87.000 | `$ 87.000 (1 aplicación sin costo registrado)` |
 
 ### Caso B — Segundo lote de papa · **EJEMPLO**
 
@@ -196,8 +196,8 @@ La diferencia del N es solo aritmética: la app no dice si sobra o falta agronó
 | B5 | 60 ÷ (30 ÷ 100) | 200 | `200 kg/ha` |
 | B6 | 200 × 800 ÷ 10.000 | 16 | `16 kg … en el lote` |
 | B7 | 16 ÷ 50 | 0,32 | `0,32 bultos` |
-| B8 | 152.000 ÷ 50 | 3.040 | `3.040 COP por kg` |
-| B9 | 16 × 3.040 | 48.640 | `48.640 COP` (también es el costo total) |
+| B8 | 152.000 ÷ 50 | 3.040 | `$ 3.040 por kg` |
+| B9 | 16 × 3.040 | 48.640 | `$ 48.640` (también es el costo total) |
 | B10 | N y K₂O acompañantes: 200 × 10 ÷ 100 | 20 y 20 | `20 kg/ha de N` · `20 kg/ha de K₂O`; en el resumen, meta `—` y diferencia `—` |
 | B12 | 16 − 16; 16 ÷ 16 × 100 | 0 · 100 | `0 kg (igual a lo planeado)` · `100 %` |
 | B13 | 16 × 10.000 ÷ 800 × 30 ÷ 100 | 60 | `60 kg/ha de P₂O₅ (meta: 60 kg/ha)` |

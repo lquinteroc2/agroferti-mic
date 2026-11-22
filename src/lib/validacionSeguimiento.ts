@@ -53,7 +53,7 @@ function leerCampos(r: Record<string, unknown>, problemas: ProblemaDato[]): { da
       productoNombre: l.texto('productoNombre', 'Nombre del producto', true),
       fecha: l.fecha('fecha', 'Fecha de aplicación', true),
       cantidadKg: l.numero('cantidadKg', 'Cantidad aplicada (kg)', { requerido: true, positivo: true }),
-      costoCop: l.numero('costoCop', 'Costo (COP)'),
+      costoCop: l.numero('costoCop', 'Costo (pesos)'),
       nota: texto('nota', 'Nota', MAX_NOTA)
     };
   } else if (tipo === 'observacion') {
@@ -175,7 +175,7 @@ export function validarAplicacionFormulario(
   if (!fecha.ok) errores.fecha = fecha.error;
   const cantidad = validarNumeroSinAmbiguedad(entrada.cantidadKg, { campo: 'Cantidad aplicada (kg)', requerido: true, positivo: true });
   if (!cantidad.ok) errores.cantidadKg = cantidad.error;
-  const costo = validarNumeroSinAmbiguedad(entrada.costoCop, { campo: 'Costo (COP)' });
+  const costo = validarNumeroSinAmbiguedad(entrada.costoCop, { campo: 'Costo (pesos)' });
   if (!costo.ok) errores.costoCop = costo.error;
   if (!entrada.origen) errores.origen = 'Indica si es una aplicación real o de EJEMPLO.';
   if (!fecha.ok || !cantidad.ok || !costo.ok || errores.origen) return { ok: false, errores };
@@ -277,4 +277,27 @@ export function validarTareaFormulario(
 /** Pendiente y con fecha prevista anterior a hoy. Es un hecho de calendario, no una alerta agronómica. */
 export function tareaVencida(tarea: { estado: string; fechaPrevista: string }, hoy: Date = new Date()): boolean {
   return tarea.estado === 'pendiente' && tarea.fechaPrevista < fechaLocalISO(hoy);
+}
+
+/**
+ * Tareas pendientes de los lotes que existen, y cuántas tienen la fecha prevista pasada. Cuenta también
+ * las tareas con algún dato dañado si su estado se lee como pendiente, porque la ficha del lote las
+ * muestra para corregirlas. Las de lotes eliminados no se cuentan: no aparecen en ninguna ficha.
+ */
+export function contarTareasPendientes(
+  registros: ReadonlyArray<unknown>,
+  lotes: ReadonlySet<string>,
+  hoy: Date = new Date()
+): { pendientes: number; vencidas: number } {
+  let pendientes = 0;
+  let vencidas = 0;
+  for (const crudo of registros) {
+    const v = verificarRegistro(crudo);
+    if (v.tipo !== 'tarea' || !lotes.has(v.loteId)) continue;
+    const datos = v.registro?.tipo === 'tarea' ? v.registro : v.parcial;
+    if (datos.estado !== 'pendiente') continue;
+    pendientes++;
+    if (typeof datos.fechaPrevista === 'string' && tareaVencida({ estado: 'pendiente', fechaPrevista: datos.fechaPrevista }, hoy)) vencidas++;
+  }
+  return { pendientes, vencidas };
 }

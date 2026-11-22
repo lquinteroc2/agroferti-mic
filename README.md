@@ -39,7 +39,7 @@ Aplicación web progresiva (PWA) para preparar el cálculo, la explicación y el
 ✅ Crear, consultar, editar y eliminar (con confirmación) productos según su etiqueta. El catálogo es común a todos los lotes.
 ✅ Contenido declarado con elemento, forma química (lista del catálogo u "Otra forma" escrita tal cual) y porcentaje. Rechaza combinaciones incoherentes (Fósforo / K₂O), formas repetidas, 0 % y más de 100 %.
 ✅ Es obligatorio indicar si los datos vienen de una etiqueta real o son de **EJEMPLO**; los de ejemplo se marcan en la lista y en el detalle.
-✅ Kg y precio del bulto rechazan escrituras ambiguas como `150.000` (en COP se leería como 150) y piden `150000`. El precio exige los kg del bulto y la fecha del precio. Vista previa: "Bulto de 50 kg a 150.000 COP: equivale a 3.000 COP por kg".
+✅ Kg y precio del bulto rechazan escrituras ambiguas como `150.000` (en COP se leería como 150) y piden `150000`. El precio exige los kg del bulto y la fecha del precio. Vista previa: "Bulto de 50 kg a $ 150.000: equivale a $ 3.000 por kg".
 ✅ Detalle con datos ingresados y el precio por kg explicado. Un producto con datos dañados se muestra con su valor original y solo se reemplaza con confirmación expresa.
 ✅ 93 pruebas automáticas al cerrar 3b. Una revisión de código posterior encontró 10 puntos (entre ellos, que vaciar un nutriente guardado lo borraba sin aviso); todos están corregidos.
 
@@ -48,7 +48,7 @@ Aplicación web progresiva (PWA) para preparar el cálculo, la explicación y el
 ✅ Cada meta se escribe con nutriente, forma química, kg/ha, **fuente técnica, fecha de la fuente** y origen (fuente real o EJEMPLO). La app no propone metas, no las deduce del análisis de suelo y rechaza escrituras ambiguas como `1.200`.
 ✅ Un producto del catálogo por meta. El formulario muestra lo que declara la etiqueta y avisa si la meta no se podrá calcular (p. ej. meta en P con etiqueta en P₂O₅). El plan guarda una copia del producto: editar o borrar el producto del catálogo no lo altera.
 ✅ Detalle con cada operación explicada: kg/ha de producto, kg en el lote, bultos exactos, precio por kg, costo y aportes acompañantes; resumen por forma química (meta, aportado y diferencia aritmética) y costo total solo si todos los productos tienen costo.
-✅ Análisis de suelo de referencia opcional, mostrado solo como contexto.
+✅ Análisis para proponer las metas (opcional): con él la app sugiere metas de referencia; las cantidades se calculan con las metas guardadas.
 ✅ El plan guarda el área del lote al crearse; al editar solo se actualiza si el usuario lo marca.
 ✅ Si el producto cambia en el catálogo, el plan conserva su copia y al editar avisa del cambio; para usar los datos nuevos se elige "datos actuales del catálogo". Si se elimina el análisis de referencia, el plan se sigue editando y copiando (queda sin referencia, con aviso).
 ✅ 105 pruebas automáticas en total. Recorrido en Chrome: 59 comprobaciones. Una revisión de código encontró 10 puntos en 3c; todos están corregidos.
@@ -181,9 +181,9 @@ Las pruebas de persistencia (`tests/persistencia.test.ts`) usan un almacén en m
 
 1. Pulsa **Productos** en la barra superior: debe aparecer "Aún no hay productos en el catálogo".
 2. Registra "DAP EJEMPLO" con Nitrógeno / N / `18` y Fósforo / P₂O₅ / `46`, bulto de `50` kg, precio `150.000` y fecha del precio. Al guardar debe rechazar el precio ("Escribe 150000") y pedir que indiques si es etiqueta real o EJEMPLO. Al corregir cada dato, su mensaje rojo desaparece.
-3. Escribe `150000` y elige **Son datos de EJEMPLO**: la vista previa debe decir "equivale a 3.000 COP por kg". Guarda: el detalle muestra la marca EJEMPLO, P₂O₅ 46 % tal cual y "150.000 COP ÷ 50 kg = 3.000 COP por kg".
+3. Escribe `150000` y elige **Son datos de EJEMPLO**: la vista previa debe decir "equivale a $ 3.000 por kg". Guarda: el detalle muestra la marca EJEMPLO, P₂O₅ 46 % tal cual y "$ 150.000 ÷ 50 kg = $ 3.000 por kg".
 4. Prueba Fósforo con la forma "Otra forma" escribiendo `K2O`: debe rechazarse porque corresponde a Potasio.
-5. Edita el precio a `160000`: debe mostrar 3.200 COP por kg. Recarga la página: el producto sigue en el catálogo.
+5. Edita el precio a `160000`: debe mostrar $ 3.200 por kg. Recarga la página: el producto sigue en el catálogo.
 6. Elimina el producto: debe pedir confirmación.
 
 ### Pruebas manuales en navegador (fase 3c, plan)
@@ -191,16 +191,16 @@ Las pruebas de persistencia (`tests/persistencia.test.ts`) usan un almacén en m
 1. Registra en el catálogo "DAP EJEMPLO" (N 18 %, P₂O₅ 46 %, bulto de 50 kg a 160000 COP) y "KCl EJEMPLO" (K₂O 60 %, sin precio).
 2. En un lote de **1500,5 m²**, en **Plan de fertilización**, crea una propuesta. Meta 1: Fósforo / **P** / 100 kg/ha con fuente, fecha y origen EJEMPLO, producto DAP: debe avisar "Esta meta no se calculará". Cambia la forma a P₂O₅: el aviso desaparece y se ve "declara: N 18 % · P₂O₅ 46 %".
 3. Meta 2: Potasio / K₂O / `1.200` con producto KCl: al guardar debe rechazar "1.200". Escribe `90` y guarda.
-4. El detalle debe mostrar ≈ 217,39 kg/ha de DAP, ≈ 32,62 kg en el lote, ≈ 0,65 bultos, 3.200 COP por kg, ≈ 104.383 COP y ≈ 39,13 kg/ha de N acompañante; KCl: 150 kg/ha y ≈ 22,51 kg en el lote, sin costo por falta de precio; y "no se muestra un total parcial".
-5. Edita la propuesta: la meta 2 se precarga con `90` y el producto como "copia guardada en el plan". Cambia el precio del DAP en el catálogo a `200000`: el plan sigue mostrando ≈ 104.383 COP; al editarlo avisa del cambio y, si eliges "datos actuales del catálogo", pasa a ≈ 130.478 COP.
+4. El detalle debe mostrar ≈ 217,39 kg/ha de DAP, ≈ 32,62 kg en el lote, ≈ 0,65 bultos, $ 3.200 por kg, ≈ $ 104.383 y ≈ 39,13 kg/ha de N (también aporta); KCl: 150 kg/ha y ≈ 22,51 kg en el lote, sin costo por falta de precio; y "no se muestra un total parcial".
+5. Edita la propuesta: la meta 2 se precarga con `90` y el producto como "copia guardada en el plan". Cambia el precio del DAP en el catálogo a `200000`: el plan sigue mostrando ≈ $ 104.383; al editarlo avisa del cambio y, si eliges "datos actuales del catálogo", pasa a ≈ $ 130.478.
 6. Elimina DAP del catálogo y vuelve al plan: debe seguir mostrando DAP EJEMPLO con las mismas cifras.
 
 ### Pruebas manuales en navegador (fase 3d, estados)
 
-1. En el detalle de la propuesta, en **Estado del plan**, pulsa **Marcar como revisado** y confirma sin nombre: debe pedir el nombre. Escribe un nombre y una nota: el plan queda **Revisado** y desaparece **Editar**.
-2. Pulsa **Aprobar el plan**: desaparecen **Editar** y **Eliminar**, y el aviso dice que es de solo lectura. El historial muestra propuesta, revisado y aprobado con fecha, hora, nombre y nota.
+1. En el detalle de la propuesta, en **Estado del plan**, pulsa **Ya se revisó este plan** y confirma sin nombre: debe pedir el nombre. Escribe un nombre y una nota: el plan queda **Revisado** y desaparece **Editar**.
+2. Pulsa **Aprobar: este es el plan que voy a aplicar**: desaparecen **Editar** y **Eliminar**, y el aviso dice que es de solo lectura. El historial muestra propuesta, revisado y aprobado con fecha, hora, nombre y nota.
 3. Pulsa **Copiar como nueva propuesta**: se abre una propuesta editable con las mismas cifras, "Copia del plan «…»" en el historial y un enlace al plan original.
-4. Crea una propuesta con una meta sin producto: **Marcar como revisado** queda deshabilitado con el motivo "La meta de … no tiene producto".
+4. Crea una propuesta con una meta sin producto: **Ya se revisó este plan** queda deshabilitado con el motivo "La meta de … no tiene producto".
 
 ### Pruebas manuales en navegador (fase 4, seguimiento)
 
@@ -403,6 +403,8 @@ No inventar resultados de campo. Etiquetar todos los datos simulados como **EJEM
 
 ## Para retomar (estado al 17 de noviembre de 2026)
 
+- **Revisión de experiencia de uso (22 de noviembre de 2026):** cinco tandas aprobadas (ver `AGENTS.md`, "Experiencia de uso").
+  - **Tanda 1, textos y marcas:** precios y costos en pesos con "$" (`$ 150.000`); asterisco en todos los campos obligatorios; unidades "mg/kg (ppm)" y "cmol(+)/kg (meq/100 g)"; los cálculos en kg/ha del análisis quedan plegados con su advertencia; se corrigieron textos que se contradecían (solo papa, para qué sirve el análisis del plan); los botones de estado dicen «Ya se revisó este plan» y «Aprobar: este es el plan que voy a aplicar»; "También aporta" y "Diferencia con la meta" en el plan; "Cambios que chocaron entre dispositivos" en Mi cuenta; la tarjeta "Cultivos distintos" de Mis lotes pasó a "Tareas pendientes".
 - Historial del lote (ciclos de cultivo) publicado y revisado: los 10 puntos de la revisión de código están corregidos (181 pruebas, build correcto).
 - **Referencias técnicas en la nube (19 de noviembre de 2026):** tabla `referencias` de D1 (migración 0003), API `GET /api/referencias` y copia en el teléfono para usarlas sin internet. Se cargan desde `data/referencias/` con `npm run referencias:nube`, que valida cada referencia antes de cargarla. **Catálogo de 26 fertilizantes comerciales**: composición garantizada del registro del ICA (actualizado el 1 de noviembre de 2026) y precio promedio DANE-SIPSA por departamento (octubre de 2026). En **Productos → Agregar producto → Llenar desde el catálogo de referencia** se llena el formulario (nombre, nutrientes, bulto, registro ICA, precio y su fuente) y el productor lo revisa antes de guardar. 11 productos no tienen estado en el listado del ICA y se muestran "pendiente de verificación"; 2 se omitieron porque el ICA no publica sus porcentajes. **Términos de uso:** los del ICA permiten el uso no comercial citando la fuente; antes de un uso comercial hay que pedir autorización al ICA. El DANE exige citar "Fuente: DANE".
 - **Plan propuesto y catálogo completo del ICA (19 de noviembre de 2026):** el plan **propone las metas** (punto medio del rango de Castro, 2005, según el análisis y la zona; "Usar las N metas propuestas") y, en cada meta, **sugiere fertilizantes** que aportan esa forma química, con "Agregar y usar". El catálogo de referencia pasó de 26 a **4.078 fertilizantes**: los 26 con precio DANE y 4.052 vigentes de aplicación al suelo del registro del ICA (1 nov. 2026), leídos con `scripts/catalogo-ica.ts`; la composición se compara con el grado del nombre (si falta un nutriente del grado, el producto no entra; si difiere, queda "por verificar": 333). En Productos, el catálogo se busca por nombre, empresa o grado. Además: el método del laboratorio se elige por nutriente (fósforo; potasio, calcio y magnesio) y todas las confirmaciones usan una ventana propia en lugar del aviso del navegador.

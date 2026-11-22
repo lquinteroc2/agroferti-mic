@@ -21,6 +21,7 @@ import { resumenErrores } from '../lib/validacionPlan';
 import { MOTIVOS_CIERRE, opcionesCultivo, type CicloCultivo, type CicloVerificado, type Lote, type MotivoCierre } from '../types';
 import { OrigenBadge } from './ProductoDetalle';
 import { confirmar } from './Confirmacion';
+import { NotaObligatorios, Obligatorio } from './Campo';
 
 type Modo = { tipo: 'lista' } | { tipo: 'cerrar' } | { tipo: 'notas'; id: string };
 type Aviso = { tipo: 'ok' | 'error'; texto: string } | null;
@@ -83,15 +84,15 @@ function CierreForm({ lote, ultimoCierre, onGuardar, onCancelar }: {
       <h2 id="titulo-form-cierre">Cerrar el cultivo actual y empezar otro</h2>
       <p className="muted">
         Se guardará en el historial el cultivo actual: <strong>{nombreCultivo(lote.cultivo)}</strong>, siembra {fechaLegible(lote.fechaSiembra).toLowerCase()}, {formatearExacto(lote.areaM2)} m².
-        Los análisis, planes y registros no se borran ni se cambian: el historial los ubica por su fecha.
+        Los análisis, planes y registros no se borran ni se cambian: el historial los ubica por su fecha. <NotaObligatorios />
       </p>
       <div className="fields">
-        <label>Fecha de cierre (cosecha o fin del cultivo)
-          <input type="date" value={entrada.fechaCierre} min={[lote.fechaSiembra, ultimoCierre && diaSiguiente(ultimoCierre)].filter((f): f is string => !!f).sort().at(-1)} max={fechaLocalISO()} onChange={e => cambiar('fechaCierre', e.target.value)} aria-invalid={!!errores.fechaCierre} />
+        <label><Obligatorio>Fecha de cierre (cosecha o fin del cultivo)</Obligatorio>
+          <input type="date" aria-required="true" value={entrada.fechaCierre} min={[lote.fechaSiembra, ultimoCierre && diaSiguiente(ultimoCierre)].filter((f): f is string => !!f).sort().at(-1)} max={fechaLocalISO()} onChange={e => cambiar('fechaCierre', e.target.value)} aria-invalid={!!errores.fechaCierre} />
           {error('fechaCierre')}
         </label>
-        <label>Cómo terminó
-          <select value={entrada.motivo} onChange={e => cambiar('motivo', e.target.value)} aria-invalid={!!errores.motivo}>
+        <label><Obligatorio>Cómo terminó</Obligatorio>
+          <select value={entrada.motivo} onChange={e => cambiar('motivo', e.target.value)} aria-required="true" aria-invalid={!!errores.motivo}>
             <option value="">Elige…</option>
             {MOTIVOS_CIERRE.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
           </select>
@@ -102,8 +103,8 @@ function CierreForm({ lote, ultimoCierre, onGuardar, onCancelar }: {
           <small>Lo escribes tú: la app no calcula rendimientos ni los interpreta.</small>
           {error('notas')}
         </label>
-        <label>Origen del dato
-          <select value={entrada.origen} onChange={e => cambiar('origen', e.target.value)} aria-invalid={!!errores.origen}>
+        <label><Obligatorio>Origen del dato</Obligatorio>
+          <select value={entrada.origen} onChange={e => cambiar('origen', e.target.value)} aria-required="true" aria-invalid={!!errores.origen}>
             <option value="">Elige…</option>
             <option value="real">Dato real</option>
             <option value="ejemplo">EJEMPLO (ficticio)</option>

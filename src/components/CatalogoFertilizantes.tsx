@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { formatearExacto } from '../lib/formato';
+import { formatearExacto, pesos } from '../lib/formato';
 import { filtrarCatalogo, nombreMes, resumenComposicion, type DetalleRegistro, type FertilizanteReferencia } from '../lib/referencias';
 
 const ETIQUETAS_DETALLE: ReadonlyArray<[keyof DetalleRegistro, string]> = [
@@ -87,7 +87,7 @@ function FichaReferencia({ r, propio, onAgregar }: { r: FertilizanteReferencia; 
           {r.precios.length > 0 && <label>Precio promedio por departamento (DANE)
             <select value={departamento} onChange={e => setDepartamento(e.target.value)}>
               <option value="">Agregar sin precio</option>
-              {r.precios.map(p => <option key={p.departamento} value={p.departamento}>{p.departamento}: {formatearExacto(Math.round(p.precioPromedioCop))} COP ({p.presentacion}, {nombreMes(p.periodo)})</option>)}
+              {r.precios.map(p => <option key={p.departamento} value={p.departamento}>{p.departamento}: {pesos(Math.round(p.precioPromedioCop))} ({p.presentacion}, {nombreMes(p.periodo)})</option>)}
             </select>
           </label>}
           <p className="referencia-fuente">Fuente: {r.fuente}</p>

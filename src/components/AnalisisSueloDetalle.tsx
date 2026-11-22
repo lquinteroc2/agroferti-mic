@@ -55,10 +55,12 @@ export function AnalisisSueloDetalle({ analisis, onEditar, onEliminar }: Props) 
       </div>}
 
       {!doc.documentado && <div className="trace-box">
-        <strong>{doc.trazabilidadPendiente ? 'Trazabilidad pendiente' : 'Registro incompleto'}</strong>
+        <strong>{doc.trazabilidadPendiente ? 'Falta saber cómo se midió' : 'Registro incompleto'}</strong>
         <ul>{doc.pendientes.map(p => <li key={p}>{p}</li>)}</ul>
         <p>Sin el laboratorio y el método no se puede saber cómo se obtuvieron los resultados. Complétalos con el informe original.</p>
       </div>}
+
+      {analisis.problemas.length === 0 && <p className="hint">Estos son los datos de tu análisis. Con ellos, el plan de fertilización te propone las metas.</p>}
 
       <section className="soil-block entered" aria-labelledby={`datos-${analisis.id}`}>
         <h4 id={`datos-${analisis.id}`}><span className="badge badge-entered">Datos ingresados</span> Lo que registraste del informe</h4>
@@ -84,9 +86,13 @@ export function AnalisisSueloDetalle({ analisis, onEditar, onEliminar }: Props) 
         {analisis.observaciones && <p className="observations"><strong>Observaciones:</strong> {analisis.observaciones}</p>}
       </section>
 
+      {/* Plegado: el productor no necesita estas cuentas para seguir, y podría leerlas como una dosis. */}
+      <p className="muted">La app también expresa tus resultados en kilos por hectárea. <strong>Esos kilos no son una dosis de fertilización ni lo que la planta puede aprovechar.</strong></p>
+      <details className="plan-detalle-calculo">
+      <summary>Ver tus resultados en kilos por hectárea</summary>
       <section className="soil-block calculated" aria-labelledby={`calc-${analisis.id}`}>
-        <h4 id={`calc-${analisis.id}`}><span className="badge badge-calc">Resultados calculados</span> Equivalencia dimensional de la concentración reportada</h4>
-        <p className="calc-intro">Estos números cambian la unidad del resultado del laboratorio (de mg/kg a kg/ha). Dependen de la profundidad, de la densidad aparente y de que la muestra represente bien el lote.</p>
+        <h4 id={`calc-${analisis.id}`}><span className="badge badge-calc">Resultados calculados</span> Tu resultado en kilos por hectárea (no es una dosis)</h4>
+        <p className="calc-intro">Estos números solo cambian la unidad del resultado del laboratorio (de mg/kg a kg/ha). Dependen de la profundidad, de la densidad aparente y de que la muestra represente bien el lote.</p>
 
         <div className="calc-step">
           <strong>1. Área del lote en hectáreas</strong>
@@ -127,8 +133,9 @@ export function AnalisisSueloDetalle({ analisis, onEditar, onEliminar }: Props) 
 
       <div className="warning-box" role="note">
         <span className="badge badge-warn">Advertencia</span>
-        <p>Estos resultados son una <strong>equivalencia dimensional de la concentración reportada</strong>, no una medición del total de nutrientes en el lote. <strong>No son una dosis de fertilización ni un inventario de nutrientes disponibles para la planta.</strong> Cambian si cambian la profundidad o la densidad aparente, y solo valen si la muestra representa bien el lote. Cada resultado conserva la forma química del informe y la app no hace conversiones automáticas entre formas químicas: P no se convierte en P₂O₅ ni K en K₂O. Los valores con “≈” están redondeados para mostrarlos; el cálculo usa el valor completo. Cualquier dosis requiere una meta nutricional validada por un profesional.</p>
+        <p>Estos números solo cambian la unidad del resultado del laboratorio (equivalencia dimensional); no miden el total de nutrientes del lote. <strong>No son una dosis de fertilización ni lo que la planta puede aprovechar.</strong> Cambian si cambian la profundidad o la densidad aparente, y solo valen si la muestra representa bien el lote. Cada resultado conserva la forma química del informe: P no se convierte en P₂O₅ ni K en K₂O. Los valores con “≈” están redondeados para mostrarlos; el cálculo usa el valor completo. Cualquier dosis requiere una meta nutricional validada por un profesional.</p>
       </div>
+      </details>
     </article>
   );
 }

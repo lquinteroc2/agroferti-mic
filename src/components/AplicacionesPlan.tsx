@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { resumenAplicaciones, type AvanceLinea, type CalculoPlan } from '../lib/calculos';
-import { fechaLegible, formatearDiferencia, formatearExacto, formatearResultado, textoCostoRegistrado } from '../lib/formato';
+import { fechaLegible, formatearDiferencia, formatearExacto, formatearResultado, pesos, textoCostoRegistrado } from '../lib/formato';
 import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import { fechaLocalISO, numeroSinAmbiguedad } from '../lib/validacion';
 import { fechaAprobacion, resumenErrores } from '../lib/validacionPlan';
@@ -12,6 +12,7 @@ import {
 } from '../lib/validacionSeguimiento';
 import type { LineaPlan, PlanVerificado, RegistroAplicacion } from '../types';
 import { OrigenBadge } from './ProductoDetalle';
+import { NotaObligatorios, Obligatorio } from './Campo';
 
 interface Props {
   plan: PlanVerificado;
@@ -81,22 +82,22 @@ function AplicacionForm({ linea, planId, inicial, onGuardar, onCancelar }: {
   const error = (campo: keyof EntradaAplicacion) => errores[campo] && <span className="field-error">{errores[campo]}</span>;
   return (
     <form className="estado-form" onSubmit={enviar} noValidate aria-label={`${inicial ? 'Editar' : 'Registrar'} aplicación de ${linea.producto.nombre}`}>
-      <p><strong>{inicial ? 'Editar aplicación' : 'Registrar aplicación'} de {linea.producto.nombre}.</strong> Escribe lo que realmente se aplicó en el lote. Escribe los números sin punto de miles.</p>
+      <p><strong>{inicial ? 'Editar aplicación' : 'Registrar aplicación'} de {linea.producto.nombre}.</strong> Escribe lo que realmente se aplicó en el lote. Escribe los números sin punto de miles. <NotaObligatorios /></p>
       <div className="fields">
-        <label>Fecha de aplicación
-          <input type="date" value={entrada.fecha} max={fechaLocalISO()} onChange={e => cambiar('fecha', e.target.value)} aria-invalid={!!errores.fecha} />
+        <label><Obligatorio>Fecha de aplicación</Obligatorio>
+          <input type="date" value={entrada.fecha} max={fechaLocalISO()} onChange={e => cambiar('fecha', e.target.value)} aria-required="true" aria-invalid={!!errores.fecha} />
           {error('fecha')}
         </label>
-        <label>Cantidad aplicada (kg de producto)
-          <input inputMode="decimal" value={entrada.cantidadKg} onChange={e => cambiar('cantidadKg', e.target.value)} placeholder="Ej. 5 o 3,5" aria-invalid={!!errores.cantidadKg} />
+        <label><Obligatorio>Cantidad aplicada (kg de producto)</Obligatorio>
+          <input inputMode="decimal" value={entrada.cantidadKg} onChange={e => cambiar('cantidadKg', e.target.value)} placeholder="Ej. 5 o 3,5" aria-required="true" aria-invalid={!!errores.cantidadKg} />
           {error('cantidadKg')}
         </label>
-        <label>Costo real (COP)
+        <label>Costo real (pesos)
           <input inputMode="decimal" value={entrada.costoCop} onChange={e => cambiar('costoCop', e.target.value)} placeholder="Lo que costó, ej. 15000" aria-invalid={!!errores.costoCop} />
           {error('costoCop')}
         </label>
-        <label>Origen del dato
-          <select value={entrada.origen} onChange={e => cambiar('origen', e.target.value)} aria-invalid={!!errores.origen}>
+        <label><Obligatorio>Origen del dato</Obligatorio>
+          <select value={entrada.origen} onChange={e => cambiar('origen', e.target.value)} aria-required="true" aria-invalid={!!errores.origen}>
             <option value="">Elige…</option>
             <option value="real">Aplicación real</option>
             <option value="ejemplo">EJEMPLO (ficticia)</option>
@@ -201,7 +202,7 @@ export function AplicacionesPlan({ plan, calculo, aplicaciones, aplicacionesDana
                   ? <AplicacionForm linea={a.linea} planId={plan.id} inicial={p}
                     onGuardar={async datos => { await onGuardar(datos, p.id); setAbierto(null); }} onCancelar={() => setAbierto(null)} />
                   : <>
-                    <span><strong>{fechaLegible(p.fecha)}</strong> · {formatearExacto(p.cantidadKg)} kg{p.costoCop !== undefined ? ` · ${formatearExacto(p.costoCop)} COP` : ''}{p.responsable ? ` · ${p.responsable}` : ''} <OrigenBadge esEjemplo={p.esEjemplo} real="Dato real" />{aprobado && p.fecha < aprobado && <span className="badge badge-warn" title={`El plan se aprobó el ${fechaLegible(aprobado)}`}>Antes de la aprobación</span>}</span>
+                    <span><strong>{fechaLegible(p.fecha)}</strong> · {formatearExacto(p.cantidadKg)} kg{p.costoCop !== undefined ? ` · ${pesos(p.costoCop)}` : ''}{p.responsable ? ` · ${p.responsable}` : ''} <OrigenBadge esEjemplo={p.esEjemplo} real="Dato real" />{aprobado && p.fecha < aprobado && <span className="badge badge-warn" title={`El plan se aprobó el ${fechaLegible(aprobado)}`}>Antes de la aprobación</span>}</span>
                     {p.nota && <small>{p.nota}</small>}
                     <span className="aplicacion-acciones">
                       <button type="button" className="link-button" disabled={ocupado} onClick={() => setAbierto({ lineaId: a.linea.id, aplicacionId: p.id })}>Editar</button>

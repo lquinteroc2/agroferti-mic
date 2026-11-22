@@ -14,6 +14,7 @@ import { SeguimientoSeccion } from './components/SeguimientoSeccion';
 import { actualizarLote, db, eliminarLoteYRelacionados, leerEstadoNube } from './lib/db';
 import { alVolver, reemplazarPantalla, registrarPantalla, volverPantalla } from './lib/navegacion';
 import { sesionVencida } from './lib/nube';
+import { contarTareasPendientes } from './lib/validacionSeguimiento';
 import { areaM2AHa } from './lib/calculos';
 import { fechaLegible, formatearNumero, nombreCultivo } from './lib/formato';
 import type { Lote } from './types';
@@ -42,7 +43,10 @@ export default function App() {
   const lotes = useLiveQuery(() => db.lotes.orderBy('createdAt').reverse().toArray(), []);
   const activo = lotes?.find(l => l.id === loteId);
   const totalArea = (lotes ?? []).reduce((sum, l) => sum + l.areaM2, 0);
-  const totalCultivos = new Set((lotes ?? []).map(l => l.cultivo)).size;
+  // Tareas pendientes de todos los lotes. Se cuentan al mostrar la pantalla (no dentro de la consulta)
+  // para que "fecha pasada" use la fecha de hoy aunque la app haya quedado abierta desde ayer.
+  const registros = useLiveQuery(() => db.registros.toArray(), []);
+  const tareas = registros && lotes ? contarTareasPendientes(registros, new Set(lotes.map(l => l.id))) : undefined;
   const estadoNube = useLiveQuery(leerEstadoNube, [], null);
   const enLinea = useEnLinea();
 
@@ -166,11 +170,11 @@ export default function App() {
           <section className="stats" aria-label="Resumen de tus lotes">
             <div className="stat"><span>Lotes registrados</span><strong>{lotes?.length ?? '—'}</strong><small>Guardados en tu cuenta</small></div>
             <div className="stat"><span>Área total</span><strong>{lotes ? formatearNumero(totalArea) : '—'} <em>m²</em></strong><small>{lotes ? formatearNumero(totalArea / 10_000, 4) : '—'} ha</small></div>
-            <div className="stat"><span>Cultivos distintos</span><strong>{lotes ? totalCultivos : '—'}</strong><small>En tus lotes</small></div>
+            <div className="stat"><span>Tareas pendientes</span><strong>{tareas ? tareas.pendientes : '—'}</strong><small>{tareas?.vencidas ? `${tareas.vencidas} con la fecha pasada` : 'En todos tus lotes'}</small></div>
           </section>
           <section className="section-header"><div><div className="section-kicker">TU UNIDAD PRODUCTIVA</div><h2>Mis lotes</h2>{lotes?.length === 0 && <p>Crea un lote para comenzar a organizar la información de tu cultivo.</p>}</div><div className="detalle-botones">{!!lotes?.length && <button className="btn btn-outline" onClick={() => ir('informe-general')}>Informe de todos los lotes (PDF)</button>}<button className="btn btn-outline" onClick={() => ir('nuevo')}>+ Nuevo lote</button></div></section>
           {lotes === undefined ? <div className="empty"><p>Cargando tus lotes…</p></div>
-            : lotes.length === 0 ? <div className="empty"><div className="empty-icon" aria-hidden="true">◎</div><h3>Aún no tienes lotes registrados</h3><p>Comienza con tu cultivo de papa o el que estés trabajando. Puedes añadir más cultivos después.</p><button className="btn btn-primary" onClick={() => ir('nuevo')}>Crear mi primer lote</button></div>
+            : lotes.length === 0 ? <div className="empty"><div className="empty-icon" aria-hidden="true">◎</div><h3>Aún no tienes lotes registrados</h3><p>Crea tu primer lote de papa para empezar a organizar su información.</p><button className="btn btn-primary" onClick={() => ir('nuevo')}>Crear mi primer lote</button></div>
             : <div className="lots-grid">{lotes.map(l => <button key={l.id} className="lot-card" onClick={() => ir('detalle', l.id)}>
               <span className="crop-icon" aria-hidden="true">{l.cultivo === 'papa' ? '●' : '✳'}</span><span className="lot-card-content"><strong>{l.nombre}</strong><span>{nombreCultivo(l.cultivo)} · {formatearNumero(l.areaM2)} m²</span><small>Siembra: {fechaLegible(l.fechaSiembra)}</small></span><span className="arrow" aria-hidden="true">›</span>
             </button>)}</div>}

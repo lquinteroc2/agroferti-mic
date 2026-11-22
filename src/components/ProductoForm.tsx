@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { precioPorKgCop } from '../lib/calculos';
 import { CATALOGO_NUTRIENTES, OPCION_OTRO, buscarElemento } from '../lib/catalogoNutrientes';
-import { formatearExacto, formatearResultado, numeroATexto } from '../lib/formato';
+import { formatearExacto, numeroATexto, pesos, pesosResultado } from '../lib/formato';
 import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import { fechaLocalISO, numeroSinAmbiguedad, validarNumeroSinAmbiguedad } from '../lib/validacion';
 import {
@@ -16,6 +16,7 @@ import {
 } from '../lib/validacionPlan';
 import { buscarFertilizantes, nombreMes, productoDesdeReferencia, resumenComposicion, type FertilizanteReferencia } from '../lib/referencias';
 import { DetalleRegistroVista } from './CatalogoFertilizantes';
+import { Obligatorio } from './Campo';
 import type { ContenidoDeclarado, ProductoVerificado } from '../types';
 
 interface Props {
@@ -66,13 +67,13 @@ function entradaInicial(inicial?: ProductoVerificado): EntradaFormulario {
 const CAMPOS_PRECIO: ReadonlyArray<CampoTexto> = ['presentacionKg', 'precioPresentacionCop', 'fechaPrecio'];
 
 
-/** Cómo se leyeron el precio y los kg, antes de guardar (p. ej. para ver que 150000 son 150.000 COP). */
+/** Cómo se leyeron el precio y los kg, antes de guardar (p. ej. para ver que 150000 son $ 150.000). */
 function vistaPrevia(precioTexto: string, kgTexto: string): string | null {
   const precio = validarNumeroSinAmbiguedad(precioTexto, { campo: 'Precio' });
   const kg = validarNumeroSinAmbiguedad(kgTexto, { campo: 'Kg', positivo: true });
   if (!precio.ok || !kg.ok || precio.valor === undefined || kg.valor === undefined) return null;
   try {
-    return `Bulto de ${formatearExacto(kg.valor)} kg a ${formatearExacto(precio.valor)} COP: equivale a ${formatearResultado(precioPorKgCop(precio.valor, kg.valor))} COP por kg.`;
+    return `Bulto de ${formatearExacto(kg.valor)} kg a ${pesos(precio.valor)}: equivale a ${pesosResultado(precioPorKgCop(precio.valor, kg.valor), 2)} por kg.`;
   } catch {
     return null;
   }
@@ -237,7 +238,7 @@ export function ProductoForm({ inicial, onGuardar, onCancelar, referencias = [] 
           {referencia && referencia.precios.length > 0 && <label className="full">Precio de referencia del departamento
             <select value={departamento} onChange={e => setDepartamento(e.target.value)}>
               <option value="">Sin precio</option>
-              {referencia.precios.map(p => <option key={p.departamento} value={p.departamento}>{p.departamento}: {formatearExacto(Math.round(p.precioPromedioCop))} COP ({p.presentacion}, {nombreMes(p.periodo)})</option>)}
+              {referencia.precios.map(p => <option key={p.departamento} value={p.departamento}>{p.departamento}: {pesos(Math.round(p.precioPromedioCop))} ({p.presentacion}, {nombreMes(p.periodo)})</option>)}
             </select>
           </label>}
         </div>
@@ -288,28 +289,28 @@ export function ProductoForm({ inicial, onGuardar, onCancelar, referencias = [] 
             <fieldset className="nutrient-row" key={c.clave} aria-describedby={error ? idError : undefined}>
               <legend className="nutrient-legend">Nutriente {i + 1}</legend>
               <div className="nutrient-fields fields">
-                <label>Elemento
-                  <select value={c.elementoLibre ? OTRO : c.elemento} onChange={e => elegirElemento(i, e.target.value)} aria-invalid={!!error}>
+                <label><Obligatorio>Elemento</Obligatorio>
+                  <select value={c.elementoLibre ? OTRO : c.elemento} onChange={e => elegirElemento(i, e.target.value)} aria-required="true" aria-invalid={!!error}>
                     <option value="">Elige…</option>
                     {CATALOGO_NUTRIENTES.map(n => <option key={n.nombre} value={n.nombre}>{n.nombre} ({n.simbolo})</option>)}
                     <option value={OTRO}>{OPCION_OTRO}</option>
                   </select>
                 </label>
-                {c.elementoLibre && <label>Nombre del elemento
-                  <input value={c.elemento} onChange={e => cambiarFila(i, { elemento: e.target.value })} maxLength={40} placeholder="Como aparece en la etiqueta" aria-invalid={!!error} />
+                {c.elementoLibre && <label><Obligatorio>Nombre del elemento</Obligatorio>
+                  <input value={c.elemento} onChange={e => cambiarFila(i, { elemento: e.target.value })} maxLength={40} placeholder="Como aparece en la etiqueta" aria-required="true" aria-invalid={!!error} />
                 </label>}
-                {el && <label>Forma química
-                  <select value={c.formaLibre ? OTRO : c.forma} onChange={e => elegirForma(i, e.target.value)} aria-invalid={!!error}>
+                {el && <label><Obligatorio>Forma química</Obligatorio>
+                  <select value={c.formaLibre ? OTRO : c.forma} onChange={e => elegirForma(i, e.target.value)} aria-required="true" aria-invalid={!!error}>
                     <option value="">Elige…</option>
                     {el.formas.map(f => <option key={f} value={f}>{f}</option>)}
                     <option value={OTRO}>Otra forma / No reconocida</option>
                   </select>
                 </label>}
-                {(c.elementoLibre || c.formaLibre) && <label>Forma química (texto de la etiqueta)
-                  <input value={c.forma} onChange={e => cambiarFila(i, { forma: e.target.value })} maxLength={20} placeholder="Ej. SO₃" aria-invalid={!!error} />
+                {(c.elementoLibre || c.formaLibre) && <label><Obligatorio>Forma química (texto de la etiqueta)</Obligatorio>
+                  <input value={c.forma} onChange={e => cambiarFila(i, { forma: e.target.value })} maxLength={20} placeholder="Ej. SO₃" aria-required="true" aria-invalid={!!error} />
                 </label>}
-                <label>Porcentaje (%)
-                  <input inputMode="decimal" value={c.porcentaje} onChange={e => cambiarFila(i, { porcentaje: e.target.value })} placeholder="Ej. 46" aria-invalid={!!error} />
+                <label><Obligatorio>Porcentaje (%)</Obligatorio>
+                  <input inputMode="decimal" value={c.porcentaje} onChange={e => cambiarFila(i, { porcentaje: e.target.value })} placeholder="Ej. 46" aria-required="true" aria-invalid={!!error} />
                 </label>
               </div>
               <button type="button" className="row-remove" onClick={() => quitarFila(i)}>Quitar nutriente {i + 1}</button>
@@ -329,7 +330,7 @@ export function ProductoForm({ inicial, onGuardar, onCancelar, referencias = [] 
             <input inputMode="decimal" value={entrada.presentacionKg} onChange={e => cambiar('presentacionKg', e.target.value)} placeholder="Ej. 50" {...errorProps('err-kg', errores.presentacionKg)} />
             {errores.presentacionKg && <span id="err-kg" className="field-error">{errores.presentacionKg}</span>}
           </label>
-          <label>Precio del bulto (COP)
+          <label>Precio del bulto (pesos)
             <input inputMode="decimal" value={entrada.precioPresentacionCop} onChange={e => cambiar('precioPresentacionCop', e.target.value)} placeholder="Ej. 150000" {...errorProps('err-precio', errores.precioPresentacionCop)} />
             {errores.precioPresentacionCop && <span id="err-precio" className="field-error">{errores.precioPresentacionCop}</span>}
           </label>

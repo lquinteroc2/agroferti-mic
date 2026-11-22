@@ -8,6 +8,7 @@ import {
   formatearNumero,
   formatearResultado,
   nombreCultivo,
+  pesosResultado,
   textoCostoRegistrado
 } from '../lib/formato';
 import { datosCultivoActual } from '../lib/historial';
@@ -108,12 +109,12 @@ function SeccionRecomendacion({ d }: { d: DatosInforme }) {
               <td>{kg(l.productoKgHa)} kg/ha</td>
               <td><Valor c={l.productoKgLote} formato={n => `${kg(n)} kg`} /></td>
               <td>{p.presentacionKg !== undefined ? <><Valor c={l.bultos} formato={n => formatearResultado(n, 2)} /> de {formatearExacto(p.presentacionKg)} kg</> : '—'}</td>
-              <td><Valor c={l.costoCop} formato={n => `${formatearResultado(n, 0)} COP`} /></td>
+              <td><Valor c={l.costoCop} formato={n => pesosResultado(n)} /></td>
             </>}
         </tr>;
       })}</tbody>
     </table>
-    <p><strong>Costo total estimado:</strong> {total.ok ? `${formatearResultado(total.valor, 0)} COP` : `no se calcula. ${total.mensaje}`}</p>
+    <p><strong>Costo total estimado:</strong> {total.ok ? pesosResultado(total.valor) : `no se calcula. ${total.mensaje}`}</p>
     <p><strong>De dónde salen las metas:</strong> {r.fuentes.map(f => `${f.fuente} (${fechaLegible(f.fecha)})`).join('; ')}.</p>
     {d.planesAprobados > 1 && <p className="informe-nota">Hay {d.planesAprobados} planes aprobados para este lote; este informe usa el aprobado más recientemente.</p>}
     <h3>Nutrientes que aporta el plan</h3>

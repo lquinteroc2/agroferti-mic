@@ -57,8 +57,8 @@ export function NubeSeccion({ estado }: { estado: EstadoNube }) {
   }
 
   async function descartarApartadas() {
-    if (!(await confirmar({ titulo: 'Descartar versiones apartadas', mensaje: '¿Descartar las versiones apartadas? Esta acción no se puede deshacer.', boton: 'Descartar', peligro: true }))) return;
-    void accion(versionesApartadas.descartar, 'Se descartaron las versiones apartadas.');
+    if (!(await confirmar({ titulo: 'Descartar los cambios que chocaron', mensaje: '¿Descartar los cambios que chocaron entre dispositivos? Se conserva lo que ya está guardado. Esta acción no se puede deshacer.', boton: 'Descartar', peligro: true }))) return;
+    void accion(versionesApartadas.descartar, 'Se descartaron los cambios que chocaron.');
   }
 
   async function eliminarSinLote() {
@@ -91,10 +91,10 @@ export function NubeSeccion({ estado }: { estado: EstadoNube }) {
       <button type="button" className="danger-link" disabled={trabajando} onClick={borrarNube}>Borrar mis datos de la nube</button>
 
       {apartadas.length > 0 && <div className="hint">
-        <strong>{apartadas.length} {apartadas.length === 1 ? 'versión apartada' : 'versiones apartadas'}.</strong> Cuando dos dispositivos cambian el mismo registro, se conserva el cambio más reciente y el otro queda apartado aquí:
+        <strong>Cambios que chocaron entre dispositivos ({apartadas.length}).</strong> Cuando dos dispositivos cambian el mismo registro, se conserva el cambio más reciente y el otro queda aquí para que lo revises. Si lo que quedó guardado está bien, puedes descartarlos:
         <ul>{apartadas.slice(-MAX_LISTA).reverse().map(v => <li key={`${v.tabla}/${v.id}/${v.fecha}`}>{NOMBRE_TABLA[v.tabla] ?? v.tabla} {describirApartada(v.texto)} · {fechaHoraDeMarca(v.fecha)}: {v.motivo}</li>)}</ul>
         {apartadas.length > MAX_LISTA && <span>… y {apartadas.length - MAX_LISTA} más.</span>}
-        <div className="respaldo-acciones"><button type="button" className="danger-link" disabled={trabajando} onClick={descartarApartadas}>Descartar las versiones apartadas</button></div>
+        <div className="respaldo-acciones"><button type="button" className="danger-link" disabled={trabajando} onClick={descartarApartadas}>Descartar estos cambios</button></div>
       </div>}
 
       {resultado && resultado.sinLote > 0 && <div className="hint">

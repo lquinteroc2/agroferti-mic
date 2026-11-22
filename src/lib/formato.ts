@@ -36,14 +36,31 @@ export function formatearDiferencia(d: number, max = 2): { texto: string; signo:
   return { texto: `${d > 0 ? '+' : ''}${formatearResultado(d, max)}`, signo: d > 0 ? 1 : -1 };
 }
 
+/** Espacio que no se parte: "$" y el número quedan siempre en la misma línea. */
+const ESPACIO_FIJO = ' ';
+
+/** Pesos colombianos de un dato ingresado, completo: "$ 150.000". */
+export function pesos(n: number): string {
+  const texto = formatearExacto(n);
+  return texto === '—' ? texto : `$${ESPACIO_FIJO}${texto}`;
+}
+
+/** Pesos colombianos de un resultado calculado (por defecto sin decimales): "≈ $ 189.130" si está redondeado. */
+export function pesosResultado(n: number, max = 0): string {
+  const texto = formatearResultado(n, max);
+  if (texto === '—') return texto;
+  const prefijo = texto.startsWith('≈ ') ? '≈ ' : texto.startsWith('< ') ? '< ' : '';
+  return `${prefijo}$${ESPACIO_FIJO}${texto.slice(prefijo.length)}`;
+}
+
 /**
- * "15.000 COP (1 aplicación sin costo registrado)", o null si ninguna aplicación tiene costo
- * (mostrar "0 COP" se leería como si no hubiera costado nada).
+ * "$ 15.000 (1 aplicación sin costo registrado)", o null si ninguna aplicación tiene costo
+ * (mostrar "$ 0" se leería como si no hubiera costado nada).
  */
 export function textoCostoRegistrado(costo: { totalCop: { ok: boolean; valor?: number }; sinCosto: number }, aplicaciones: number): string | null {
   if (aplicaciones === 0 || costo.sinCosto === aplicaciones || !costo.totalCop.ok || costo.totalCop.valor === undefined) return null;
   const sin = costo.sinCosto > 0 ? ` (${costo.sinCosto} ${costo.sinCosto === 1 ? 'aplicación' : 'aplicaciones'} sin costo registrado)` : '';
-  return `${formatearExacto(costo.totalCop.valor)} COP${sin}`;
+  return `${pesos(costo.totalCop.valor)}${sin}`;
 }
 
 /** Dato ingresado: se muestra completo, sin redondear. */

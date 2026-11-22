@@ -4,6 +4,7 @@ import { formatearExacto, formatearNumero } from '../lib/formato';
 import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import { areaLoteATexto, UNIDADES_AREA, validarAreaEnUnidad, type UnidadArea } from '../lib/validacion';
 import { opcionesCultivo, type Cultivo, type Lote } from '../types';
+import { NotaObligatorios } from './Campo';
 
 export interface DatosLote {
   nombre: string;
@@ -60,7 +61,7 @@ export function LoteForm({ inicial, onGuardar, onCancelar }: Props) {
     <form className="form-card" onSubmit={enviar} noValidate>
       <div className="section-kicker">PASO 1 · EL LOTE</div>
       <h2>{inicial ? 'Editar lote' : 'Registrar un nuevo lote'}</h2>
-      <p className="muted">Estos datos identifican tu terreno.</p>
+      <p className="muted">Estos datos identifican tu terreno. <NotaObligatorios /></p>
       <div className="fields">
         <label><span className="campo-titulo">Nombre del lote <span className="required" aria-hidden="true">*</span></span>
           <input value={nombre} onChange={e => { setNombre(e.target.value); setError(''); }} placeholder="Ej. Parcela de papa A" maxLength={70} required autoFocus />

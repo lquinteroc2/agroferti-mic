@@ -6,7 +6,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { armarInforme, MAX_OBSERVACIONES, MAX_TAREAS_HECHAS } from '../src/lib/informe.ts';
 import { verificarAnalisis } from '../src/lib/validacion.ts';
-import { textoCostoRegistrado } from '../src/lib/formato.ts';
+import { pesos, pesosResultado, textoCostoRegistrado } from '../src/lib/formato.ts';
 import { cambioAprobacion, copiarProducto, verificarPlan } from '../src/lib/validacionPlan.ts';
 import { verificarRegistro } from '../src/lib/validacionSeguimiento.ts';
 import type { Lote, PlanFertilizacion, ProductoFertilizante } from '../src/types.ts';
@@ -130,8 +130,19 @@ test('revisión: las aplicaciones dañadas y las de productos que no están en e
   assert.equal(r?.aplicacionesDanadas, 1);
 });
 
-test('revisión: el costo registrado no se muestra como "0 COP" si ninguna aplicación lo tiene', () => {
+test('revisión: el costo registrado no se muestra como "$ 0" si ninguna aplicación lo tiene', () => {
   assert.equal(textoCostoRegistrado({ totalCop: { ok: true, valor: 0 }, sinCosto: 2 }, 2), null);
-  assert.equal(textoCostoRegistrado({ totalCop: { ok: true, valor: 15_000 }, sinCosto: 1 }, 2), '15.000 COP (1 aplicación sin costo registrado)');
-  assert.equal(textoCostoRegistrado({ totalCop: { ok: true, valor: 15_000 }, sinCosto: 0 }, 1), '15.000 COP');
+  assert.equal(textoCostoRegistrado({ totalCop: { ok: true, valor: 15_000 }, sinCosto: 1 }, 2), '$\u00a015.000 (1 aplicación sin costo registrado)');
+  assert.equal(textoCostoRegistrado({ totalCop: { ok: true, valor: 15_000 }, sinCosto: 0 }, 1), '$\u00a015.000');
+});
+
+test('revisión UX: pesos con "$" pegado al número; el resultado redondeado conserva "≈" y "<" delante', () => {
+  assert.equal(pesos(150_000), '$\u00a0150.000');
+  assert.equal(pesos(2_900.5), '$\u00a02.900,5', 'un dato ingresado se muestra completo');
+  assert.equal(pesos(Number.NaN), '—');
+  assert.equal(pesosResultado(487_500), '$\u00a0487.500');
+  assert.equal(pesosResultado(189_130.4347826087), '≈ $\u00a0189.130');
+  assert.equal(pesosResultado(3_333.333, 2), '≈ $\u00a03.333,33');
+  assert.equal(pesosResultado(0.2), '< $\u00a01', 'un costo positivo que se redondearía a 0 no se muestra como $ 0');
+  assert.equal(pesosResultado(Number.POSITIVE_INFINITY), '—');
 });

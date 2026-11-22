@@ -170,9 +170,9 @@ test('Caso A (papa EJEMPLO) · plan frente a lo aplicado (aplicaciones parciales
   igual(valor(kcl.aplicadoFormaKgHa!), 150, 'A26 K₂O aplicado');
   // Urea sin aplicaciones: aplicado 0 kg.
   assert.equal(valor(urea.aplicadoKg), 0);
-  // A27: costo registrado = solo lo escrito: 87.000 COP y 1 aplicación sin costo.
+  // A27: costo registrado = solo lo escrito: $ 87.000 y 1 aplicación sin costo.
   const costo = costoRegistrado(apps.filter(a => a.lineaId === 'l-dap'));
-  assert.equal(textoCostoRegistrado(costo, 2), '87.000 COP (1 aplicación sin costo registrado)');
+  assert.equal(textoCostoRegistrado(costo, 2), '$\u00a087.000 (1 aplicación sin costo registrado)');
 });
 
 // ======================= CASO B — SEGUNDO LOTE DE PAPA EJEMPLO (lote de 800 m²) =======================

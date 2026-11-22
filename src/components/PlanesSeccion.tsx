@@ -7,7 +7,7 @@ import { useSeleccionViva, type ModoSeccion } from './useSeleccionViva';
 import { calcularPlan } from '../lib/calculos';
 import { leerReferencias, repositorioAnalisis, repositorioPlanes, repositorioProductos, repositorioSeguimiento } from '../lib/db';
 import { productoDesdeReferencia, type FertilizanteReferencia } from '../lib/referencias';
-import { fechaDeMarca, fechaLegible, formatearExacto, formatearResultado } from '../lib/formato';
+import { fechaDeMarca, fechaLegible, formatearExacto, pesosResultado } from '../lib/formato';
 import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import type { DatosPlan } from '../lib/validacionPlan';
 import type { DatosRegistro } from '../lib/validacionSeguimiento';
@@ -21,7 +21,7 @@ type Lectura =
 
 function costoResumido(p: PlanVerificado): string {
   const total = calcularPlan(p).costoTotalCop;
-  return total.ok ? `Costo estimado ${formatearResultado(total.valor, 0)} COP` : 'Sin costo total';
+  return total.ok ? `Costo estimado ${pesosResultado(total.valor)}` : 'Sin costo total';
 }
 
 /** Planes de fertilización dentro de la ficha de un lote. Montar con key={lote.id}. */

@@ -28,24 +28,29 @@ interface Props {
 
 type Accion = EstadoPlan | 'copia';
 
-const ACCIONES: Record<Accion, { boton: string; explicacion: string; nota: string }> = {
+/** `boton` abre el formulario; `confirmar` lo guarda. */
+const ACCIONES: Record<Accion, { boton: string; confirmar: string; explicacion: string; nota: string }> = {
   revisado: {
-    boton: 'Marcar como revisado',
-    explicacion: 'Confirmas que revisaste las metas, sus fuentes y los productos. El plan deja de poder editarse; luego se puede aprobar o devolver a propuesta.',
+    boton: 'Ya se revisó este plan',
+    confirmar: 'Guardar como revisado',
+    explicacion: 'Confirmas que una persona que conoce el cultivo, idealmente tu asistente técnico, revisó las metas, sus fuentes y los productos. Escribe su nombre abajo. El plan deja de poder editarse; luego se puede aprobar o devolver a propuesta.',
     nota: 'Ej. Metas contrastadas con la fuente'
   },
   aprobado: {
-    boton: 'Aprobar el plan',
-    explicacion: 'El plan queda como registro de lo aprobado: ya no se edita ni se elimina. Para cambiarlo después se crea una copia.',
+    boton: 'Aprobar: este es el plan que voy a aplicar',
+    confirmar: 'Aprobar el plan',
+    explicacion: 'El plan queda como registro de lo que vas a aplicar: ya no se edita ni se elimina. Con el plan aprobado puedes registrar lo aplicado y sale en el informe. Para cambiarlo después se crea una copia.',
     nota: 'Ej. Aprobado para la siembra 2026-B'
   },
   propuesta: {
     boton: 'Devolver a propuesta',
+    confirmar: 'Devolver a propuesta',
     explicacion: 'El plan vuelve a poder editarse. Escribe en la nota qué hay que corregir.',
     nota: 'Ej. Falta confirmar la fuente del K₂O'
   },
   copia: {
     boton: 'Copiar como nueva propuesta',
+    confirmar: 'Crear la copia',
     explicacion: 'Se crea una propuesta nueva con las mismas metas y productos, y el área actual del lote. Este plan aprobado no cambia.',
     nota: 'Ej. Ajuste por cambio de precio'
   }
@@ -139,7 +144,7 @@ export function PlanEstado({ plan, calculo, onCambiarEstado, onCopiar }: Props) 
         <div className="form-actions">
           {/* Mientras se guarda no se puede cancelar: el cambio ya está en curso y no se deshace. */}
           <button type="button" className="btn btn-outline" disabled={guardando} onClick={() => elegir(null)}>Cancelar</button>
-          <button type="submit" className="btn btn-primary" disabled={guardando}>{guardando ? 'Guardando…' : `Confirmar: ${ACCIONES[accion].boton.toLowerCase()}`}</button>
+          <button type="submit" className="btn btn-primary" disabled={guardando}>{guardando ? 'Guardando…' : ACCIONES[accion].confirmar}</button>
         </div>
       </form>}
 

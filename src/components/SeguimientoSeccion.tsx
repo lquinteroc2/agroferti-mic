@@ -1,7 +1,7 @@
 import { Fragment, useState, type FormEvent } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { repositorioPlanes, repositorioSeguimiento } from '../lib/db';
-import { fechaLegible, formatearExacto } from '../lib/formato';
+import { fechaLegible, formatearExacto, pesos } from '../lib/formato';
 import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import { fechaLocalISO } from '../lib/validacion';
 import { useCapaAtras } from '../lib/navegacion';
@@ -20,6 +20,7 @@ import {
 import type { Lote, RegistroSeguimiento, RegistroTarea, RegistroVerificado, TipoRegistro } from '../types';
 import { OrigenBadge } from './ProductoDetalle';
 import { confirmar } from './Confirmacion';
+import { NotaObligatorios, Obligatorio } from './Campo';
 
 type Clase = 'observacion' | 'tarea';
 type Modo = { tipo: 'lista' } | { tipo: 'nuevo'; clase: Clase } | { tipo: 'editar'; id: string };
@@ -112,7 +113,7 @@ function RegistroForm({ clase, inicial, onGuardar, onCancelar }: {
       <h2 id="titulo-form-registro">{inicial ? 'Editar' : 'Registrar'} {clase === 'observacion' ? 'observación' : 'tarea'}</h2>
       <p className="muted">{clase === 'observacion'
         ? 'Anota lo que viste en el lote. Es un registro manual: la app no deduce mediciones ni diagnósticos de él.'
-        : 'Un recordatorio de algo por hacer en el lote. La app no envía notificaciones.'}</p>
+        : 'Un recordatorio de algo por hacer en el lote. La app no envía notificaciones.'} <NotaObligatorios /></p>
 
       {problemas.length > 0 && <div className="error-box" role="group" aria-labelledby="titulo-danados-registro">
         <strong id="titulo-danados-registro">Este registro tiene datos guardados dañados.</strong>
@@ -125,33 +126,33 @@ function RegistroForm({ clase, inicial, onGuardar, onCancelar }: {
 
       <div className="fields">
         {clase === 'observacion' ? <>
-          <label>Fecha
-            <input type="date" value={entrada.fecha} max={fechaLocalISO()} onChange={e => cambiar('fecha', e.target.value)} aria-invalid={!!errores.fecha} />
+          <label><Obligatorio>Fecha</Obligatorio>
+            <input type="date" value={entrada.fecha} max={fechaLocalISO()} onChange={e => cambiar('fecha', e.target.value)} aria-required="true" aria-invalid={!!errores.fecha} />
             {error('fecha')}
           </label>
-          <label className="full">Descripción
-            <textarea value={entrada.descripcion} onChange={e => cambiar('descripcion', e.target.value)} maxLength={MAX_DESCRIPCION} rows={3} placeholder="Ej. Hojas amarillas en el borde norte" aria-invalid={!!errores.descripcion} />
+          <label className="full"><Obligatorio>Descripción</Obligatorio>
+            <textarea value={entrada.descripcion} onChange={e => cambiar('descripcion', e.target.value)} maxLength={MAX_DESCRIPCION} rows={3} aria-required="true" placeholder="Ej. Hojas amarillas en el borde norte" aria-invalid={!!errores.descripcion} />
             {error('descripcion')}
           </label>
         </> : <>
-          <label className="full">Descripción
-            <textarea value={entrada.descripcion} onChange={e => cambiar('descripcion', e.target.value)} maxLength={MAX_DESCRIPCION} rows={2} placeholder="Ej. Aplicar la segunda fracción del plan" aria-invalid={!!errores.descripcion} />
+          <label className="full"><Obligatorio>Descripción</Obligatorio>
+            <textarea value={entrada.descripcion} onChange={e => cambiar('descripcion', e.target.value)} maxLength={MAX_DESCRIPCION} rows={2} aria-required="true" placeholder="Ej. Aplicar la segunda fracción del plan" aria-invalid={!!errores.descripcion} />
             {error('descripcion')}
           </label>
-          <label>Fecha prevista
-            <input type="date" value={entrada.fechaPrevista} onChange={e => cambiar('fechaPrevista', e.target.value)} aria-invalid={!!errores.fechaPrevista} />
+          <label><Obligatorio>Fecha prevista</Obligatorio>
+            <input type="date" value={entrada.fechaPrevista} onChange={e => cambiar('fechaPrevista', e.target.value)} aria-required="true" aria-invalid={!!errores.fechaPrevista} />
             {error('fechaPrevista')}
           </label>
-          <label>Estado
-            <select value={entrada.estado} onChange={e => cambiar('estado', e.target.value)} aria-invalid={!!errores.estado}>
+          <label><Obligatorio>Estado</Obligatorio>
+            <select value={entrada.estado} onChange={e => cambiar('estado', e.target.value)} aria-required="true" aria-invalid={!!errores.estado}>
               {!entrada.estado && <option value="">Elige…</option>}
               <option value="pendiente">Pendiente</option>
               <option value="hecha">Hecha</option>
             </select>
             {error('estado')}
           </label>
-          {entrada.estado === 'hecha' && <label>Fecha en que se hizo
-            <input type="date" value={entrada.fechaRealizada} max={fechaLocalISO()} onChange={e => cambiar('fechaRealizada', e.target.value)} aria-invalid={!!errores.fechaRealizada} />
+          {entrada.estado === 'hecha' && <label><Obligatorio>Fecha en que se hizo</Obligatorio>
+            <input type="date" value={entrada.fechaRealizada} max={fechaLocalISO()} onChange={e => cambiar('fechaRealizada', e.target.value)} aria-required="true" aria-invalid={!!errores.fechaRealizada} />
             {error('fechaRealizada')}
           </label>}
         </>}
@@ -159,8 +160,8 @@ function RegistroForm({ clase, inicial, onGuardar, onCancelar }: {
           <input value={entrada.responsable} onChange={e => cambiar('responsable', e.target.value)} maxLength={MAX_RESPONSABLE} placeholder="Quién lo registra" aria-invalid={!!errores.responsable} />
           {error('responsable')}
         </label>
-        <label>Origen del dato
-          <select value={entrada.origen} onChange={e => cambiar('origen', e.target.value)} aria-invalid={!!errores.origen}>
+        <label><Obligatorio>Origen del dato</Obligatorio>
+          <select value={entrada.origen} onChange={e => cambiar('origen', e.target.value)} aria-required="true" aria-invalid={!!errores.origen}>
             <option value="">Elige…</option>
             <option value="real">Dato real</option>
             <option value="ejemplo">EJEMPLO (ficticio)</option>
@@ -273,7 +274,7 @@ export function SeguimientoSeccion({ lote }: { lote: Lote }) {
     if (r.tipo === 'aplicacion') {
       return <li>
         <span className="registro-cabeza"><strong>Aplicación</strong> · {fechaLegible(r.fecha)} <OrigenBadge esEjemplo={r.esEjemplo} real="Dato real" /></span>
-        <span>{r.productoNombre}: {formatearExacto(r.cantidadKg)} kg{r.costoCop !== undefined ? ` · ${formatearExacto(r.costoCop)} COP` : ''}{r.responsable ? ` · ${r.responsable}` : ''}</span>
+        <span>{r.productoNombre}: {formatearExacto(r.cantidadKg)} kg{r.costoCop !== undefined ? ` · ${pesos(r.costoCop)}` : ''}{r.responsable ? ` · ${r.responsable}` : ''}</span>
         <small>Del {nombrePlan(r.planId)}. Se edita en el detalle del plan.{r.nota ? ` Nota: ${r.nota}` : ''}</small>
       </li>;
     }

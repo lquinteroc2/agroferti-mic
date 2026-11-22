@@ -1,6 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../lib/db';
-import { fechaHoraDeMarca, fechaLegible, formatearExacto, formatearNumero, formatearResultado, nombreCultivo } from '../lib/formato';
+import { fechaHoraDeMarca, fechaLegible, formatearExacto, formatearNumero, nombreCultivo, pesosResultado } from '../lib/formato';
 import type { DatosInforme } from '../lib/informe';
 import type { Lote } from '../types';
 import { AdvertenciasInforme, leerInformeLote, SeccionesLote } from './InformeLote';
@@ -9,7 +9,7 @@ type Lectura = { ok: true; lotes: Array<{ lote: Lote; informe: DatosInforme; des
 
 const costo = (d: DatosInforme): string => {
   const total = d.recomendacion?.calculo.costoTotalCop;
-  return total?.ok ? `${formatearResultado(total.valor, 0)} COP` : d.recomendacion ? 'Sin precio' : '—';
+  return total?.ok ? pesosResultado(total.valor) : d.recomendacion ? 'Sin precio' : '—';
 };
 
 /**

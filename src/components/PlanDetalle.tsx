@@ -1,6 +1,6 @@
 import { calcularPlan, type Calculo, type ResultadoLineaPlan } from '../lib/calculos';
 import { mismaForma } from '../lib/catalogoNutrientes';
-import { fechaDeMarca, fechaLegible, formatearDiferencia, formatearExacto, formatearResultado } from '../lib/formato';
+import { fechaDeMarca, fechaLegible, formatearDiferencia, formatearExacto, formatearResultado, pesos, pesosResultado } from '../lib/formato';
 import type { DatosRegistro } from '../lib/validacionSeguimiento';
 import type { AnalisisVerificado, EstadoPlan, PlanVerificado, RegistroAplicacion } from '../types';
 import { AplicacionesPlan } from './AplicacionesPlan';
@@ -25,7 +25,7 @@ interface Props {
 
 const sinDato = <span className="missing">No registrado</span>;
 const kg = (n: number) => formatearResultado(n, 2);
-const cop = (n: number) => formatearResultado(n, 0);
+const cop = (n: number) => pesosResultado(n);
 
 function Falta({ calculo }: { calculo: Extract<Calculo<number>, { ok: false }> }) {
   return <p className="calc-skip">No calculado: {calculo.mensaje}</p>;
@@ -54,12 +54,12 @@ function Linea({ r, areaM2 }: { r: ResultadoLineaPlan; areaM2?: number }) {
         ? <code>{kg(r.productoKgLote.valor)} kg ÷ {formatearExacto(p.presentacionKg!)} kg por bulto = <b>{formatearResultado(r.bultos.valor, 2)} bultos</b> <em>(número exacto; redondear lo decides tú)</em></code>
         : r.productoKgLote.ok && !r.bultos.ok && <Falta calculo={r.bultos} />}
       {r.precioKgCop.ok
-        ? <code>{formatearExacto(p.precioPresentacionCop!)} COP ÷ {formatearExacto(p.presentacionKg!)} kg = <b>{cop(r.precioKgCop.valor)} COP por kg</b> <em>(precio del {fechaLegible(p.fechaPrecio)})</em></code>
+        ? <code>{pesos(p.precioPresentacionCop!)} ÷ {formatearExacto(p.presentacionKg!)} kg = <b>{cop(r.precioKgCop.valor)} por kg</b> <em>(precio del {fechaLegible(p.fechaPrecio)})</em></code>
         : <Falta calculo={r.precioKgCop} />}
       {r.costoCop.ok && r.productoKgLote.ok && r.precioKgCop.ok &&
-        <code>{kg(r.productoKgLote.valor)} kg × {cop(r.precioKgCop.valor)} COP/kg = <b>{cop(r.costoCop.valor)} COP</b></code>}
+        <code>{kg(r.productoKgLote.valor)} kg × {cop(r.precioKgCop.valor)} por kg = <b>{cop(r.costoCop.valor)}</b></code>}
       {acompanantes.map(a => a.kgHa.ok
-        ? <code key={a.forma}>{kg(r.productoKgHa)} kg/ha × {formatearExacto(a.porcentaje)} % ÷ 100 = <b>{kg(a.kgHa.valor)} kg/ha de {a.forma}</b> <em>(aporte acompañante)</em></code>
+        ? <code key={a.forma}>{kg(r.productoKgHa)} kg/ha × {formatearExacto(a.porcentaje)} % ÷ 100 = <b>{kg(a.kgHa.valor)} kg/ha de {a.forma}</b> <em>(también aporta)</em></code>
         : <Falta key={a.forma} calculo={a.kgHa} />)}
     </div>
   );
@@ -119,23 +119,23 @@ export function PlanDetalle({
             <td>{r.meta ? r.meta.forma : '—'}</td>
             <td>{r.estado === 'calculada' && r.productoKgLote.ok ? kg(r.productoKgLote.valor) : <span className="missing">No calculado</span>}</td>
             <td>{r.estado === 'calculada' && r.bultos.ok ? formatearResultado(r.bultos.valor, 2) : '—'}</td>
-            <td>{r.estado === 'calculada' && r.costoCop.ok ? `${cop(r.costoCop.valor)} COP` : '—'}</td>
+            <td>{r.estado === 'calculada' && r.costoCop.ok ? cop(r.costoCop.valor) : '—'}</td>
           </tr>)}</tbody>
         </table></div>
-        <p className="plan-resumen-total">Costo total estimado: <strong>{calculo.costoTotalCop.ok ? `${cop(calculo.costoTotalCop.valor)} COP` : 'sin calcular (falta el precio de algún producto)'}</strong></p>
+        <p className="plan-resumen-total">Costo total estimado: <strong>{calculo.costoTotalCop.ok ? cop(calculo.costoTotalCop.valor) : 'sin calcular (falta el precio de algún producto)'}</strong></p>
       </section>}
 
       <section className="soil-block entered" aria-labelledby={`metas-plan-${plan.id}`}>
         <h4 id={`metas-plan-${plan.id}`}><span className="badge badge-entered">Datos ingresados</span> Metas y su fuente técnica</h4>
         <dl className="data-list">
           <div><dt>Área guardada con el plan</dt><dd>{area !== undefined ? `${formatearExacto(area)} m²` : <span className="missing">Área no válida</span>}</dd></div>
-          <div><dt>Análisis de referencia</dt><dd>{!plan.analisisReferenciaId ? 'Ninguno' : referencia ? `Análisis del ${fechaLegible(referencia.fechaAnalisis)}` : <span className="missing">Eliminado o no disponible</span>}</dd></div>
+          <div><dt>Análisis para proponer las metas</dt><dd>{!plan.analisisReferenciaId ? 'Ninguno' : referencia ? `Análisis del ${fechaLegible(referencia.fechaAnalisis)}` : <span className="missing">Eliminado o no disponible</span>}</dd></div>
           <div><dt>Propuesta creada</dt><dd>{creacion ? `${fechaDeMarca(creacion.fecha)}${creacion.responsable ? ` · ${creacion.responsable}` : ''}` : sinDato}</dd></div>
           {plan.planOrigenId && <div><dt>Copia de</dt><dd>{origen
             ? <><button type="button" className="link-button" onClick={origen.abrir}>{origen.nombre}</button> <EstadoPlanBadge estado={origen.estado} /></>
             : <span className="missing">Plan eliminado o no disponible</span>}</dd></div>}
         </dl>
-        {plan.analisisReferenciaId && <p className="hint">El análisis de referencia es solo contexto: no entra en ningún cálculo y la app no deriva metas de él.</p>}
+        {referencia && <p className="hint">Con este análisis la app propone metas mientras editas la propuesta. Las cantidades se calculan con las metas guardadas en el plan, no directamente con el análisis.</p>}
         {plan.metas.length === 0 ? <p className="muted">Este plan aún no tiene metas.</p>
           : <div className="table-wrap"><table className="soil-table tabla-ancha">
             <caption className="sr-only">Metas nutricionales escritas por el usuario</caption>
@@ -169,7 +169,7 @@ export function PlanDetalle({
           <p>Suma de lo que aportan todos los productos del plan frente a cada meta. Es solo aritmética: la app no ajusta cantidades ni juzga si la diferencia es adecuada.</p>
           <div className="table-wrap"><table className="soil-table">
             <caption className="sr-only">Meta frente a lo aportado por forma química</caption>
-            <thead><tr><th scope="col">Forma química</th><th scope="col">Meta (kg/ha)</th><th scope="col">Aportado (kg/ha)</th><th scope="col">Aportado − meta</th></tr></thead>
+            <thead><tr><th scope="col">Forma química</th><th scope="col">Meta (kg/ha)</th><th scope="col">Aportan los productos (kg/ha)</th><th scope="col">Diferencia con la meta</th></tr></thead>
             <tbody>{calculo.resumen.map(x => <tr key={`${x.elemento}-${x.forma}`}>
               <td>{x.forma} <small>({x.elemento})</small></td>
               <td>{x.metaKgHa !== undefined ? formatearExacto(x.metaKgHa) : '—'}</td>
@@ -183,7 +183,7 @@ export function PlanDetalle({
         <div className="calc-step">
           <strong>Costo total estimado</strong>
           {calculo.costoTotalCop.ok
-            ? <code>Suma del costo de cada producto = <b>{cop(calculo.costoTotalCop.valor)} COP</b></code>
+            ? <code>Suma del costo de cada producto = <b>{cop(calculo.costoTotalCop.valor)}</b></code>
             : <Falta calculo={calculo.costoTotalCop} />}
         </div>
       </section>

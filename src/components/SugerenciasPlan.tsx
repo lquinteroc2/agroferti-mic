@@ -44,7 +44,7 @@ export function SugerenciasPlan({ cultivo, analisis, reglas, descargadas, onUsar
               {resultado.regiones.map(r => <option key={r} value={r}>{r}</option>)}
             </select>
           </label>}
-          {!analisis && <p className="muted">Elige arriba el <strong>análisis de suelo de referencia</strong> para ver las sugerencias que dependen del fósforo, el potasio u otros resultados.</p>}
+          {!analisis && <p className="muted">Elige arriba <strong>con qué análisis te proponemos las metas</strong> para ver las sugerencias que dependen del fósforo, el potasio u otros resultados.</p>}
           {resultado.sugerencias.length > 1 && onUsarTodas && <button type="button" className="btn btn-primary btn-small" onClick={() => onUsarTodas(resultado.sugerencias)}>Usar las {resultado.sugerencias.length} metas propuestas</button>}
           {resultado.sugerencias.length > 0 && <ul className="sugerencias-lista">
             {resultado.sugerencias.map((s, i) => <li key={`${s.regla.id}-${s.forma}-${i}`}>

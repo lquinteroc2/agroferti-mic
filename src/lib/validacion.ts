@@ -17,6 +17,12 @@ import { numeroATexto } from './formato.ts';
 
 export const UNIDADES_NUTRIENTE: ReadonlyArray<UnidadNutriente> = ['mg/kg', 'cmol(+)/kg'];
 
+/** Texto de cada unidad en las listas, con su nombre equivalente en los informes (el valor guardado no cambia). */
+export const ETIQUETA_UNIDAD: Readonly<Record<UnidadNutriente, string>> = {
+  'mg/kg': 'mg/kg (ppm)',
+  'cmol(+)/kg': 'cmol(+)/kg (meq/100 g)'
+};
+
 /** Límite de la app para revisar listas (no agronómico): evita bloquear el dispositivo con listas dañadas enormes. */
 export const MAX_RESULTADOS = 500;
 
@@ -588,7 +594,7 @@ export function estadoDocumentacion(a: AnalisisVerificado): EstadoDocumentacion 
   const trazabilidadPendiente = lista.length > 0 && !a.metodoLaboratorio;
   if ((a.problemas ?? []).length || lista.some(n => !n)) pendientes.push('Hay datos guardados que deben corregirse.');
   if (!a.laboratorio) pendientes.push('Falta el nombre del laboratorio.');
-  if (trazabilidadPendiente) pendientes.push('Trazabilidad pendiente: hay resultados de nutrientes sin método de laboratorio.');
+  if (trazabilidadPendiente) pendientes.push('Hay resultados de nutrientes sin método de laboratorio.');
   else if (!a.metodoLaboratorio) pendientes.push('Falta el método de análisis.');
   if (validos === 0 && a.ph === undefined) pendientes.push('No hay resultados de laboratorio válidos registrados.');
   return { documentado: pendientes.length === 0, pendientes, trazabilidadPendiente };

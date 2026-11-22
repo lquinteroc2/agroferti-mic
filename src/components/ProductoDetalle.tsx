@@ -1,5 +1,5 @@
 import { precioPorKgCop } from '../lib/calculos';
-import { fechaLegible, formatearExacto, formatearResultado } from '../lib/formato';
+import { fechaLegible, formatearExacto, pesos, pesosResultado } from '../lib/formato';
 import type { ProductoFertilizante, ProductoVerificado } from '../types';
 
 interface Props {
@@ -29,7 +29,7 @@ function PrecioPorKg({ p }: { p: ProductoFertilizante }) {
     return <div className="missing-box"><strong>Falta un dato para calcular:</strong> {precio === undefined ? 'el producto no tiene precio registrado.' : 'faltan los kg por bulto.'} Sin precio no se calcula el costo en los planes; la cantidad de producto sí.</div>;
   }
   try {
-    return <code>{formatearExacto(precio)} COP ÷ {formatearExacto(kg)} kg = <b>{formatearResultado(precioPorKgCop(precio, kg))} COP por kg</b></code>;
+    return <code>{pesos(precio)} ÷ {formatearExacto(kg)} kg = <b>{pesosResultado(precioPorKgCop(precio, kg), 2)} por kg</b></code>;
   } catch (error) {
     return <div className="missing-box"><strong>No se puede calcular:</strong> {error instanceof Error ? error.message : 'revisa el precio y los kg del bulto.'}</div>;
   }
@@ -76,7 +76,7 @@ export function ProductoDetalle({ producto: v, onEditar, onEliminar }: Props) {
           </table></div>
           <dl className="data-list">
             <div><dt>Kg por bulto</dt><dd>{p.presentacionKg !== undefined ? `${formatearExacto(p.presentacionKg)} kg` : sinDato}</dd></div>
-            <div><dt>Precio del bulto</dt><dd>{p.precioPresentacionCop !== undefined ? `${formatearExacto(p.precioPresentacionCop)} COP` : sinDato}</dd></div>
+            <div><dt>Precio del bulto</dt><dd>{p.precioPresentacionCop !== undefined ? pesos(p.precioPresentacionCop) : sinDato}</dd></div>
             <div><dt>Fecha del precio</dt><dd>{p.fechaPrecio ? fechaLegible(p.fechaPrecio) : sinDato}</dd></div>
             {p.fuentePrecio && <div><dt>Fuente del precio</dt><dd>{p.fuentePrecio}</dd></div>}
             {p.registroIca && <div><dt>Registro ICA</dt><dd>{p.registroIca}</dd></div>}

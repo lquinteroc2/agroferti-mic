@@ -20,6 +20,7 @@ import type { FertilizanteReferencia, ReglaDosis } from '../lib/referencias';
 import { ProductosSugeridos } from './ProductosSugeridos';
 import type { Sugerencia } from '../lib/sugerencias';
 import { citaDeSugerencia } from '../lib/sugerencias';
+import { NotaObligatorios, Obligatorio } from './Campo';
 
 export interface OpcionesPlanFormulario {
   actualizarArea: boolean;
@@ -183,7 +184,7 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
     <form className="form-card" onSubmit={enviar} noValidate aria-labelledby="titulo-form-plan">
       <div className="section-kicker">PLAN DE FERTILIZACIÓN</div>
       <h2 id="titulo-form-plan">{inicial ? 'Editar propuesta de plan' : 'Nueva propuesta de plan'}</h2>
-      <p className="muted">La app te <strong>propone las metas</strong> (cuántos kg/ha de cada nutriente) según tu análisis de suelo y las referencias técnicas para papa, y te <strong>sugiere fertilizantes</strong> con registro ICA que las cubren. Con eso calcula la dosis de cada producto (kg/ha y kg del lote), los bultos y el costo. Revisa la propuesta con un agrónomo; tú decides qué guardar.</p>
+      <p className="muted">La app te <strong>propone las metas</strong> (cuántos kg/ha de cada nutriente) según tu análisis de suelo y las referencias técnicas para papa, y te <strong>sugiere fertilizantes</strong> con registro ICA que las cubren. Con eso calcula la dosis de cada producto (kg/ha y kg del lote), los bultos y el costo. Revisa la propuesta con un agrónomo; tú decides qué guardar. <NotaObligatorios /></p>
 
       <fieldset className="form-group">
         <legend>Plan</legend>
@@ -192,13 +193,13 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
             <input value={entrada.nombre} onChange={e => { setEntrada(x => ({ ...x, nombre: e.target.value })); corregido('nombre'); }} maxLength={80} placeholder="Ej. Siembra 2026-B" aria-invalid={!!errores.nombre} aria-describedby={errores.nombre ? 'err-nombre-plan' : undefined} />
             {errores.nombre && <span id="err-nombre-plan" className="field-error">{errores.nombre}</span>}
           </label>
-          <label>Análisis de suelo de referencia
+          <label>¿Con qué análisis te proponemos las metas?
             <select value={entrada.analisisReferenciaId} onChange={e => setEntrada(x => ({ ...x, analisisReferenciaId: e.target.value }))}>
               <option value="">Ninguno</option>
               {analisis.filter(a => a.problemas.length === 0 || a.id === entrada.analisisReferenciaId).map(a =>
                 <option key={a.id} value={a.id}>Análisis del {fechaLegible(a.fechaAnalisis)}{a.laboratorio ? ` · ${a.laboratorio}` : ''}</option>)}
             </select>
-            <small>Sirve para sugerir metas con las referencias técnicas (abajo). Las cantidades se calculan con las metas que escribas.</small>
+            <small>Con él, la app busca las metas en las referencias técnicas (abajo). Las cantidades se calculan con las metas que guardes.</small>
             {referenciaPerdida && <span className="field-warning">El análisis que este plan tenía como referencia ya no existe. Al guardar, el plan quedará sin referencia.</span>}
           </label>
           {!inicial && <label>Elaborado por
@@ -212,7 +213,7 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
 
       <fieldset className="form-group">
         <legend>Metas y productos</legend>
-        <p className="hint">Cada meta tiene el nutriente, su <strong>forma química</strong>, la cantidad en kg/ha y de dónde sale. Para cada una, elige el producto que la cubrirá: la app te muestra los fertilizantes que aportan esa forma. Solo se calcula si la meta y la etiqueta usan la misma forma química (una meta en P no se calcula con una etiqueta en P₂O₅). Puedes guardar una meta sin producto y completarla después.</p>
+        <p className="hint">Cada meta tiene el nutriente, su <strong>forma química</strong>, la cantidad en kg/ha y de dónde sale. Para cada una, elige el producto que la cubrirá: la app te muestra los fertilizantes que aportan esa forma. Solo se calcula si la meta y la etiqueta usan la misma forma química (una meta en P no se calcula con una etiqueta en P₂O₅). Puedes guardar una meta sin producto y completarla después; los demás datos de cada meta son obligatorios.</p>
         {productos.length === 0 && <p className="hint hint-warn">Tu catálogo no tiene productos disponibles. Puedes guardar las metas ahora y registrar los productos en <strong>Productos</strong>.</p>}
         {entrada.metas.map((m, i) => {
           const el = m.elementoLibre ? undefined : buscarElemento(m.elemento);
@@ -226,38 +227,38 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
             <fieldset className="nutrient-row" key={m.clave} aria-describedby={error ? idError : undefined}>
               <legend className="nutrient-legend">Meta {i + 1}</legend>
               <div className="nutrient-fields fields meta-fields">
-                <label>Elemento
-                  <select value={m.elementoLibre ? OTRO : m.elemento} onChange={e => elegirElemento(i, e.target.value)} aria-invalid={!!error}>
+                <label><Obligatorio>Elemento</Obligatorio>
+                  <select value={m.elementoLibre ? OTRO : m.elemento} onChange={e => elegirElemento(i, e.target.value)} aria-required="true" aria-invalid={!!error}>
                     <option value="">Elige…</option>
                     {CATALOGO_NUTRIENTES.map(n => <option key={n.nombre} value={n.nombre}>{n.nombre} ({n.simbolo})</option>)}
                     <option value={OTRO}>{OPCION_OTRO}</option>
                   </select>
                 </label>
-                {m.elementoLibre && <label>Nombre del elemento
-                  <input value={m.elemento} onChange={e => cambiarFila(i, { elemento: e.target.value })} maxLength={40} placeholder="Como aparece en la fuente" aria-invalid={!!error} />
+                {m.elementoLibre && <label><Obligatorio>Nombre del elemento</Obligatorio>
+                  <input value={m.elemento} onChange={e => cambiarFila(i, { elemento: e.target.value })} maxLength={40} placeholder="Como aparece en la fuente" aria-required="true" aria-invalid={!!error} />
                 </label>}
-                {el && <label>Forma química
-                  <select value={m.formaLibre ? OTRO : m.forma} onChange={e => elegirForma(i, e.target.value)} aria-invalid={!!error}>
+                {el && <label><Obligatorio>Forma química</Obligatorio>
+                  <select value={m.formaLibre ? OTRO : m.forma} onChange={e => elegirForma(i, e.target.value)} aria-required="true" aria-invalid={!!error}>
                     <option value="">Elige…</option>
                     {el.formas.map(f => <option key={f} value={f}>{f}</option>)}
                     <option value={OTRO}>Otra forma / No reconocida</option>
                   </select>
                 </label>}
-                {(m.elementoLibre || m.formaLibre) && <label>Forma química (texto de la fuente)
-                  <input value={m.forma} onChange={e => cambiarFila(i, { forma: e.target.value })} maxLength={20} placeholder="Ej. SO₃" aria-invalid={!!error} />
+                {(m.elementoLibre || m.formaLibre) && <label><Obligatorio>Forma química (texto de la fuente)</Obligatorio>
+                  <input value={m.forma} onChange={e => cambiarFila(i, { forma: e.target.value })} maxLength={20} placeholder="Ej. SO₃" aria-required="true" aria-invalid={!!error} />
                 </label>}
-                <label>Meta (kg/ha)
-                  <input inputMode="decimal" value={m.kgHa} onChange={e => cambiarCampo(i, 'kgHa', e.target.value)} placeholder={m.rangoSugerido ? `Entre ${m.rangoSugerido.min} y ${m.rangoSugerido.max}` : 'Según tu fuente'} aria-invalid={!!error} />
+                <label><Obligatorio>Meta (kg/ha)</Obligatorio>
+                  <input inputMode="decimal" value={m.kgHa} onChange={e => cambiarCampo(i, 'kgHa', e.target.value)} aria-required="true" placeholder={m.rangoSugerido ? `Entre ${m.rangoSugerido.min} y ${m.rangoSugerido.max}` : 'Según tu fuente'} aria-invalid={!!error} />
                   {m.rangoSugerido && <small>Propuesta: punto medio del rango de la referencia ({m.rangoSugerido.min} a {m.rangoSugerido.max} kg/ha). Puedes cambiarla.</small>}
                 </label>
-                <label>Fuente técnica
-                  <input value={m.fuente} onChange={e => cambiarCampo(i, 'fuente', e.target.value)} maxLength={200} placeholder="Documento, profesional o laboratorio" aria-invalid={!!error} />
+                <label><Obligatorio>Fuente técnica</Obligatorio>
+                  <input value={m.fuente} onChange={e => cambiarCampo(i, 'fuente', e.target.value)} aria-required="true" maxLength={200} placeholder="Documento, profesional o laboratorio" aria-invalid={!!error} />
                 </label>
-                <label>Fecha de la fuente
-                  <input type="date" value={m.fechaFuente} max={fechaLocalISO()} onChange={e => cambiarCampo(i, 'fechaFuente', e.target.value)} aria-invalid={!!error} />
+                <label><Obligatorio>Fecha de la fuente</Obligatorio>
+                  <input type="date" aria-required="true" value={m.fechaFuente} max={fechaLocalISO()} onChange={e => cambiarCampo(i, 'fechaFuente', e.target.value)} aria-invalid={!!error} />
                 </label>
-                <label>Origen de la meta
-                  <select value={m.origen} onChange={e => cambiarCampo(i, 'origen', e.target.value)} aria-invalid={!!error}>
+                <label><Obligatorio>Origen de la meta</Obligatorio>
+                  <select value={m.origen} onChange={e => cambiarCampo(i, 'origen', e.target.value)} aria-required="true" aria-invalid={!!error}>
                     <option value="">Elige…</option>
                     <option value="real">Fuente técnica real</option>
                     <option value="ejemplo">EJEMPLO (ficticia)</option>

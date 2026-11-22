@@ -3,6 +3,7 @@ import { CATALOGO_NUTRIENTES, OPCION_OTRO, buscarElemento } from '../lib/catalog
 import { formatearNumero } from '../lib/formato';
 import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import {
+  ETIQUETA_UNIDAD,
   UNIDADES_NUTRIENTE,
   fechaLocalISO,
   filaNutrienteVacia,
@@ -17,6 +18,7 @@ import type { AnalisisVerificado, NutrienteLeido, ProblemaDato } from '../types'
 import type { DatoLeido } from '../lib/lecturaAnalisis';
 import { LecturaAnalisis } from './LecturaAnalisis';
 import { MetodosLaboratorio } from './MetodosLaboratorio';
+import { Obligatorio } from './Campo';
 
 export interface OpcionesFormulario {
   actualizarArea: boolean;
@@ -257,7 +259,7 @@ export function AnalisisSueloForm({ inicial, areaActualM2, onGuardar, onCancelar
 
       <fieldset className="form-group">
         <legend>Nutrientes reportados</legend>
-        <p className="hint">Elige el elemento y la <strong>forma química</strong> exactamente como la reporta el laboratorio: P no es lo mismo que P₂O₅, ni K es lo mismo que K₂O, y la app no convierte entre formas. Si tu informe usa otra forma, elige “{OPCION_OTRO}” y escríbela tal cual. Los valores en cmol(+)/kg se guardan sin convertir. Para valores muy pequeños puedes usar notación científica (por ejemplo, 1,5e-3).</p>
+        <p className="hint">Elige el elemento y la <strong>forma química</strong> exactamente como la reporta el laboratorio: P no es lo mismo que P₂O₅, ni K es lo mismo que K₂O, y la app no convierte entre formas. Si tu informe usa otra forma, elige “{OPCION_OTRO}” y escríbela tal cual. Si tu informe dice <strong>ppm</strong>, elige mg/kg (es lo mismo); si dice <strong>meq/100 g</strong>, elige cmol(+)/kg (también es lo mismo). Los valores en cmol(+)/kg se guardan sin convertir. Cada resultado necesita elemento, forma química, valor y unidad; una fila vacía no se guarda. Para valores muy pequeños puedes usar notación científica (por ejemplo, 1,5e-3).</p>
         {entrada.nutrientes.map((n, i) => {
           const el = n.elementoLibre ? undefined : buscarElemento(n.elemento);
           const error = errores.nutrientes?.[i];
@@ -276,33 +278,33 @@ export function AnalisisSueloForm({ inicial, areaActualM2, onGuardar, onCancelar
                 </label>}
               </div>}
               <div className="nutrient-fields fields">
-                <label>Elemento
-                  <select value={n.elementoLibre ? OTRO : n.elemento} onChange={e => elegirElemento(i, e.target.value)} aria-invalid={!!error}>
+                <label><Obligatorio>Elemento</Obligatorio>
+                  <select value={n.elementoLibre ? OTRO : n.elemento} onChange={e => elegirElemento(i, e.target.value)} aria-required="true" aria-invalid={!!error}>
                     <option value="">Elige…</option>
                     {CATALOGO_NUTRIENTES.map(c => <option key={c.nombre} value={c.nombre}>{c.nombre} ({c.simbolo})</option>)}
                     <option value={OTRO}>{OPCION_OTRO}</option>
                   </select>
                 </label>
-                {n.elementoLibre && <label>Nombre del elemento
-                  <input value={n.elemento} onChange={e => cambiarFila(i, { elemento: e.target.value })} maxLength={40} placeholder="Como aparece en el informe" aria-invalid={!!error} />
+                {n.elementoLibre && <label><Obligatorio>Nombre del elemento</Obligatorio>
+                  <input value={n.elemento} onChange={e => cambiarFila(i, { elemento: e.target.value })} maxLength={40} placeholder="Como aparece en el informe" aria-required="true" aria-invalid={!!error} />
                 </label>}
-                {el && <label>Forma química
-                  <select value={n.formaLibre ? OTRO : n.forma} onChange={e => elegirForma(i, e.target.value)} aria-invalid={!!error}>
+                {el && <label><Obligatorio>Forma química</Obligatorio>
+                  <select value={n.formaLibre ? OTRO : n.forma} onChange={e => elegirForma(i, e.target.value)} aria-required="true" aria-invalid={!!error}>
                     <option value="">Elige…</option>
                     {el.formas.map(f => <option key={f} value={f}>{f}</option>)}
                     <option value={OTRO}>Otra forma / No reconocida</option>
                   </select>
                 </label>}
-                {(n.elementoLibre || n.formaLibre) && <label>Forma química (texto del informe)
-                  <input value={n.forma} onChange={e => cambiarFila(i, { forma: e.target.value })} maxLength={20} placeholder="Ej. H₂PO₄⁻" aria-invalid={!!error} />
+                {(n.elementoLibre || n.formaLibre) && <label><Obligatorio>Forma química (texto del informe)</Obligatorio>
+                  <input value={n.forma} onChange={e => cambiarFila(i, { forma: e.target.value })} maxLength={20} placeholder="Ej. H₂PO₄⁻" aria-required="true" aria-invalid={!!error} />
                 </label>}
-                <label>Valor
-                  <input inputMode="decimal" value={n.valor} onChange={e => cambiarFila(i, { valor: e.target.value })} placeholder="Ej. 20" aria-invalid={!!error} />
+                <label><Obligatorio>Valor</Obligatorio>
+                  <input inputMode="decimal" value={n.valor} onChange={e => cambiarFila(i, { valor: e.target.value })} placeholder="Ej. 20" aria-required="true" aria-invalid={!!error} />
                 </label>
-                <label>Unidad
-                  <select value={n.unidad} onChange={e => cambiarFila(i, { unidad: e.target.value })} aria-invalid={!!error}>
+                <label><Obligatorio>Unidad</Obligatorio>
+                  <select value={n.unidad} onChange={e => cambiarFila(i, { unidad: e.target.value })} aria-required="true" aria-invalid={!!error}>
                     {!n.unidad && <option value="">Elige…</option>}
-                    {UNIDADES_NUTRIENTE.map(u => <option key={u} value={u}>{u}</option>)}
+                    {UNIDADES_NUTRIENTE.map(u => <option key={u} value={u}>{ETIQUETA_UNIDAD[u]}</option>)}
                   </select>
                 </label>
               </div>

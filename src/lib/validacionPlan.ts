@@ -198,7 +198,7 @@ function leerCamposParciales(r: Record<string, unknown>, problemas: ProblemaDato
   const contenido = lista ? leerContenido(lista, problemas, ruta, contexto) : [];
   if (lista && lista.length === 0) l.nota('contenido', 'Contenido declarado', 'La etiqueta debe declarar al menos un nutriente.');
   const presentacionKg = l.numero('presentacionKg', 'Kg por bulto', { positivo: true });
-  const precioPresentacionCop = l.numero('precioPresentacionCop', 'Precio del bulto (COP)');
+  const precioPresentacionCop = l.numero('precioPresentacionCop', 'Precio del bulto (pesos)');
   const fechaPrecio = l.fecha('fechaPrecio', 'Fecha del precio');
   if (!ausente(r.precioPresentacionCop)) {
     if (ausente(r.presentacionKg)) l.nota('presentacionKg', 'Kg por bulto', 'Es obligatorio cuando se registra el precio.');
