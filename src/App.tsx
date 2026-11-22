@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { AnalisisSueloSeccion } from './components/AnalisisSueloSeccion';
 import { HistorialLoteSeccion } from './components/HistorialLoteSeccion';
@@ -17,7 +17,9 @@ import { actualizarLote, db, eliminarLoteYRelacionados, leerEstadoNube, leerRefe
 import { alVolver, reemplazarPantalla, registrarPantalla, volverPantalla } from './lib/navegacion';
 import { sesionVencida } from './lib/nube';
 import { contarTareasPendientes } from './lib/validacionSeguimiento';
-import { problemaLote } from './lib/validacion';
+import { fechaLocalISO, problemaLote } from './lib/validacion';
+import { avancesPorLote } from './lib/avance';
+import { PasosLote } from './components/PasosLote';
 import { ErrorPersistencia } from './lib/repositorioAnalisis';
 import { areaM2AHa } from './lib/calculos';
 import { fechaLegible, formatearNumero, nombreCultivo } from './lib/formato';
@@ -33,7 +35,7 @@ function useEnLinea(): boolean {
   }, () => navigator.onLine);
 }
 
-type Vista = 'inicio' | 'nuevo' | 'editar' | 'detalle' | 'informe' | 'informe-general' | 'productos' | 'ayuda' | 'glosario';
+type Vista = 'inicio' | 'nuevo' | 'editar' | 'detalle' | 'informe' | 'informe-general' | 'productos' | 'ayuda' | 'glosario' | 'cuenta';
 interface Pantalla { vista: Vista; loteId: string | null }
 
 export default function App() {
@@ -47,10 +49,16 @@ export default function App() {
   const lotes = useLiveQuery(() => db.lotes.orderBy('createdAt').reverse().toArray(), []);
   const activo = lotes?.find(l => l.id === loteId);
   const totalArea = (lotes ?? []).reduce((sum, l) => sum + l.areaM2, 0);
-  // Tareas pendientes de todos los lotes. Se cuentan al mostrar la pantalla (no dentro de la consulta)
-  // para que "fecha pasada" use la fecha de hoy aunque la app haya quedado abierta desde ayer.
-  const registros = useLiveQuery(() => db.registros.toArray(), []);
-  const tareas = registros && lotes ? contarTareasPendientes(registros, new Set(lotes.map(l => l.id))) : undefined;
+  // Datos de todos los lotes para su avance (siguiente paso) y las tareas pendientes. Se calculan al
+  // mostrar la pantalla, no dentro de la consulta, para que "fecha pasada" use la fecha de hoy aunque
+  // la app haya quedado abierta desde ayer.
+  const crudos = useLiveQuery(async () => {
+    const [analisis, planes, registros, ciclos] = await Promise.all([db.analisisSuelos.toArray(), db.planes.toArray(), db.registros.toArray(), db.ciclos.toArray()]);
+    return { analisis, planes, registros, ciclos };
+  }, []);
+  const hoy = fechaLocalISO();
+  const tareas = useMemo(() => (crudos && lotes ? contarTareasPendientes(crudos.registros, new Set(lotes.map(l => l.id))) : undefined), [crudos, lotes, hoy]);
+  const avances = useMemo(() => (crudos && lotes ? avancesPorLote(lotes.map(l => l.id), crudos) : undefined), [crudos, lotes, hoy]);
   const estadoNube = useLiveQuery(leerEstadoNube, [], null);
   // Reglas de las referencias técnicas (para ofrecer la zona del lote).
   // undefined mientras se lee; null si el dispositivo aún no descargó las referencias.
@@ -161,14 +169,16 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <Encabezado seccion={vista === 'productos' || vista === 'ayuda' ? vista : vista === 'glosario' ? 'ayuda' : 'inicio'} enRaiz={vista === 'inicio' || vista === 'productos' || vista === 'ayuda'} onIr={ir} estado={estadoNube} />
+      <Encabezado seccion={vista === 'productos' || vista === 'ayuda' ? vista : vista === 'glosario' ? 'ayuda' : vista === 'cuenta' ? 'cuenta' : 'inicio'}
+        enRaiz={vista === 'inicio' || vista === 'productos' || vista === 'ayuda' || vista === 'cuenta'} onIr={ir} estado={estadoNube} enLinea={enLinea} />
 
       <main className="container main-content">
         {vencida && <div role="status" className="notice notice-error"><span aria-hidden="true">!</span>Tu sesión venció. Puedes seguir trabajando sin internet; cuando tengas conexión tendrás que ingresar de nuevo para sincronizar.</div>}
         {mensaje && <div role={mensajeEsError ? 'alert' : 'status'} className={`notice ${mensajeEsError ? 'notice-error' : 'notice-ok'}`}><span aria-hidden="true">{mensajeEsError ? '!' : '✓'}</span>{mensaje}<button onClick={() => setMensaje('')} aria-label="Cerrar aviso">×</button></div>}
 
         {vista === 'inicio' && <>
-          <section className="hero">
+          {/* La presentación solo se muestra sin lotes; con lotes, la pantalla empieza por ellos. */}
+          {lotes?.length === 0 && <section className="hero">
             <div className="hero-text">
               <div className="eyebrow">GRUPO 1 · PROTOTIPO ACADÉMICO</div>
               <h1>Tu cultivo, más organizado.</h1>
@@ -176,26 +186,33 @@ export default function App() {
               <button className="btn btn-light" onClick={() => ir('nuevo')}>+ Crear un lote</button>
             </div>
             <div className="hero-deco" aria-hidden="true"><div className="hill hill-one"/><div className="hill hill-two"/><span className="decor-sprout">✳</span></div>
-          </section>
-          <section className="stats" aria-label="Resumen de tus lotes">
+          </section>}
+          {!!lotes?.length && <section className="stats" aria-label="Resumen de tus lotes">
             <div className="stat"><span>Lotes registrados</span><strong>{lotes?.length ?? '—'}</strong><small>Guardados en tu cuenta</small></div>
             <div className="stat"><span>Área total</span><strong>{lotes ? formatearNumero(totalArea) : '—'} <em>m²</em></strong><small>{lotes ? formatearNumero(totalArea / 10_000, 4) : '—'} ha</small></div>
             <div className="stat"><span>Tareas pendientes</span><strong>{tareas ? tareas.pendientes : '—'}</strong><small>{tareas?.vencidas ? `${tareas.vencidas} con la fecha pasada` : 'En todos tus lotes'}</small></div>
-          </section>
+          </section>}
           <section className="section-header"><div><div className="section-kicker">TU UNIDAD PRODUCTIVA</div><h2>Mis lotes</h2>{lotes?.length === 0 && <p>Crea un lote para comenzar a organizar la información de tu cultivo.</p>}</div><div className="detalle-botones">{!!lotes?.length && <button className="btn btn-outline" onClick={() => ir('informe-general')}>Informe de todos los lotes (PDF)</button>}<button className="btn btn-outline" onClick={() => ir('nuevo')}>+ Nuevo lote</button></div></section>
           {lotes === undefined ? <div className="empty"><p>Cargando tus lotes…</p></div>
             : lotes.length === 0 ? <div className="empty"><div className="empty-icon" aria-hidden="true">◎</div><h3>Aún no tienes lotes registrados</h3><p>Crea tu primer lote de papa para empezar a organizar su información.</p><button className="btn btn-primary" onClick={() => ir('nuevo')}>Crear mi primer lote</button></div>
             : <div className="lots-grid">{lotes.map(l => <button key={l.id} className="lot-card" onClick={() => ir('detalle', l.id)}>
-              <span className="crop-icon" aria-hidden="true">{l.cultivo === 'papa' ? '●' : '✳'}</span><span className="lot-card-content"><strong>{l.nombre}</strong><span>{nombreCultivo(l.cultivo)} · {formatearNumero(l.areaM2)} m²</span><small>Siembra: {fechaLegible(l.fechaSiembra)}</small></span><span className="arrow" aria-hidden="true">›</span>
+              <span className="crop-icon" aria-hidden="true">{l.cultivo === 'papa' ? '●' : '✳'}</span><span className="lot-card-content"><strong>{l.nombre}</strong><span>{nombreCultivo(l.cultivo)} · {formatearNumero(l.areaM2)} m²</span><small>Siembra: {fechaLegible(l.fechaSiembra)}</small>
+                {avances?.get(l.id) && (() => {
+                  const a = avances.get(l.id)!;
+                  return <span className={`lot-siguiente${a.siguiente.accion === 'cosechar' ? ' lot-siguiente-ok' : ''}`}>
+                    {a.siguiente.corto}{a.tareas.pendientes > 0 && ` · ${a.tareas.pendientes} ${a.tareas.pendientes === 1 ? 'tarea pendiente' : 'tareas pendientes'}`}
+                  </span>;
+                })()}</span><span className="arrow" aria-hidden="true">›</span>
             </button>)}</div>}
-          {estadoNube && <NubeSeccion estado={estadoNube} />}
         </>}
+        {vista === 'cuenta' && <div className="page-narrow"><button className="back" onClick={() => ir('inicio')}>← Volver a mis lotes</button><NubeSeccion estado={estadoNube} /></div>}
 
         {vista === 'nuevo' && <div className="page-narrow"><button className="back" onClick={() => ir('inicio')}>← Volver a mis lotes</button><LoteForm reglas={reglas ?? undefined} onGuardar={guardarLote} onCancelar={() => ir('inicio')} /></div>}
         {vista === 'editar' && activo && <div className="page-narrow"><button className="back" onClick={() => ir('detalle')}>← Volver al lote</button><LoteForm inicial={activo} reglas={reglas ?? undefined} onGuardar={guardarLote} onCancelar={() => ir('detalle')} /></div>}
         {vista === 'detalle' && activo && <>
           <button className="back" onClick={() => ir('inicio')}>← Volver a mis lotes</button>
-          <section className="detail-header"><div><div className="section-kicker">FICHA DEL LOTE</div><h1>{activo.nombre}</h1><p>{nombreCultivo(activo.cultivo)} · {activo.ubicacion || 'Ubicación no registrada'}{activo.zona ? ` · Zona: ${activo.zona}` : ''}</p></div><div className="detalle-botones"><button className="btn btn-primary" onClick={() => ir('informe')}>Informe para el productor</button><button className="btn btn-outline" onClick={() => ir('editar')}>Editar información</button></div></section>
+          <section className="detail-header"><div><div className="section-kicker">FICHA DEL LOTE</div><h1 id="titulo-ficha">{activo.nombre}</h1><p>{nombreCultivo(activo.cultivo)} · {activo.ubicacion || 'Ubicación no registrada'}{activo.zona ? ` · Zona: ${activo.zona}` : ''}</p></div><div className="detalle-botones"><button className="btn btn-primary" onClick={() => ir('informe')}>Informe para el productor</button><button className="btn btn-outline" onClick={() => ir('editar')}>Editar información</button></div></section>
+          {avances?.get(activo.id) && <PasosLote avance={avances.get(activo.id)!} />}
           <div className="detail-grid"><div className="detail-panel"><span>Superficie</span><strong>{formatearNumero(activo.areaM2)} m²</strong><small>{formatearNumero(areaM2AHa(activo.areaM2), 4)} hectáreas</small></div><div className="detail-panel"><span>Cultivo</span><strong>{nombreCultivo(activo.cultivo)}</strong><small>Cultivo actual del lote</small></div><div className="detail-panel"><span>Fecha de siembra</span><strong className="detail-date">{fechaLegible(activo.fechaSiembra)}</strong></div></div>
           <AnalisisSueloSeccion key={activo.id} lote={activo} />
           <PlanesSeccion key={`plan-${activo.id}`} lote={activo} onIrAProductos={() => ir('productos')} />
@@ -208,14 +225,14 @@ export default function App() {
         {vista === 'informe-general' && <InformeGeneral usuario={estadoNube.usuario.nombre ? `${estadoNube.usuario.nombre} (${estadoNube.usuario.email})` : saludoDe(estadoNube.usuario)} onVolver={() => ir('inicio')} />}
         {vista === 'productos' && <ProductosSeccion key={visita} />}
 
-        {vista === 'ayuda' && <div className="page-narrow help"><div className="section-kicker">GUÍA PARA EL PRODUCTOR</div><h1>Cómo funciona AgroFerti MIC</h1><p className="muted">Organiza la información de tus lotes y registra lo que realmente pasa en el campo. Funciona en el celular y en el computador, también sin internet.</p>
+        {vista === 'ayuda' && <div className="page-narrow help"><div className="section-kicker">GUÍA PARA EL PRODUCTOR</div><h1>Cómo funciona AgroFerti MIC</h1><p className="muted">Organiza la información de tus lotes y registra lo que realmente pasa en el campo. Funciona en el celular y en el computador, también sin internet. En la ficha de cada lote, la barra de pasos te dice qué sigue.</p>
           <div className="ayuda-glosario"><p>¿Hay una palabra que no entiendes? El glosario explica cada término de la app.</p><button className="btn btn-outline" onClick={() => ir('glosario')}>Abrir el glosario</button></div>
           <div className="help-item"><span>1</span><div><h3>Crea tus lotes</h3><p>En <strong>Mis lotes</strong>, registra cada terreno con su nombre, cultivo, área, fecha de siembra y ubicación.</p></div></div>
           <div className="help-item"><span>2</span><div><h3>Registra el análisis de suelo</h3><p>En la ficha del lote, adjunta el informe del laboratorio o copia sus resultados tal como aparecen. Si el informe trae la <Termino id="profundidad">profundidad de muestreo</Termino> y la <Termino id="densidad-aparente">densidad aparente</Termino>, la app también expresa cada resultado en kilos por hectárea de la <Termino id="capa-arable">capa arable</Termino>. Esos kilos no son una dosis.</p></div></div>
           <div className="help-item"><span>3</span><div><h3>Prepara el plan de fertilización</h3><p>En la ficha del lote, crea una propuesta de plan: la app te propone las metas de nitrógeno, fósforo y potasio según tu análisis de suelo y la zona, y te sugiere fertilizantes con registro ICA para cubrirlas. Con eso calcula cuánto aplicar, cuántos bultos y cuánto cuesta. Puedes cambiar todo antes de guardar; después, el plan se revisa y se aprueba.</p></div></div>
           <div className="help-item"><span>4</span><div><h3>Haz seguimiento</h3><p>Registra lo que aplicaste, tus observaciones y las tareas pendientes. La app compara lo aplicado con el plan aprobado.</p></div></div>
           <div className="help-item"><span>5</span><div><h3>Cierra el ciclo e imprime</h3><p>Al cosechar, cierra el ciclo en el <strong>historial del lote</strong> para empezar un nuevo ciclo sin perder lo anterior. Imprime o guarda en PDF el informe de un lote o el de todos tus lotes.</p></div></div>
-          <div className="info-box"><strong>Tus datos:</strong> se guardan en este dispositivo y en tu cuenta en la nube (con tu autorización), así no se pierden si cambias de dispositivo. La app funciona sin internet y se sincroniza cuando hay conexión. Para tenerlos en papel o en PDF, usa <strong>Informe para el productor</strong> en la ficha de cada lote. Puedes borrar tus datos de la nube en <strong>Mi cuenta</strong>, en Mis lotes.</div>
+          <div className="info-box"><strong>Tus datos:</strong> se guardan en este dispositivo y en tu cuenta en la nube (con tu autorización), así no se pierden si cambias de dispositivo. La app funciona sin internet y se sincroniza cuando hay conexión. Para tenerlos en papel o en PDF, usa <strong>Informe para el productor</strong> en la ficha de cada lote. Puedes borrar tus datos de la nube en <strong>Mi cuenta</strong>: toca tu nombre o tu foto, arriba.</div>
           <div className="detalle-botones"><button className="btn btn-primary" onClick={() => ir('inicio')}>Ir a mis lotes</button><button className="btn btn-outline" onClick={() => ir('glosario')}>Abrir el glosario</button></div>
         </div>}
         {vista === 'glosario' && <Glosario onVolver={() => ir('ayuda')} />}

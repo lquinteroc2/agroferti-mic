@@ -41,7 +41,8 @@ function entradaInicial(inicial?: RegistroAplicacion): EntradaAplicacion {
   };
 }
 
-function AplicacionForm({ linea, planId, inicial, onGuardar, onCancelar }: {
+/** Formulario de una aplicación de una línea del plan aprobado (también se usa desde Seguimiento). */
+export function AplicacionForm({ linea, planId, inicial, onGuardar, onCancelar }: {
   linea: LineaPlan;
   planId: string;
   inicial?: RegistroAplicacion;

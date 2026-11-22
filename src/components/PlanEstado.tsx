@@ -1,4 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { leerEstadoNube } from '../lib/db';
+import { llevarA } from '../lib/navegacion';
 import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import { fechaHoraDeMarca } from '../lib/formato';
 import type { CalculoPlan } from '../lib/calculos';
@@ -12,6 +15,45 @@ export function EstadoPlanBadge({ estado }: { estado?: EstadoPlan }) {
   if (!estado) return <span className="badge badge-error">Estado por corregir</span>;
   const clase = estado === 'aprobado' ? 'badge-entered' : estado === 'revisado' ? 'badge-calc' : 'badge-warn';
   return <span className={`badge ${clase}`}>{NOMBRE_ESTADO[estado]}</span>;
+}
+
+const PASOS_PLAN: ReadonlyArray<{ estado: EstadoPlan; quien: string }> = [
+  { estado: 'propuesta', quien: 'La preparas tú con la app.' },
+  { estado: 'revisado', quien: 'La revisa tu asistente técnico o quien conoce el cultivo.' },
+  { estado: 'aprobado', quien: 'Decides que es el plan que vas a aplicar.' }
+];
+
+const QUE_SIGUE: Record<EstadoPlan, { texto: string; boton: string; destino: 'estado' | 'aplicado' }> = {
+  propuesta: {
+    texto: 'Pide a tu asistente técnico, o a quien conoce el cultivo, que revise las metas, sus fuentes y los productos. Cuando esté revisado, márcalo en «Estado del plan», al final. Mientras sea propuesta, puedes editarlo.',
+    boton: 'Ir al estado del plan', destino: 'estado'
+  },
+  revisado: {
+    texto: 'Ya no se edita. Si es el plan que vas a aplicar, apruébalo en «Estado del plan», al final. Si hay que corregir algo, devuélvelo a propuesta.',
+    boton: 'Ir al estado del plan', destino: 'estado'
+  },
+  aprobado: {
+    texto: 'Es el registro de lo que vas a aplicar: no se edita ni se elimina. Registra cada aplicación en «Lo aplicado frente al plan», más abajo, o desde Seguimiento. Para cambiarlo, crea una copia como nueva propuesta al final.',
+    boton: 'Ir a lo aplicado', destino: 'aplicado'
+  }
+};
+
+/** En qué va el plan (propuesta → revisado → aprobado), quién hace cada paso y qué sigue. Arriba del plan. */
+export function LineaEstadosPlan({ plan }: { plan: PlanVerificado }) {
+  if (!plan.estado) return null;
+  const actual = PASOS_PLAN.findIndex(p => p.estado === plan.estado);
+  const sigue = QUE_SIGUE[plan.estado];
+  return (
+    <section className="linea-estados" aria-labelledby={`linea-plan-${plan.id}`}>
+      <h4 id={`linea-plan-${plan.id}`} className="sr-only">En qué va el plan</h4>
+      <ol>{PASOS_PLAN.map((p, i) => <li key={p.estado} className={i < actual ? 'hecho' : i === actual ? 'actual' : 'pendiente'} aria-current={i === actual ? 'step' : undefined}>
+        <strong>{i < actual ? '✓ ' : ''}{NOMBRE_ESTADO[p.estado]}</strong>
+        <small>{p.quien}</small>
+      </li>)}</ol>
+      <p><strong>Qué sigue:</strong> {sigue.texto}</p>
+      <button type="button" className="btn btn-outline btn-small" onClick={() => llevarA(sigue.destino === 'estado' ? `estado-plan-${plan.id}` : `aplicado-${plan.id}`)}>{sigue.boton}</button>
+    </section>
+  );
 }
 
 export interface DatosCambio {
@@ -67,6 +109,7 @@ export function PlanEstado({ plan, calculo, onCambiarEstado, onCopiar }: Props) 
   /** Confirmación junto al panel: el aviso general de la sección puede quedar fuera de la pantalla. */
   const [hecho, setHecho] = useState('');
   const estadoAlAbrir = useRef(plan.estado);
+  const nombreCuenta = useLiveQuery(leerEstadoNube)?.usuario.nombre?.trim();
 
   // Si el plan cambia de estado (p. ej. en otra pestaña) con un formulario abierto, se cierra con aviso.
   useEffect(() => {
@@ -83,6 +126,10 @@ export function PlanEstado({ plan, calculo, onCambiarEstado, onCopiar }: Props) 
 
   function elegir(a: Accion | null) {
     estadoAlAbrir.current = plan.estado;
+    // Al aprobar, devolver o copiar, quien registra suele ser quien usa la app; al marcar como revisado,
+    // no: ahí va el nombre de quien revisó. Se reinicia en cada apertura para que un nombre propuesto
+    // para otra acción no quede como el de quien revisó.
+    setResponsable(a && a !== 'revisado' ? nombreCuenta ?? '' : '');
     setAccion(a);
     setErrores([]);
     setNota('');
@@ -116,7 +163,7 @@ export function PlanEstado({ plan, calculo, onCambiarEstado, onCopiar }: Props) 
   return (
     <section className="soil-block plan-estado" aria-labelledby={`estado-plan-${plan.id}`}>
       <h4 id={`estado-plan-${plan.id}`}>Estado del plan: <EstadoPlanBadge estado={plan.estado} /></h4>
-      <p className="hint">Propuesta: se puede editar. Revisado: alguien revisó metas, fuentes y productos. Aprobado: registro de solo lectura. El nombre lo escribe el usuario: la app no verifica identidades ni certifica aprobaciones técnicas. Lo aplicado en campo no es un estado del plan: se registra en «Lo aplicado frente al plan» cuando el plan está aprobado.</p>
+      <p className="hint">El nombre lo escribe quien registra el cambio: la app no verifica identidades ni certifica aprobaciones técnicas. Lo aplicado en campo no es un estado del plan: se registra en «Lo aplicado frente al plan» cuando el plan está aprobado.</p>
       <Terminos ids={['propuesta', 'revisado', 'aprobado', 'copiar-propuesta']} />
 
       {danado && <p className="calc-skip">Este plan tiene datos guardados dañados: no puede cambiar de estado ni copiarse.</p>}

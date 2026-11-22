@@ -26,7 +26,7 @@ function describirApartada(texto: string): string {
   }
 }
 
-/** Mi cuenta (Mis lotes): estado de la sincronización, cerrar sesión y borrar los datos de la nube. */
+/** Pantalla Mi cuenta (desde la foto o el nombre, arriba): sincronización, cerrar sesión y borrar los datos de la nube. */
 export function NubeSeccion({ estado }: { estado: EstadoNube }) {
   const { fase, cambiosLocales } = useSyncExternalStore(sincronizacionExterna.suscribir, sincronizacionExterna.leer);
   const apartadas = useLiveQuery(versionesApartadas.listar, [], []);
@@ -75,7 +75,7 @@ export function NubeSeccion({ estado }: { estado: EstadoNube }) {
 
   return (
     <section className="respaldo nube" aria-labelledby="titulo-nube">
-      <h2 id="titulo-nube">Mi cuenta</h2>
+      <h1 id="titulo-nube">Mi cuenta</h1>
       <p>Ingresaste como <strong>{estado.usuario.nombre ? `${estado.usuario.nombre} (${estado.usuario.email})` : estado.usuario.email}</strong>. Tus datos se guardan en este dispositivo y se copian a la nube cuando hay internet. Para tener tus datos en papel o en PDF, usa <strong>Informe para el productor</strong> en la ficha de cada lote.</p>
       <Terminos ids={['nube', 'sincronizar', 'cambios-que-chocaron', 'borrar-nube']} />
       <p className={`nube-estado${fase.fase === 'error' ? ' nube-estado-error' : ''}`} role="status">{textoEstado}</p>

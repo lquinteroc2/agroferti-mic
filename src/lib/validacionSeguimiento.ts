@@ -289,11 +289,15 @@ export function contarTareasPendientes(
   lotes: ReadonlySet<string>,
   hoy: Date = new Date()
 ): { pendientes: number; vencidas: number } {
+  return tareasPendientesDe(registros.map(verificarRegistro).filter(v => lotes.has(v.loteId)), hoy);
+}
+
+/** Igual que contarTareasPendientes, con registros ya verificados (p. ej. los del cultivo actual de un lote). */
+export function tareasPendientesDe(registros: ReadonlyArray<RegistroVerificado>, hoy: Date = new Date()): { pendientes: number; vencidas: number } {
   let pendientes = 0;
   let vencidas = 0;
-  for (const crudo of registros) {
-    const v = verificarRegistro(crudo);
-    if (v.tipo !== 'tarea' || !lotes.has(v.loteId)) continue;
+  for (const v of registros) {
+    if (v.tipo !== 'tarea') continue;
     const datos = v.registro?.tipo === 'tarea' ? v.registro : v.parcial;
     if (datos.estado !== 'pendiente') continue;
     pendientes++;

@@ -407,3 +407,44 @@
 .requisitos-lista small{display:block;margin-top:2px;color:#6b5320}
 .sugerencias-zona{display:flex;flex-wrap:wrap;align-items:flex-end;gap:6px 14px;margin-bottom:12px}
 .sugerencias-zona .link-button{min-height:44px}
+
+/* Revisión UX, tanda 4: camino guiado */
+.pasos-lote{background:white;border:1px solid #e0e7dd;border-radius:15px;padding:18px 20px;margin:0 0 22px;display:grid;gap:16px}
+.pasos{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.paso button{width:100%;min-height:44px;border:0;background:transparent;padding:0;display:grid;justify-items:center;gap:6px;color:#5f7468;font-size:.8rem;font-weight:700}
+.paso button::before{content:"";width:100%;height:6px;border-radius:99px;background:#e3e9e0}
+.paso-hecho button::before{background:#6d9b42}
+.paso-actual button::before{background:repeating-linear-gradient(90deg,#6d9b42 0 8px,#cfe2c6 8px 12px)}
+.paso-marca{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:#eef2eb;color:#5f7468;font-size:.78rem}
+.paso-hecho .paso-marca{background:#6d9b42;color:white}
+.paso-actual .paso-marca{background:#194c3b;color:white}
+.paso-actual button{color:#194c3b}
+.paso button:hover .paso-nombre{text-decoration:underline}
+.siguiente-paso{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 18px;background:#f2f8ef;border:1px solid #d7e8cf;border-radius:12px;padding:14px 16px}
+.siguiente-paso>div{flex:1 1 300px;min-width:0}
+.siguiente-paso p{margin:0;color:#2c4a35}
+.siguiente-paso p.muted{margin-top:6px;font-size:.85rem}
+.siguiente-paso .section-kicker{margin-bottom:4px}
+.lot-siguiente{display:inline-block;margin-top:4px;align-self:flex-start;font-size:.78rem;font-weight:700;color:#8a5413;background:#fbe6c8;border-radius:99px;padding:3px 10px}
+.lot-siguiente-ok{color:#3f6a36;background:#e2ebdc}
+.usuario-boton{display:flex;align-items:center;gap:10px;border:0;background:transparent;padding:4px 8px 4px 4px;border-radius:12px;text-align:left;min-width:0;min-height:44px}
+.usuario-boton:hover,.usuario-boton.selected{background:#edf3ed}
+.avatar-nube{position:relative;display:inline-flex;flex-shrink:0}
+.punto-nube{position:absolute;right:-1px;bottom:-1px;width:12px;height:12px;border-radius:50%;border:2px solid white;background:#9aa79f}
+.punto-nube-ok{background:#4f9a3e}
+.punto-nube-pendiente{background:#d99a2b}
+.punto-nube-error{background:#c2453d}
+.punto-nube-sin-internet{background:#8a958e}
+.menu-movil-nube{font-weight:400;color:#5f7468}
+.respaldo h1{font-size:1.6rem;margin-bottom:8px;color:#2e5236}
+.page-narrow .respaldo{margin-top:0}
+.linea-estados{background:#f7f9f5;border:1px solid #e3e9df;border-radius:12px;padding:14px 16px;margin-bottom:16px;display:grid;gap:10px}
+.linea-estados ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.linea-estados li{border-top:4px solid #e3e9e0;padding-top:8px;display:grid;gap:2px;color:#5f7468}
+.linea-estados li.hecho{border-top-color:#6d9b42}
+.linea-estados li.actual{border-top-color:#194c3b;color:#194c3b}
+.linea-estados li small{font-size:.78rem;line-height:1.4}
+.linea-estados p{margin:0;font-size:.9rem;color:#2c4a35}
+.linea-estados .btn{justify-self:start}
+@media(max-width:720px){.pasos-lote{padding:14px}.paso button{font-size:.7rem}.paso-marca{width:22px;height:22px}.siguiente-paso .btn{flex:1 1 100%}.linea-estados ol{grid-template-columns:1fr}.linea-estados li{border-top:0;border-left:4px solid #e3e9e0;padding:0 0 0 10px}.linea-estados li.hecho{border-left-color:#6d9b42}.linea-estados li.actual{border-left-color:#194c3b}}
+@media(max-width:1100px){.usuario-boton .usuario-texto small{display:block}.usuario-correo{display:none}}

@@ -1,6 +1,9 @@
 import { Fragment, useState, type FormEvent } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { repositorioPlanes, repositorioSeguimiento } from '../lib/db';
+import { repositorioCiclos, repositorioPlanes, repositorioSeguimiento } from '../lib/db';
+import { datosCultivoActual } from '../lib/historial';
+import { cambioAprobacion } from '../lib/validacionPlan';
+import { AplicacionForm } from './AplicacionesPlan';
 import { fechaLegible, formatearExacto, pesos } from '../lib/formato';
 import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import { fechaLocalISO } from '../lib/validacion';
@@ -17,14 +20,14 @@ import {
   type EntradaTarea,
   type ErroresFormulario
 } from '../lib/validacionSeguimiento';
-import type { Lote, RegistroSeguimiento, RegistroTarea, RegistroVerificado, TipoRegistro } from '../types';
+import type { Lote, PlanVerificado, RegistroSeguimiento, RegistroTarea, RegistroVerificado, TipoRegistro } from '../types';
 import { OrigenBadge } from './ProductoDetalle';
 import { confirmar } from './Confirmacion';
 import { NotaObligatorios, Obligatorio } from './Campo';
 import { Terminos } from './Terminos';
 
 type Clase = 'observacion' | 'tarea';
-type Modo = { tipo: 'lista' } | { tipo: 'nuevo'; clase: Clase } | { tipo: 'editar'; id: string };
+type Modo = { tipo: 'lista' } | { tipo: 'nuevo'; clase: Clase } | { tipo: 'editar'; id: string } | { tipo: 'aplicacion' };
 type Aviso = { tipo: 'ok' | 'error'; texto: string } | null;
 type Lectura = { ok: true; registros: RegistroVerificado[] } | { ok: false };
 type Filtro = 'todos' | TipoRegistro;
@@ -179,6 +182,43 @@ function RegistroForm({ clase, inicial, onGuardar, onCancelar }: {
   );
 }
 
+/**
+ * Registrar una aplicación desde Seguimiento: se elige el producto de un plan aprobado y se usa el mismo
+ * formulario que en el plan. Sin plan aprobado no hay con qué comparar, y se explica.
+ */
+function NuevaAplicacion({ planes, onGuardar, onCancelar }: {
+  /** null: no se pudieron leer los planes. */
+  planes: ReadonlyArray<PlanVerificado> | null;
+  onGuardar: (datos: DatosRegistro) => Promise<void>;
+  onCancelar: () => void;
+}) {
+  const opciones = (planes ?? []).flatMap(plan => plan.lineas.map(linea => ({ clave: `${plan.id}|${linea.id}`, plan, linea })));
+  const [clave, setClave] = useState('');
+  // Si lo elegido ya no está (p. ej. se aprobó un plan con el panel abierto), se usa el primer producto.
+  const elegida = opciones.find(o => o.clave === clave) ?? opciones[0];
+  return (
+    <div className="form-card" role="group" aria-labelledby="titulo-form-aplicacion">
+      <div className="section-kicker">SEGUIMIENTO</div>
+      <h2 id="titulo-form-aplicacion">Registrar una aplicación</h2>
+      {planes === null ? <>
+        <p className="error" role="alert">No se pudieron leer los planes del lote. Recarga la página y vuelve a intentarlo.</p>
+        <div className="form-actions"><button type="button" className="btn btn-outline" onClick={onCancelar}>Volver</button></div>
+      </> : opciones.length === 0 ? <>
+        <p className="muted">El cultivo actual de este lote todavía no tiene un plan aprobado. Cada aplicación se compara con lo que dice el plan, así que primero aprueba un plan en «Plan de fertilización».</p>
+        <div className="form-actions"><button type="button" className="btn btn-outline" onClick={onCancelar}>Volver</button></div>
+      </> : <>
+        <p className="muted">Elige el producto del plan aprobado que aplicaste. La aplicación también aparece en el plan, frente a lo planeado.</p>
+        <div className="fields"><label className="full">Producto aplicado
+          <select value={elegida?.clave ?? ''} onChange={e => setClave(e.target.value)}>
+            {opciones.map(o => <option key={o.clave} value={o.clave}>{o.linea.producto.nombre}{o.linea.producto.esEjemplo ? ' (EJEMPLO)' : ''}{(planes ?? []).length > 1 ? ` · plan «${o.plan.nombre || 'Plan sin nombre'}»` : ''}</option>)}
+          </select>
+        </label></div>
+        {elegida && <AplicacionForm key={elegida.clave} linea={elegida.linea} planId={elegida.plan.id} onGuardar={onGuardar} onCancelar={onCancelar} />}
+      </>}
+    </div>
+  );
+}
+
 /** Seguimiento manual del lote: aplicaciones (de los planes), observaciones y tareas. Montar con key={lote.id}. */
 export function SeguimientoSeccion({ lote }: { lote: Lote }) {
   const [modo, setModo] = useState<Modo>({ tipo: 'lista' });
@@ -199,6 +239,18 @@ export function SeguimientoSeccion({ lote }: { lote: Lote }) {
       return await repositorioPlanes.nombres(lote.id);
     } catch {
       return undefined;
+    }
+  }, [lote.id]);
+  // Planes aprobados y sanos del cultivo actual (como la barra de pasos), el aprobado más recientemente
+  // primero: con ellos se registra una aplicación. null si no se pudieron leer.
+  const aprobados = useLiveQuery(async () => {
+    try {
+      const [planes, ciclos] = await Promise.all([repositorioPlanes.listar(lote.id), repositorioCiclos.listar(lote.id)]);
+      return datosCultivoActual({ ciclos, analisis: [], planes, registros: [] }).planes
+        .filter(p => p.id && p.estado === 'aprobado' && p.problemas.length === 0)
+        .sort((a, b) => (cambioAprobacion(b)?.fecha ?? '').localeCompare(cambioAprobacion(a)?.fecha ?? ''));
+    } catch {
+      return null;
     }
   }, [lote.id]);
   const registros = lectura?.ok ? lectura.registros : undefined;
@@ -321,6 +373,7 @@ export function SeguimientoSeccion({ lote }: { lote: Lote }) {
           <Terminos ids={['observacion', 'tarea', 'aplicacion', 'estado-tarea']} />
         </div>
         {enLista && lectura?.ok && <div className="seguimiento-botones">
+          <button className="btn btn-outline" onClick={() => abrir({ tipo: 'aplicacion' })}>+ Aplicación</button>
           <button className="btn btn-outline" onClick={() => abrir({ tipo: 'nuevo', clase: 'observacion' })}>+ Observación</button>
           <button className="btn btn-outline" onClick={() => abrir({ tipo: 'nuevo', clase: 'tarea' })}>+ Tarea</button>
         </div>}
@@ -341,6 +394,9 @@ export function SeguimientoSeccion({ lote }: { lote: Lote }) {
       {modo.tipo === 'nuevo' && <RegistroForm clase={modo.clase}
         onGuardar={datos => guardar(datos, {}, modo.clase === 'observacion' ? 'La observación se guardó.' : 'La tarea se guardó.')}
         onCancelar={() => abrir({ tipo: 'lista' })} />}
+      {modo.tipo === 'aplicacion' && aprobados !== undefined && <NuevaAplicacion planes={aprobados}
+        onGuardar={datos => guardar(datos, {}, 'La aplicación se guardó. También aparece en el plan aprobado, frente a lo planeado.')}
+        onCancelar={() => abrir({ tipo: 'lista' })} />}
       {modo.tipo === 'editar' && editando && claseEdicion && <RegistroForm key={editando.id} clase={claseEdicion} inicial={editando}
         onGuardar={(datos, descartarDanados) => guardar(datos, { id: editando.id, descartarDanados }, 'Los cambios se guardaron.')}
         onCancelar={() => abrir({ tipo: 'lista' })} />}
@@ -350,7 +406,7 @@ export function SeguimientoSeccion({ lote }: { lote: Lote }) {
           : !registros ? null
           : registros.length === 0 ? <div className="empty soil-empty">
             <h3>Este lote aún no tiene registros de seguimiento</h3>
-            <p>Anota observaciones del lote y tareas por hacer. Las aplicaciones se registran en el detalle de un plan aprobado.</p>
+            <p>Anota lo que apliques del plan aprobado, lo que observes en el lote y las tareas por hacer.</p>
           </div>
           : <>
             <label className="filtro-seguimiento">Mostrar

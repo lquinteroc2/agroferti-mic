@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { cerrarSesion } from '../lib/cuentaNube';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { cerrarSesion, sincronizacionExterna, type FaseSincronizacion } from '../lib/cuentaNube';
 import type { EstadoNube } from '../lib/nube';
 import { confirmar } from './Confirmacion';
 
@@ -25,21 +25,38 @@ export function Avatar({ usuario, tamano = 36 }: { usuario: EstadoNube['usuario'
   return <span className="avatar avatar-inicial" style={{ width: tamano, height: tamano, fontSize: tamano * 0.45 }} aria-hidden="true">{inicial}</span>;
 }
 
-export type Seccion = 'inicio' | 'productos' | 'ayuda';
+export type Seccion = 'inicio' | 'productos' | 'ayuda' | 'cuenta';
+
+/** Estado de la copia en la nube, para el punto de color sobre la foto y su texto para lectores de pantalla. */
+function estadoSincronizacion(enLinea: boolean, fase: FaseSincronizacion, cambiosLocales: boolean): { clase: string; texto: string } {
+  if (!enLinea) return { clase: 'sin-internet', texto: 'sin internet: los cambios se guardan en este dispositivo' };
+  if (fase.fase === 'error') return { clase: 'error', texto: 'no se pudo sincronizar' };
+  if (fase.fase === 'sincronizando' || cambiosLocales) return { clase: 'pendiente', texto: 'subiendo cambios' };
+  if (fase.fase === 'lista' && (fase.resultado.pendientes > 0 || fase.resultado.cuotaExcedida || fase.resultado.noSubidos.length > 0)) {
+    return { clase: 'error', texto: 'hay cambios que no se subieron: revisa Mi cuenta' };
+  }
+  if (fase.fase === 'lista') return { clase: 'ok', texto: 'todo sincronizado' };
+  return { clase: 'pendiente', texto: 'preparando la sincronización' };
+}
 
 const SECCIONES: ReadonlyArray<[Seccion, string]> = [['inicio', 'Mis lotes'], ['productos', 'Productos'], ['ayuda', 'Cómo funciona']];
 
 /**
  * Encabezado de la app con sesión. En computador: secciones, avatar, saludo, correo y Cerrar sesión
- * en la misma barra. En celular: avatar y un menú hamburguesa con las secciones y Cerrar sesión.
+ * en la misma barra. En celular: avatar y un menú hamburguesa con las secciones, Mi cuenta y Cerrar
+ * sesión. La foto y el nombre llevan a Mi cuenta; el punto de color muestra el estado de la nube.
  */
-export function Encabezado({ seccion, enRaiz = true, onIr, estado }: {
+export function Encabezado({ seccion, enRaiz = true, onIr, estado, enLinea }: {
   seccion: Seccion;
   /** false si se está dentro de la sección (p. ej. el glosario dentro de Cómo funciona): no se anuncia como la página actual. */
   enRaiz?: boolean;
   onIr: (s: Seccion) => void;
   estado: EstadoNube;
+  enLinea: boolean;
 }) {
+  const { fase, cambiosLocales } = useSyncExternalStore(sincronizacionExterna.suscribir, sincronizacionExterna.leer);
+  const nube = estadoSincronizacion(enLinea, fase, cambiosLocales);
+  const enCuenta = seccion === 'cuenta';
   const [abierto, setAbierto] = useState(false);
   const [saliendo, setSaliendo] = useState(false);
   const menu = useRef<HTMLDivElement>(null);
@@ -90,17 +107,22 @@ export function Encabezado({ seccion, enRaiz = true, onIr, estado }: {
         <nav className="nav nav-escritorio" aria-label="Navegación principal">{enlaces()}</nav>
 
         <div className="usuario-escritorio">
-          <Avatar usuario={usuario} />
-          <span className="usuario-texto">
-            <strong>Hola, {saludo}</strong>
-            {saludo !== usuario.email && <small>{usuario.email}</small>}
-          </span>
+          <button type="button" className={`usuario-boton${enCuenta ? ' selected' : ''}`} aria-current={enCuenta ? 'page' : undefined} onClick={() => ir('cuenta')}>
+            <span className="avatar-nube"><Avatar usuario={usuario} /><span className={`punto-nube punto-nube-${nube.clase}`} aria-hidden="true" /></span>
+            <span className="usuario-texto">
+              <strong>Hola, {saludo}</strong>
+              <small>Mi cuenta{saludo !== usuario.email && <span className="usuario-correo"> · {usuario.email}</span>}</small>
+            </span>
+            <span className="sr-only">: Mi cuenta, {nube.texto}</span>
+          </button>
           <button type="button" className="btn btn-outline btn-salir" disabled={saliendo} onClick={() => void salir()}>Cerrar sesión</button>
         </div>
 
         <div className="usuario-movil">
-          <span className="sr-only">Hola, {saludo}</span>
-          <Avatar usuario={usuario} tamano={34} />
+          <button type="button" className="usuario-boton" aria-current={enCuenta ? 'page' : undefined} onClick={() => ir('cuenta')}>
+            <span className="avatar-nube"><Avatar usuario={usuario} tamano={34} /><span className={`punto-nube punto-nube-${nube.clase}`} aria-hidden="true" /></span>
+            <span className="sr-only">Hola, {saludo}: Mi cuenta, {nube.texto}</span>
+          </button>
           <button ref={boton} type="button" className="hamburguesa" aria-expanded={abierto} aria-controls="menu-movil" aria-label={abierto ? 'Cerrar menú' : 'Abrir menú'} onClick={() => setAbierto(a => !a)}>
             <span aria-hidden="true" /><span aria-hidden="true" /><span aria-hidden="true" />
           </button>
@@ -114,6 +136,7 @@ export function Encabezado({ seccion, enRaiz = true, onIr, estado }: {
             <span className="usuario-texto"><strong>Hola, {saludo}</strong>{saludo !== usuario.email && <small>{usuario.email}</small>}</span>
           </div>
           <nav aria-label="Navegación principal">{enlaces(' menu-movil-enlace')}</nav>
+          <button type="button" className={`nav-link menu-movil-enlace${enCuenta ? ' selected' : ''}`} aria-current={enCuenta ? 'page' : undefined} onClick={() => ir('cuenta')}>Mi cuenta <small className="menu-movil-nube">({nube.texto})</small></button>
           <button type="button" className="menu-movil-enlace menu-movil-salir" disabled={saliendo} onClick={() => void salir()}>Cerrar sesión</button>
         </div>
       </div>}

@@ -71,7 +71,7 @@ Para cada lote de papa (la app trabaja solo con papa desde el 19 de noviembre de
 7. **Estado del plan**: «Ya se revisó este plan» → «Aprobar: este es el plan que voy a aplicar» (con el nombre de quien revisa/aprueba).
 8. En el plan aprobado, **+ Registrar aplicación** para cada aplicación real y copia el bloque "Lo aplicado frente al plan".
 9. **Informe para el productor**: revisa que los números coincidan con los del plan.
-10. Al terminar cada sesión: en **Mis lotes → Mi cuenta** verifica que diga **Todo sincronizado**, y guarda en PDF el informe de cada lote (ficha del lote → **Informe para el productor** → **Imprimir o guardar como PDF**) en la carpeta del equipo.
+10. Al terminar cada sesión: en **Mi cuenta** (toca tu foto o tu nombre, arriba) verifica que diga **Todo sincronizado**, y guarda en PDF el informe de cada lote (ficha del lote → **Informe para el productor** → **Imprimir o guardar como PDF**) en la carpeta del equipo.
 
 ---
 

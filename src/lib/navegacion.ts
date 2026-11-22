@@ -89,3 +89,12 @@ export function useCapaAtras(abierto: boolean, cerrar: () => void, anclaId?: str
     };
   }, [abierto, anclaId]);
 }
+
+/** Lleva la vista a un título de la página y le pasa el foco, para que se vea y se anuncie dónde empieza. */
+export function llevarA(id: string): void {
+  const titulo = document.getElementById(id);
+  if (!titulo) return;
+  titulo.scrollIntoView({ block: 'start' });
+  if (!titulo.hasAttribute('tabindex')) titulo.setAttribute('tabindex', '-1');
+  titulo.focus({ preventScroll: true });
+}

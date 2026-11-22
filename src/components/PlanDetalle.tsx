@@ -4,7 +4,7 @@ import { fechaDeMarca, fechaLegible, formatearDiferencia, formatearExacto, forma
 import type { DatosRegistro } from '../lib/validacionSeguimiento';
 import type { AnalisisVerificado, EstadoPlan, PlanVerificado, RegistroAplicacion } from '../types';
 import { AplicacionesPlan } from './AplicacionesPlan';
-import { EstadoPlanBadge, NOMBRE_ESTADO, PlanEstado, type DatosCambio } from './PlanEstado';
+import { EstadoPlanBadge, LineaEstadosPlan, NOMBRE_ESTADO, PlanEstado, type DatosCambio } from './PlanEstado';
 import { OrigenBadge } from './ProductoDetalle';
 import { Terminos } from './Terminos';
 
@@ -101,14 +101,11 @@ export function PlanDetalle({
         <p>Este registro tiene campos que esta versión no muestra ni edita ({plan.camposAdicionales.join(', ')}). Se conservan intactos al guardar cambios; no tienes que hacer nada.</p>
       </div>}
 
-      {plan.estado && plan.estado !== 'propuesta' && <div className="trace-box">
+      {plan.estado && plan.problemas.length > 0 && plan.estado !== 'propuesta' && <div className="trace-box">
         <strong>Plan {NOMBRE_ESTADO[plan.estado].toLowerCase()}</strong>
-        <p>{plan.problemas.length > 0
-          ? 'Tiene datos guardados dañados: solo se puede consultar.'
-          : plan.estado === 'revisado'
-            ? 'Ya no se edita. Para corregirlo, devuélvelo a propuesta en «Estado del plan», al final.'
-            : 'Es de solo lectura y no se puede eliminar: es el registro de lo aprobado. Para cambiarlo, crea una copia como nueva propuesta en «Estado del plan», al final.'}</p>
+        <p>Tiene datos guardados dañados: solo se puede consultar.</p>
       </div>}
+      {plan.id && plan.problemas.length === 0 && <LineaEstadosPlan plan={plan} />}
 
       {calculo.lineas.length > 0 && <section className="plan-resumen" aria-labelledby={`resumen-plan-${plan.id}`}>
         <h4 id={`resumen-plan-${plan.id}`}>Qué comprar y aplicar en el lote</h4>
