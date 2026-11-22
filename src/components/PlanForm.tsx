@@ -43,6 +43,8 @@ interface Props {
   referencias?: ReadonlyArray<FertilizanteReferencia>;
   /** Agrega un fertilizante de referencia al catálogo del usuario y devuelve su id. */
   onAgregarProducto?: (referencia: FertilizanteReferencia, departamento?: string) => Promise<string>;
+  /** Guarda la zona elegida en las sugerencias como zona del lote. */
+  onGuardarZona?: (zona: string) => Promise<void>;
 }
 
 /** Con rangoSugerido, la meta vino de una sugerencia: se muestra el rango junto al valor. */
@@ -78,13 +80,15 @@ function avisoProducto(fila: FilaMeta, producto?: Pick<CopiaProducto, 'nombre' |
   return <p className="hint hint-warn">{declara} <strong>Esta meta no se calculará:</strong> la meta está en {forma} y la etiqueta no declara esa forma. La app no convierte entre formas químicas (P y P₂O₅, K y K₂O).</p>;
 }
 
-export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCancelar, reglas, referencias = [], onAgregarProducto }: Props) {
+export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCancelar, reglas, referencias = [], onAgregarProducto, onGuardarZona }: Props) {
   // Si el análisis de referencia se eliminó, la referencia se quita al guardar (con aviso), en lugar de impedir guardar.
   const [referenciaPerdida] = useState(() =>
     !!inicial?.analisisReferenciaId && !analisis.some(a => a.id === inicial.analisisReferenciaId));
+  // En una propuesta nueva se elige el análisis más reciente sin datos dañados (la lista viene ordenada).
+  const [preseleccionado] = useState(() => (inicial ? '' : analisis.find(a => a.problemas.length === 0)?.id ?? ''));
   const [entrada, setEntrada] = useState<Omit<EntradaPlan, 'metas'> & { metas: FilaMeta[] }>(() => ({
     nombre: inicial?.nombre ?? '',
-    analisisReferenciaId: referenciaPerdida ? '' : inicial?.analisisReferenciaId ?? '',
+    analisisReferenciaId: referenciaPerdida ? '' : inicial ? inicial.analisisReferenciaId ?? '' : preseleccionado,
     metas: inicial?.metas.length ? inicial.metas.map(m => filaDesdeGuardado(m, inicial)) : [filaVacia()]
   }));
   const [actualizarArea, setActualizarArea] = useState(false);
@@ -200,7 +204,7 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
               {analisis.filter(a => a.problemas.length === 0 || a.id === entrada.analisisReferenciaId).map(a =>
                 <option key={a.id} value={a.id}>Análisis del {fechaLegible(a.fechaAnalisis)}{a.laboratorio ? ` · ${a.laboratorio}` : ''}</option>)}
             </select>
-            <small>Con él, la app busca las metas en las referencias técnicas (abajo). Las cantidades se calculan con las metas que guardes.</small>
+            <small>{preseleccionado && entrada.analisisReferenciaId === preseleccionado ? 'Se eligió el análisis más reciente; puedes cambiarlo. ' : ''}Con él, la app busca las metas en las referencias técnicas (abajo). Las cantidades se calculan con las metas que guardes.</small>
             {referenciaPerdida && <span className="field-warning">El análisis que este plan tenía como referencia ya no existe. Al guardar, el plan quedará sin referencia.</span>}
           </label>
           {!inicial && <label>Elaborado por
@@ -210,7 +214,8 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
       </fieldset>
 
       <SugerenciasPlan cultivo={lote.cultivo} analisis={analisis.find(a => a.id === entrada.analisisReferenciaId)}
-        reglas={reglas ?? []} descargadas={reglas !== undefined} onUsar={usarSugerencia} onUsarTodas={s => s.forEach(usarSugerencia)} />
+        reglas={reglas ?? []} descargadas={reglas !== undefined} zonaLote={lote.zona} onGuardarZona={onGuardarZona}
+        onUsar={usarSugerencia} onUsarTodas={s => s.forEach(usarSugerencia)} />
 
       <fieldset className="form-group">
         <legend>Metas y productos</legend>

@@ -192,6 +192,7 @@ export function SeccionesLote({ lote, d, desdeCierre }: { lote: Lote; d: DatosIn
         <div><dt>Área</dt><dd>{formatearExacto(lote.areaM2)} m² ({hectareas(lote.areaM2)})</dd></div>
         <div><dt>Fecha de siembra</dt><dd>{fechaLegible(lote.fechaSiembra)}</dd></div>
         <div><dt>Ubicación</dt><dd>{lote.ubicacion || 'No registrada'}</dd></div>
+        {lote.zona && <div><dt>Zona (referencias técnicas)</dt><dd>{lote.zona}</dd></div>}
       </dl>
       {desdeCierre && <p className="informe-nota">Este informe muestra solo el cultivo actual: lo registrado después del cierre del cultivo anterior ({fechaLegible(desdeCierre)}). Los cultivos anteriores están en el historial del lote.</p>}
     </section>

@@ -19,6 +19,8 @@ import type { DatoLeido } from '../lib/lecturaAnalisis';
 import { LecturaAnalisis } from './LecturaAnalisis';
 import { MetodosLaboratorio } from './MetodosLaboratorio';
 import { Obligatorio } from './Campo';
+import { avisosParaSugerencias } from '../lib/sugerencias';
+import type { ReglaDosis } from '../lib/referencias';
 import { Termino, Terminos } from './Terminos';
 
 export interface OpcionesFormulario {
@@ -31,6 +33,11 @@ interface Props {
   inicial?: AnalisisVerificado;
   /** Área actual del lote, solo para informar; el repositorio decide qué área se guarda. */
   areaActualM2: number;
+  /** Cultivo del lote y reglas de las referencias técnicas, para avisar si un nutriente no servirá para proponer metas. */
+  cultivo?: string;
+  /** Zona del lote: si se conoce, los avisos usan solo las referencias de esa zona. */
+  zona?: string;
+  reglas?: ReadonlyArray<ReglaDosis>;
   onGuardar: (datos: DatosAnalisis, opciones: OpcionesFormulario) => Promise<void>;
   onCancelar: () => void;
 }
@@ -78,7 +85,7 @@ function entradaInicial(inicial?: AnalisisVerificado): EntradaFormulario {
   };
 }
 
-export function AnalisisSueloForm({ inicial, areaActualM2, onGuardar, onCancelar }: Props) {
+export function AnalisisSueloForm({ inicial, areaActualM2, cultivo, zona, reglas = [], onGuardar, onCancelar }: Props) {
   const [entrada, setEntrada] = useState(() => entradaInicial(inicial));
   const [actualizarArea, setActualizarArea] = useState(false);
   // Cambia cuando la lectura de un archivo trae el método: vuelve a armar las listas desde el texto.
@@ -191,6 +198,7 @@ export function AnalisisSueloForm({ inicial, areaActualM2, onGuardar, onCancelar
   }
 
   const areaHistorica = inicial?.areaM2AlRegistro;
+  const avisosMetas = cultivo ? avisosParaSugerencias({ cultivo, region: zona, reglas, nutrientes: entrada.nutrientes, metodoLaboratorio: entrada.metodoLaboratorio }) : [];
   const faltaTrazabilidad = !entrada.laboratorio.trim() || !entrada.metodoLaboratorio.trim();
   const errorProps = (id: string, mensaje?: string) =>
     ({ 'aria-invalid': !!mensaje, 'aria-describedby': mensaje ? id : undefined });
@@ -316,6 +324,7 @@ export function AnalisisSueloForm({ inicial, areaActualM2, onGuardar, onCancelar
             </fieldset>
           );
         })}
+        {avisosMetas.length > 0 && <div className="hint hint-warn" role="status"><strong>Para que la app te proponga las metas:</strong><ul>{avisosMetas.map(a => <li key={a}>{a}</li>)}</ul></div>}
         {quitados.size > 0 && <p className="hint hint-warn">Quitaste {quitados.size} {quitados.size === 1 ? 'resultado guardado' : 'resultados guardados'}. Se eliminarán al guardar; si cancelas, no cambia nada.</p>}
         <button type="button" className="btn btn-outline btn-small" onClick={() => setEntrada(e => ({ ...e, nutrientes: [...e.nutrientes, filaVacia()] }))}>+ Agregar nutriente</button>
       </fieldset>

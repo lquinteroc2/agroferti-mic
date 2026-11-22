@@ -3,7 +3,7 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { AREA_LOTE_MAX_M2, AREA_LOTE_MIN_M2, areaLoteATexto, UNIDADES_AREA, validarAreaEnUnidad, validarAreaLote } from '../src/lib/validacion.ts';
+import { AREA_LOTE_MAX_M2, AREA_LOTE_MIN_M2, areaLoteATexto, MAX_ZONA_LOTE, problemaLote, UNIDADES_AREA, validarAreaEnUnidad, validarAreaLote, zonaLoteValida } from '../src/lib/validacion.ts';
 
 test('área del lote: acepta coma o punto decimal', () => {
   assert.deepEqual(validarAreaLote('1500,5'), { ok: true, valor: 1500.5 });
@@ -66,4 +66,20 @@ test('área en hectáreas o fanegadas: se convierte a m² para guardar y calcula
   assert.equal(validarAreaEnUnidad('-1', 'ha').ok, false);
   assert.equal(validarAreaEnUnidad('2000000', 'ha').ok, false, 'más de 10.000 millones de m²');
   assert.deepEqual(UNIDADES_AREA.map(u => [u.value, u.m2]), [['m2', 1], ['ha', 10_000], ['fanegada', 6_400]]);
+});
+
+test('revisión UX (tanda 3): la zona del lote es opcional; si está, debe ser un texto no vacío y corto', () => {
+  const lote = { id: 'l1', nombre: 'Lote EJEMPLO', cultivo: 'papa', areaM2: 6400, createdAt: '2026-11-01T10:00:00Z', updatedAt: '2026-11-01T10:00:00Z' };
+  assert.equal(problemaLote(lote), null);
+  assert.equal(problemaLote({ ...lote, zona: 'Subpáramos de Cundinamarca y Boyacá' }), null);
+  assert.equal(problemaLote({ ...lote, zona: undefined }), null);
+  for (const zona of [42, '', '   ', 'x'.repeat(MAX_ZONA_LOTE + 1)]) {
+    assert.equal(problemaLote({ ...lote, zona }), 'La zona del lote no es válida.', `debe rechazar ${JSON.stringify(zona).slice(0, 20)}`);
+  }
+});
+
+test('revisión de la tanda 3: la misma regla de zona sirve para ofrecerla, guardarla y validarla en la nube', () => {
+  assert.equal(zonaLoteValida('Altiplano Cundiboyacense, Nariño y Antioquia'), true);
+  assert.equal(zonaLoteValida('x'.repeat(MAX_ZONA_LOTE)), true);
+  for (const zona of ['x'.repeat(MAX_ZONA_LOTE + 1), '', '  ', undefined, null, 3]) assert.equal(zonaLoteValida(zona), false);
 });

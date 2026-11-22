@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { AnalisisSueloDetalle, EstadoBadge } from './AnalisisSueloDetalle';
 import { AnalisisSueloForm, type OpcionesFormulario } from './AnalisisSueloForm';
 import { useSeleccionViva, type ModoSeccion } from './useSeleccionViva';
-import { repositorioAnalisis } from '../lib/db';
+import { leerReferencias, repositorioAnalisis } from '../lib/db';
 import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import { fechaLegible, formatearNumero } from '../lib/formato';
 import type { DatosAnalisis } from '../lib/validacion';
@@ -26,6 +26,8 @@ export function AnalisisSueloSeccion({ lote }: { lote: Lote }) {
     }
   }, [lote.id]);
   const analisis = lectura?.ok ? lectura.analisis : undefined;
+  // Reglas de las referencias técnicas: el formulario avisa si un nutriente no servirá para proponer metas.
+  const reglas = useLiveQuery(async () => (await leerReferencias())?.conjunto.reglasDosis ?? [], [], []);
   const seleccion = useSeleccionViva(analisis, 'titulo-suelo');
   const { modo, modoVisible, seleccionado, esperando } = seleccion;
 
@@ -74,8 +76,8 @@ export function AnalisisSueloSeccion({ lote }: { lote: Lote }) {
         No se pudieron leer los análisis guardados en este navegador. Tus datos no se han borrado. Recarga la página; si el problema sigue, revisa que el navegador permita almacenamiento local y no esté en modo privado.
       </div>}
 
-      {modo === 'nuevo' && <AnalisisSueloForm areaActualM2={lote.areaM2} onGuardar={guardar} onCancelar={() => abrir('lista', null)} />}
-      {modo === 'editar' && seleccionado && <AnalisisSueloForm key={seleccionado.id} inicial={seleccionado} areaActualM2={lote.areaM2} onGuardar={guardar} onCancelar={() => abrir('ver')} />}
+      {modo === 'nuevo' && <AnalisisSueloForm areaActualM2={lote.areaM2} cultivo={lote.cultivo} zona={lote.zona} reglas={reglas} onGuardar={guardar} onCancelar={() => abrir('lista', null)} />}
+      {modo === 'editar' && seleccionado && <AnalisisSueloForm key={seleccionado.id} inicial={seleccionado} areaActualM2={lote.areaM2} cultivo={lote.cultivo} zona={lote.zona} reglas={reglas} onGuardar={guardar} onCancelar={() => abrir('ver')} />}
       {modo === 'ver' && seleccionado && <>
         <button className="back" onClick={() => abrir('lista', null)}>← Volver al historial de análisis</button>
         <AnalisisSueloDetalle analisis={seleccionado} onEditar={() => abrir('editar')} onEliminar={() => void borrar(seleccionado)} />

@@ -77,7 +77,7 @@ test('los archivos de data/referencias/ son válidos: cada referencia pasa la ve
 });
 
 // ---- Sugerencias de metas ----
-import { citaDeSugerencia, sugerirMetas } from '../src/lib/sugerencias.ts';
+import { avisosParaSugerencias, citaDeSugerencia, regionesDelCultivo, requisitosSugerencias, sugerirMetas, usaMetodo } from '../src/lib/sugerencias.ts';
 import { verificarAnalisis } from '../src/lib/validacion.ts';
 
 const reglas = [
@@ -114,6 +114,79 @@ test('sugerencias: no se sugiere si el método, la unidad o la forma no coincide
   const sinRegion = sugerirMetas({ cultivo: 'papa', analisis: analisisEjemplo(), reglas });
   assert.ok(sinRegion.noAplican.some(n => /Elige la región/.test(n.motivo)));
   assert.deepEqual(sugerirMetas({ cultivo: 'kale', reglas }).sugerencias, [], 'sin referencias para el cultivo, no se sugiere nada');
+});
+
+test('revisión UX (tanda 3): requisitos visibles para que la app proponga metas', () => {
+  const completo = requisitosSugerencias({ cultivo: 'papa', region: 'Región EJEMPLO', analisis: analisisEjemplo(), reglas });
+  assert.deepEqual(completo.map(r => [r.clave, r.cumple]), [
+    ['analisis', true],
+    ['nutriente:P|mg/kg|Bray II', true],
+    ['nutriente:K|cmol(+)/kg|Acetato de amonio', true],
+    ['zona', true]
+  ]);
+  assert.equal(completo[1].texto, 'Fósforo (P) en mg/kg (ppm), medido con Bray II', 'una fila por condición, aunque la tabla tenga varias');
+  assert.equal(completo[2].texto, 'Potasio (K) en cmol(+)/kg (meq/100 g), medido con Acetato de amonio');
+
+  const sinNada = requisitosSugerencias({ cultivo: 'papa', reglas });
+  assert.ok(sinNada.every(r => !r.cumple && !r.motivo), 'sin análisis ni zona no se cumple nada y no hay motivo técnico');
+
+  const olsen = requisitosSugerencias({ cultivo: 'papa', region: 'Región EJEMPLO', analisis: analisisEjemplo({ metodoLaboratorio: 'Olsen (fósforo), acetato de amonio' }), reglas });
+  const p = olsen.find(r => r.clave.startsWith('nutriente:P'))!;
+  assert.equal(p.cumple, false);
+  assert.match(p.motivo ?? '', /método Bray II/);
+  assert.equal(olsen.find(r => r.clave.startsWith('nutriente:K'))!.cumple, true);
+
+  assert.equal(requisitosSugerencias({ cultivo: 'papa', region: 'Región inventada', analisis: analisisEjemplo(), reglas }).at(-1)!.cumple, false, 'una zona que no está en las referencias no sirve');
+  assert.deepEqual(requisitosSugerencias({ cultivo: 'kale', reglas }), [], 'sin referencias para el cultivo no se pide nada');
+  assert.deepEqual(regionesDelCultivo(reglas, 'papa').sort(), ['Otra región EJEMPLO', 'Región EJEMPLO']);
+});
+
+test('revisión UX (tanda 3): avisos al escribir el análisis si un nutriente no servirá para proponer metas', () => {
+  const avisos = (nutrientes: Array<{ forma: string; unidad?: string; valor?: unknown }>, metodoLaboratorio: string) =>
+    avisosParaSugerencias({ cultivo: 'papa', reglas, nutrientes, metodoLaboratorio });
+  assert.deepEqual(avisos([{ forma: 'P', unidad: 'mg/kg', valor: '35' }, { forma: 'K', unidad: 'cmol(+)/kg', valor: '0,25' }], 'Bray II (fósforo), Acetato de amonio (potasio, calcio y magnesio)'), []);
+  const metodo = avisos([{ forma: 'P', unidad: 'mg/kg', valor: '35' }], 'Olsen (fósforo)');
+  assert.equal(metodo.length, 1);
+  assert.match(metodo[0], /fósforo \(P\) medido con Bray II/);
+  const unidad = avisos([{ forma: 'K⁺', unidad: 'mg/kg', valor: '120' }], 'Acetato de amonio');
+  assert.equal(unidad.length, 1);
+  assert.match(unidad[0], /potasio \(K\) en cmol\(\+\)\/kg \(meq\/100 g\)/);
+  assert.deepEqual(avisos([], ''), [], 'no pide nutrientes que el informe no trae');
+  assert.deepEqual(avisos([{ forma: 'Ca', unidad: 'cmol(+)/kg', valor: '4' }], ''), [], 'nutrientes sin referencia no generan avisos');
+  assert.deepEqual(avisosParaSugerencias({ cultivo: 'kale', reglas, nutrientes: [{ forma: 'P', unidad: 'mg/kg', valor: '35' }], metodoLaboratorio: '' }), []);
+});
+
+test('revisión de la tanda 3: los requisitos y avisos usan solo las referencias de la zona elegida', () => {
+  // Zona A mide el fósforo con Bray II; zona B, con Olsen.
+  const porZona = [
+    regla({ id: 'a', region: 'Zona A EJEMPLO', condicion: { nutriente: 'P', metodo: 'Bray II', unidad: 'mg/kg', min: null, max: null } }),
+    regla({ id: 'b', region: 'Zona B EJEMPLO', condicion: { nutriente: 'P', metodo: 'Olsen', unidad: 'mg/kg', min: null, max: null } })
+  ].map(r => leerReglaDosis(r)!);
+  const bray = analisisEjemplo({ metodoLaboratorio: 'Bray II (fósforo)' });
+  const enA = requisitosSugerencias({ cultivo: 'papa', region: 'Zona A EJEMPLO', analisis: bray, reglas: porZona });
+  assert.ok(enA.every(r => r.cumple), 'con la zona A y Bray II no falta nada');
+  assert.ok(!enA.some(r => /Olsen/.test(r.texto)), 'no pide el método de la otra zona');
+  const sinZona = requisitosSugerencias({ cultivo: 'papa', analisis: bray, reglas: porZona });
+  assert.ok(sinZona.some(r => /Olsen/.test(r.texto)), 'sin zona se muestran las condiciones de todas');
+  const avisosA = avisosParaSugerencias({ cultivo: 'papa', region: 'Zona A EJEMPLO', reglas: porZona, nutrientes: [{ forma: 'P', unidad: 'mg/kg', valor: '35' }], metodoLaboratorio: 'Bray II' });
+  assert.deepEqual(avisosA, []);
+});
+
+test('revisión de la tanda 3: formulario y plan reconocen igual la fila del nutriente (forma sin espacios y con valor)', () => {
+  const avisos = (nutrientes: Array<{ forma: string; unidad?: string; valor?: unknown }>) =>
+    avisosParaSugerencias({ cultivo: 'papa', reglas, nutrientes, metodoLaboratorio: 'Olsen' });
+  assert.equal(avisos([{ forma: ' P ', unidad: 'mg/kg', valor: '35' }]).length, 1, 'la forma con espacios cuenta como P');
+  assert.deepEqual(avisos([{ forma: 'P', unidad: 'mg/kg', valor: '' }]), [], 'una fila sin valor no cuenta, igual que en el plan');
+  const sinValor = requisitosSugerencias({ cultivo: 'papa', region: 'Región EJEMPLO', reglas,
+    analisis: analisisEjemplo({ nutrientes: [{ elemento: 'Potasio', forma: 'K', valor: 0.25, unidad: 'cmol(+)/kg' }] }) });
+  assert.match(sinValor.find(r => r.clave.startsWith('nutriente:P'))!.motivo ?? '', /no tiene P/);
+});
+
+test('revisión UX (tanda 3): el método se reconoce sin importar mayúsculas, tildes ni guiones', () => {
+  assert.equal(usaMetodo('Bray-II (fósforo)', 'Bray II'), true);
+  assert.equal(usaMetodo('bray ii', 'Bray II'), true);
+  assert.equal(usaMetodo('Olsen', 'Bray II'), false);
+  assert.equal(usaMetodo(undefined, 'Bray II'), false);
 });
 
 test('sugerencias: la cita incluye autor, año, tabla, página y el rango', () => {

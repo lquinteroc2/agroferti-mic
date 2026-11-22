@@ -7,6 +7,7 @@ import { crearRepositorioSeguimiento } from './repositorioSeguimiento';
 import type { EstadoNube } from './nube';
 import { TABLAS_NUBE, type TablaNube } from './protocoloNube';
 import { leerConjunto, type ConjuntoReferencias } from './referencias';
+import { problemaLote, zonaLoteValida } from './validacion';
 import type { AlmacenSincronizacion, TablasNube, VersionApartada } from './sincronizacion';
 
 export const db = new Dexie('AgroFertiMIC') as Dexie & {
@@ -104,7 +105,7 @@ export const repositorioCiclos = crearRepositorioCiclos({
   transaccion: fn => db.transaction('rw', db.lotes, db.ciclos, fn)
 });
 
-export type DatosEdicionLote = Pick<Lote, 'nombre' | 'cultivo' | 'areaM2' | 'fechaSiembra' | 'ubicacion'>;
+export type DatosEdicionLote = Pick<Lote, 'nombre' | 'cultivo' | 'areaM2' | 'fechaSiembra' | 'ubicacion' | 'zona'>;
 
 /**
  * Guarda la edición de un lote sin pisar cambios hechos mientras el formulario estaba abierto (p. ej.
@@ -118,14 +119,28 @@ export async function actualizarLote(id: string, datos: DatosEdicionLote, versio
       throw new ErrorPersistencia('El lote cambió mientras lo editabas (por ejemplo, se cerró un ciclo en otra pestaña). No se guardó nada: vuelve al lote y abre de nuevo «Editar información».');
     }
     // Los campos que el formulario puede dejar vacíos no se heredan del lote guardado.
-    const { fechaSiembra: _f, ubicacion: _u, ...resto } = actual;
-    await db.lotes.put({
+    const { fechaSiembra: _f, ubicacion: _u, zona: _z, ...resto } = actual;
+    const lote: Lote = {
       ...resto,
       ...datos,
       id,
       createdAt: actual.createdAt,
       updatedAt: new Date().toISOString()
-    });
+    };
+    // Mismas reglas que la nube y el cierre de ciclo: un lote inválido no se sincronizaría.
+    const problema = problemaLote(lote as unknown as Record<string, unknown>);
+    if (problema) throw new ErrorPersistencia(`No se guardó: ${problema}`);
+    await db.lotes.put(lote);
+  });
+}
+
+/** Guarda solo la zona del lote (desde el plan, para no elegirla en cada propuesta). */
+export async function guardarZonaLote(id: string, zona: string): Promise<void> {
+  await db.transaction('rw', db.lotes, async () => {
+    const actual = await db.lotes.get(id);
+    if (!actual) throw new ErrorPersistencia('El lote ya no existe en este dispositivo.');
+    if (!zonaLoteValida(zona)) throw new ErrorPersistencia('No se guardó: la zona no es válida para un lote.');
+    await db.lotes.put({ ...actual, zona, updatedAt: new Date().toISOString() });
   });
 }
 

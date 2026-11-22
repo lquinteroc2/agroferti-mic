@@ -7,6 +7,7 @@
  * sugiere nada y se explica por qué. La sugerencia es un rango: el usuario decide el valor.
  */
 import type { AnalisisVerificado } from '../types.ts';
+import { CATALOGO_NUTRIENTES } from './catalogoNutrientes.ts';
 import type { NivelSuelo, ReglaDosis } from './referencias.ts';
 
 export interface Sugerencia {
@@ -40,17 +41,30 @@ function enRango(valor: number, min: number | null, max: number | null): boolean
   return (min === null || valor >= min) && (max === null || valor < max);
 }
 
+/** Hay un valor escrito (número guardado o texto no vacío del formulario). */
+const tieneValor = (v: unknown) => v !== undefined && v !== null && !(typeof v === 'string' && !v.trim());
+
+/** Filas del análisis que miden el nutriente de una condición (por su forma química) y tienen valor. */
+function filasDelNutriente<T extends { forma: string; valor?: unknown }>(nutrientes: ReadonlyArray<T>, nutriente: string): T[] {
+  const formas = FORMA_ANALISIS[nutriente] ?? [nutriente];
+  return nutrientes.filter(n => formas.includes(n.forma.trim()) && tieneValor(n.valor));
+}
+
+/** Reglas que aplican a la zona elegida (o todas si aún no hay zona). */
+const deLaZona = (reglas: ReadonlyArray<ReglaDosis>, region?: string) =>
+  region ? reglas.filter(r => !r.region || r.region === region) : [...reglas];
+
 /** Valor del análisis para una condición (nutriente, unidad y método), o el motivo por el que no hay. */
 function valorDelAnalisis(analisis: AnalisisVerificado, regla: ReglaDosis): { valor: number } | { motivo: string } {
   const c = regla.condicion;
   if (!c.nutriente) return { motivo: '' };
-  const formas = FORMA_ANALISIS[c.nutriente] ?? [c.nutriente];
-  const n = analisis.nutrientes.find(x => formas.includes(x.forma) && x.valor !== undefined && (!c.unidad || x.unidad === c.unidad));
+  const filas = filasDelNutriente(analisis.nutrientes, c.nutriente);
+  const n = filas.find(x => !c.unidad || x.unidad === c.unidad);
   if (!n || n.valor === undefined) {
-    const otraUnidad = analisis.nutrientes.find(x => formas.includes(x.forma) && x.valor !== undefined);
+    const otraUnidad = filas[0];
     return { motivo: otraUnidad ? `El análisis reporta ${c.nutriente} en ${otraUnidad.unidad}; la referencia usa ${c.unidad}. La app no convierte.` : `El análisis no tiene ${c.nutriente} (${c.unidad ?? 'sin unidad'}).` };
   }
-  if (c.metodo && !normalizar(analisis.metodoLaboratorio ?? '').includes(normalizar(c.metodo))) {
+  if (c.metodo && !usaMetodo(analisis.metodoLaboratorio, c.metodo)) {
     return { motivo: `La referencia usa el método ${c.metodo}; el análisis indica «${analisis.metodoLaboratorio || 'sin método'}». Con otro método los valores no son comparables.` };
   }
   return { valor: n.valor };
@@ -64,7 +78,7 @@ export function sugerirMetas(
   { cultivo, region, analisis, reglas }: { cultivo: string; region?: string; analisis?: AnalisisVerificado; reglas: ReadonlyArray<ReglaDosis> }
 ): ResultadoSugerencias {
   const delCultivo = reglas.filter(r => r.cultivo === cultivo);
-  const regiones = [...new Set(delCultivo.map(r => r.region).filter((r): r is string => !!r))];
+  const regiones = regionesDelCultivo(reglas, cultivo);
   const sugerencias: Sugerencia[] = [];
   const noAplican: ResultadoSugerencias['noAplican'] = [];
   for (const regla of delCultivo) {
@@ -84,6 +98,104 @@ export function sugerirMetas(
     for (const r of regla.recomendacion) sugerencias.push({ forma: r.forma, minKgHa: r.minKgHa, maxKgHa: r.maxKgHa, regla, motivo });
   }
   return { sugerencias, noAplican, regiones };
+}
+
+/** Regiones que distinguen las reglas de un cultivo, en el orden de las referencias. */
+export function regionesDelCultivo(reglas: ReadonlyArray<ReglaDosis>, cultivo: string): string[] {
+  return [...new Set(reglas.filter(r => r.cultivo === cultivo).map(r => r.region).filter((r): r is string => !!r))];
+}
+
+/** El método escrito en el análisis incluye el de la referencia (sin tildes, mayúsculas ni guiones). */
+export function usaMetodo(metodoLaboratorio: string | undefined, metodo: string): boolean {
+  return normalizar(metodoLaboratorio ?? '').includes(normalizar(metodo));
+}
+
+/** "fósforo (P)" a partir del símbolo de la condición de una regla. */
+function nombreNutriente(simbolo: string): string {
+  const el = CATALOGO_NUTRIENTES.find(e => e.simbolo === simbolo);
+  return el ? `${el.nombre.toLowerCase()} (${simbolo})` : simbolo;
+}
+
+/** Unidad con su nombre en los informes: "cmol(+)/kg (meq/100 g)". */
+const unidadConNombre = (unidad: string) =>
+  unidad === 'mg/kg' ? 'mg/kg (ppm)' : unidad === 'cmol(+)/kg' ? 'cmol(+)/kg (meq/100 g)' : unidad;
+
+export interface RequisitoSugerencias {
+  clave: string;
+  texto: string;
+  cumple: boolean;
+  /** Por qué no se cumple, cuando se sabe. */
+  motivo?: string;
+}
+
+/** Reglas distintas por nutriente, unidad y método (una tabla tiene varias filas con la misma condición). */
+function condicionesDistintas(reglas: ReadonlyArray<ReglaDosis>): ReglaDosis[] {
+  const vistas = new Map<string, ReglaDosis>();
+  for (const r of reglas) {
+    const c = r.condicion;
+    if (!c.nutriente) continue;
+    const clave = `${c.nutriente}|${c.unidad ?? ''}|${c.metodo ?? ''}`;
+    if (!vistas.has(clave)) vistas.set(clave, r);
+  }
+  return [...vistas.values()];
+}
+
+/**
+ * Lo que necesita la app para proponer metas con las referencias del cultivo, y si ya se cumple:
+ * un análisis, cada nutriente con la unidad y el método de la referencia, y la zona. Sin referencias
+ * para el cultivo, la lista queda vacía.
+ */
+export function requisitosSugerencias(
+  { cultivo, region, analisis, reglas }: { cultivo: string; region?: string; analisis?: AnalisisVerificado; reglas: ReadonlyArray<ReglaDosis> }
+): RequisitoSugerencias[] {
+  const delCultivo = reglas.filter(r => r.cultivo === cultivo);
+  const requisitos: RequisitoSugerencias[] = [];
+  const condiciones = condicionesDistintas(deLaZona(delCultivo, region));
+  if (condiciones.length) {
+    requisitos.push({ clave: 'analisis', texto: 'Un análisis de suelo elegido arriba', cumple: !!analisis });
+    for (const regla of condiciones) {
+      const c = regla.condicion;
+      const nombre = nombreNutriente(c.nutriente!);
+      const texto = `${nombre.charAt(0).toUpperCase()}${nombre.slice(1)}${c.unidad ? ` en ${unidadConNombre(c.unidad)}` : ''}${c.metodo ? `, medido con ${c.metodo}` : ''}`;
+      const clave = `nutriente:${c.nutriente}|${c.unidad ?? ''}|${c.metodo ?? ''}`;
+      if (!analisis) { requisitos.push({ clave, texto, cumple: false }); continue; }
+      const v = valorDelAnalisis(analisis, regla);
+      requisitos.push('motivo' in v ? { clave, texto, cumple: false, motivo: v.motivo } : { clave, texto, cumple: true });
+    }
+  }
+  const regiones = regionesDelCultivo(reglas, cultivo);
+  if (regiones.length) requisitos.push({ clave: 'zona', texto: 'La zona del lote', cumple: !!region && regiones.includes(region) });
+  return requisitos;
+}
+
+/**
+ * Avisos mientras se escribe un análisis: un nutriente que la referencia del cultivo usa está en otra
+ * unidad o medido con otro método, así que la app no podrá proponer la meta que depende de él.
+ * Solo avisa de los nutrientes que el análisis trae; no pide datos que el informe no tiene.
+ */
+export function avisosParaSugerencias(
+  { cultivo, region, reglas, nutrientes, metodoLaboratorio }: {
+    cultivo: string;
+    /** Zona del lote: si se conoce, solo cuentan las reglas de esa zona. */
+    region?: string;
+    reglas: ReadonlyArray<ReglaDosis>;
+    nutrientes: ReadonlyArray<{ forma: string; unidad?: string; valor?: unknown }>;
+    metodoLaboratorio: string;
+  }
+): string[] {
+  const avisos = new Set<string>();
+  for (const regla of condicionesDistintas(deLaZona(reglas.filter(r => r.cultivo === cultivo), region))) {
+    const c = regla.condicion;
+    const filas = filasDelNutriente(nutrientes, c.nutriente!);
+    if (!filas.length) continue;
+    const nombre = nombreNutriente(c.nutriente!);
+    if (c.unidad && !filas.some(n => n.unidad === c.unidad)) {
+      avisos.add(`La referencia técnica usa el ${nombre} en ${unidadConNombre(c.unidad)}. Con otra unidad, la app no podrá proponerte la meta que depende de él.`);
+    } else if (c.metodo && !usaMetodo(metodoLaboratorio, c.metodo)) {
+      avisos.add(`La referencia técnica usa el ${nombre} medido con ${c.metodo}. Si tu informe usa ese método, elígelo arriba; con otro método, la app no podrá proponerte la meta que depende de él.`);
+    }
+  }
+  return [...avisos];
 }
 
 /** Nivel (bajo, medio, alto…) de un valor según una tabla de interpretación, o undefined si no aplica. */

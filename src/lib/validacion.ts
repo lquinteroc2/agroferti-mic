@@ -180,6 +180,14 @@ export function validarAreaEnUnidad(texto: string, unidad: UnidadArea): Resultad
   return { ok: true, valor: m2 };
 }
 
+/** Largo máximo de la zona del lote (los nombres de región de las referencias son más cortos). */
+export const MAX_ZONA_LOTE = 120;
+
+/** Zona que se puede guardar en un lote: texto no vacío y no más largo que MAX_ZONA_LOTE. */
+export function zonaLoteValida(zona: unknown): zona is string {
+  return typeof zona === 'string' && zona.trim().length > 0 && zona.length <= MAX_ZONA_LOTE;
+}
+
 /**
  * Lote leído (p. ej. de una copia de seguridad): lo que la lista de lotes necesita para mostrarse
  * sin romperse, con las mismas reglas de área y fecha que el formulario. Devuelve el motivo o null.
@@ -195,6 +203,7 @@ export function problemaLote(r: Record<string, unknown>): string | null {
     return 'La fecha de siembra del lote no es válida.';
   }
   if (r.ubicacion !== undefined && typeof r.ubicacion !== 'string') return 'La ubicación del lote no es válida.';
+  if (r.zona !== undefined && !zonaLoteValida(r.zona)) return 'La zona del lote no es válida.';
   // La lista de lotes se ordena por createdAt: sin fechas válidas el lote no aparecería.
   for (const campo of ['createdAt', 'updatedAt']) {
     const valor = r[campo];

@@ -27,6 +27,8 @@ export interface Lote {
   areaM2: number;
   fechaSiembra?: string;
   ubicacion?: string;
+  /** Región de las referencias técnicas (p. ej. "Subpáramos de Cundinamarca y Boyacá"), para proponer metas. */
+  zona?: string;
   createdAt: string;
   updatedAt: string;
 }

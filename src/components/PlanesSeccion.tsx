@@ -5,7 +5,7 @@ import { EstadoPlanBadge, type DatosCambio } from './PlanEstado';
 import { PlanForm, type OpcionesPlanFormulario } from './PlanForm';
 import { useSeleccionViva, type ModoSeccion } from './useSeleccionViva';
 import { calcularPlan } from '../lib/calculos';
-import { leerReferencias, repositorioAnalisis, repositorioPlanes, repositorioProductos, repositorioSeguimiento } from '../lib/db';
+import { guardarZonaLote, leerReferencias, repositorioAnalisis, repositorioPlanes, repositorioProductos, repositorioSeguimiento } from '../lib/db';
 import { productoDesdeReferencia, type FertilizanteReferencia } from '../lib/referencias';
 import { fechaDeMarca, fechaLegible, formatearExacto, pesosResultado } from '../lib/formato';
 import { ErrorPersistencia } from '../lib/repositorioAnalisis';
@@ -139,8 +139,8 @@ export function PlanesSeccion({ lote, onIrAProductos }: { lote: Lote; onIrAProdu
         No se pudieron leer los planes guardados en este navegador. Tus datos no se han borrado. Recarga la página; si el problema sigue, revisa que el navegador permita almacenamiento local y no esté en modo privado.
       </div>}
 
-      {modo === 'nuevo' && <PlanForm lote={lote} productos={productos} analisis={analisis} reglas={reglas ?? undefined} referencias={fertilizantes} onAgregarProducto={agregarProducto} onGuardar={guardar} onCancelar={() => abrir('lista', null)} />}
-      {modo === 'editar' && seleccionado && <PlanForm key={seleccionado.id} inicial={seleccionado} lote={lote} productos={productos} analisis={analisis} reglas={reglas ?? undefined} referencias={fertilizantes} onAgregarProducto={agregarProducto} onGuardar={guardar} onCancelar={() => abrir('ver')} />}
+      {modo === 'nuevo' && <PlanForm lote={lote} productos={productos} analisis={analisis} reglas={reglas ?? undefined} referencias={fertilizantes} onAgregarProducto={agregarProducto} onGuardarZona={zona => guardarZonaLote(lote.id, zona)} onGuardar={guardar} onCancelar={() => abrir('lista', null)} />}
+      {modo === 'editar' && seleccionado && <PlanForm key={seleccionado.id} inicial={seleccionado} lote={lote} productos={productos} analisis={analisis} reglas={reglas ?? undefined} referencias={fertilizantes} onAgregarProducto={agregarProducto} onGuardarZona={zona => guardarZonaLote(lote.id, zona)} onGuardar={guardar} onCancelar={() => abrir('ver')} />}
       {modo === 'ver' && seleccionado && <>
         <button className="back" onClick={() => abrir('lista', null)}>← Volver a los planes del lote</button>
         <PlanDetalle

@@ -2,9 +2,11 @@ import { useState, type FormEvent } from 'react';
 import { areaM2AHa } from '../lib/calculos';
 import { formatearExacto, formatearNumero } from '../lib/formato';
 import { ErrorPersistencia } from '../lib/repositorioAnalisis';
-import { areaLoteATexto, UNIDADES_AREA, validarAreaEnUnidad, type UnidadArea } from '../lib/validacion';
+import { areaLoteATexto, UNIDADES_AREA, validarAreaEnUnidad, zonaLoteValida, type UnidadArea } from '../lib/validacion';
 import { opcionesCultivo, type Cultivo, type Lote } from '../types';
 import { NotaObligatorios } from './Campo';
+import type { ReglaDosis } from '../lib/referencias';
+import { regionesDelCultivo } from '../lib/sugerencias';
 import { Terminos } from './Terminos';
 
 export interface DatosLote {
@@ -13,6 +15,7 @@ export interface DatosLote {
   areaM2: number;
   fechaSiembra?: string;
   ubicacion?: string;
+  zona?: string;
 }
 
 interface Props {
@@ -20,9 +23,11 @@ interface Props {
   /** `versionInicial`: updatedAt del lote al abrir el formulario, para no pisar cambios hechos en otra pestaña. */
   onGuardar: (datos: DatosLote, versionInicial?: string) => Promise<void>;
   onCancelar: () => void;
+  /** Reglas de las referencias técnicas, para ofrecer las zonas del cultivo (undefined: aún no están en el dispositivo). */
+  reglas?: ReadonlyArray<ReglaDosis>;
 }
 
-export function LoteForm({ inicial, onGuardar, onCancelar }: Props) {
+export function LoteForm({ inicial, onGuardar, onCancelar, reglas }: Props) {
   const [versionInicial] = useState(inicial?.updatedAt);
   const [nombre, setNombre] = useState(inicial?.nombre ?? '');
   // Por ahora la app trabaja solo con papa; un lote guardado con otro cultivo lo conserva.
@@ -31,6 +36,8 @@ export function LoteForm({ inicial, onGuardar, onCancelar }: Props) {
   const [unidad, setUnidad] = useState<UnidadArea>('m2');
   const [fecha, setFecha] = useState(inicial?.fechaSiembra ?? '');
   const [ubicacion, setUbicacion] = useState(inicial?.ubicacion ?? '');
+  const [zona, setZona] = useState(inicial?.zona ?? '');
+  const zonas = cultivo && reglas ? regionesDelCultivo(reglas, cultivo).filter(zonaLoteValida) : [];
   const [error, setError] = useState('');
   const [guardando, setGuardando] = useState(false);
   // Muestra cómo se interpretó el número antes de guardarlo.
@@ -49,7 +56,8 @@ export function LoteForm({ inicial, onGuardar, onCancelar }: Props) {
         cultivo,
         areaM2: lecturaArea.valor,
         fechaSiembra: fecha || undefined,
-        ubicacion: ubicacion.trim() || undefined
+        ubicacion: ubicacion.trim() || undefined,
+        zona: zona || undefined
       }, versionInicial);
     } catch (e) {
       setError(e instanceof ErrorPersistencia ? e.message : 'No se pudo guardar. Verifica que tu navegador permita almacenamiento local.');
@@ -92,8 +100,16 @@ export function LoteForm({ inicial, onGuardar, onCancelar }: Props) {
         <label className="full">Ubicación o referencia
           <input value={ubicacion} onChange={e => setUbicacion(e.target.value)} maxLength={140} placeholder="Ej. Vereda, invernadero o sector" />
         </label>
+        {(zonas.length > 0 || zona) && <label className="full">Zona del lote
+          <select value={zona} onChange={e => setZona(e.target.value)}>
+            <option value="">Sin elegir</option>
+            {zonas.map(z => <option key={z} value={z}>{z}</option>)}
+            {zona && !zonas.includes(zona) && <option value={zona}>{zona}{reglas ? ' (no está en las referencias actuales)' : ''}</option>}
+          </select>
+          <small>La región de las referencias técnicas. Con ella, el plan te propone las metas de nitrógeno, fósforo y potasio sin volver a elegirla. Puedes dejarla para después.</small>
+        </label>}
       </div>
-      <Terminos ids={['lote', 'hectarea', 'fanegada']} />
+      <Terminos ids={['lote', 'hectarea', 'fanegada', 'zona']} />
       {error && <p role="alert" className="error">{error}</p>}
       <div className="form-actions">
         <button className="btn btn-outline" type="button" onClick={onCancelar}>Cancelar</button>

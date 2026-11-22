@@ -13,10 +13,12 @@ import { PantallaIngreso } from './components/PantallaIngreso';
 import { Glosario } from './components/Glosario';
 import { Termino } from './components/Terminos';
 import { SeguimientoSeccion } from './components/SeguimientoSeccion';
-import { actualizarLote, db, eliminarLoteYRelacionados, leerEstadoNube } from './lib/db';
+import { actualizarLote, db, eliminarLoteYRelacionados, leerEstadoNube, leerReferencias } from './lib/db';
 import { alVolver, reemplazarPantalla, registrarPantalla, volverPantalla } from './lib/navegacion';
 import { sesionVencida } from './lib/nube';
 import { contarTareasPendientes } from './lib/validacionSeguimiento';
+import { problemaLote } from './lib/validacion';
+import { ErrorPersistencia } from './lib/repositorioAnalisis';
 import { areaM2AHa } from './lib/calculos';
 import { fechaLegible, formatearNumero, nombreCultivo } from './lib/formato';
 import type { Lote } from './types';
@@ -50,6 +52,9 @@ export default function App() {
   const registros = useLiveQuery(() => db.registros.toArray(), []);
   const tareas = registros && lotes ? contarTareasPendientes(registros, new Set(lotes.map(l => l.id))) : undefined;
   const estadoNube = useLiveQuery(leerEstadoNube, [], null);
+  // Reglas de las referencias técnicas (para ofrecer la zona del lote).
+  // undefined mientras se lee; null si el dispositivo aún no descargó las referencias.
+  const reglas = useLiveQuery(async () => (await leerReferencias())?.conjunto.reglasDosis ?? null, []);
   const enLinea = useEnLinea();
 
   /** Pantallas abiertas, en el mismo orden que el historial del navegador (para el botón "atrás"). */
@@ -110,6 +115,9 @@ export default function App() {
       } else {
         id = crypto.randomUUID();
         const lote: Lote = { ...datos, id, createdAt: ahora, updatedAt: ahora };
+        // Mismas reglas que la nube: un lote inválido no se sincronizaría.
+        const problema = problemaLote(lote as unknown as Record<string, unknown>);
+        if (problema) throw new ErrorPersistencia(`No se guardó: ${problema}`);
         await db.lotes.put(lote);
       }
       // Tras guardar, el formulario no queda en el historial: "atrás" desde la ficha vuelve a la lista.
@@ -183,11 +191,11 @@ export default function App() {
           {estadoNube && <NubeSeccion estado={estadoNube} />}
         </>}
 
-        {vista === 'nuevo' && <div className="page-narrow"><button className="back" onClick={() => ir('inicio')}>← Volver a mis lotes</button><LoteForm onGuardar={guardarLote} onCancelar={() => ir('inicio')} /></div>}
-        {vista === 'editar' && activo && <div className="page-narrow"><button className="back" onClick={() => ir('detalle')}>← Volver al lote</button><LoteForm inicial={activo} onGuardar={guardarLote} onCancelar={() => ir('detalle')} /></div>}
+        {vista === 'nuevo' && <div className="page-narrow"><button className="back" onClick={() => ir('inicio')}>← Volver a mis lotes</button><LoteForm reglas={reglas ?? undefined} onGuardar={guardarLote} onCancelar={() => ir('inicio')} /></div>}
+        {vista === 'editar' && activo && <div className="page-narrow"><button className="back" onClick={() => ir('detalle')}>← Volver al lote</button><LoteForm inicial={activo} reglas={reglas ?? undefined} onGuardar={guardarLote} onCancelar={() => ir('detalle')} /></div>}
         {vista === 'detalle' && activo && <>
           <button className="back" onClick={() => ir('inicio')}>← Volver a mis lotes</button>
-          <section className="detail-header"><div><div className="section-kicker">FICHA DEL LOTE</div><h1>{activo.nombre}</h1><p>{nombreCultivo(activo.cultivo)} · {activo.ubicacion || 'Ubicación no registrada'}</p></div><div className="detalle-botones"><button className="btn btn-primary" onClick={() => ir('informe')}>Informe para el productor</button><button className="btn btn-outline" onClick={() => ir('editar')}>Editar información</button></div></section>
+          <section className="detail-header"><div><div className="section-kicker">FICHA DEL LOTE</div><h1>{activo.nombre}</h1><p>{nombreCultivo(activo.cultivo)} · {activo.ubicacion || 'Ubicación no registrada'}{activo.zona ? ` · Zona: ${activo.zona}` : ''}</p></div><div className="detalle-botones"><button className="btn btn-primary" onClick={() => ir('informe')}>Informe para el productor</button><button className="btn btn-outline" onClick={() => ir('editar')}>Editar información</button></div></section>
           <div className="detail-grid"><div className="detail-panel"><span>Superficie</span><strong>{formatearNumero(activo.areaM2)} m²</strong><small>{formatearNumero(areaM2AHa(activo.areaM2), 4)} hectáreas</small></div><div className="detail-panel"><span>Cultivo</span><strong>{nombreCultivo(activo.cultivo)}</strong><small>Cultivo actual del lote</small></div><div className="detail-panel"><span>Fecha de siembra</span><strong className="detail-date">{fechaLegible(activo.fechaSiembra)}</strong></div></div>
           <AnalisisSueloSeccion key={activo.id} lote={activo} />
           <PlanesSeccion key={`plan-${activo.id}`} lote={activo} onIrAProductos={() => ir('productos')} />
