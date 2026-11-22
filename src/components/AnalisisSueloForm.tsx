@@ -19,6 +19,7 @@ import type { DatoLeido } from '../lib/lecturaAnalisis';
 import { LecturaAnalisis } from './LecturaAnalisis';
 import { MetodosLaboratorio } from './MetodosLaboratorio';
 import { Obligatorio } from './Campo';
+import { Termino, Terminos } from './Terminos';
 
 export interface OpcionesFormulario {
   actualizarArea: boolean;
@@ -255,11 +256,13 @@ export function AnalisisSueloForm({ inicial, areaActualM2, onGuardar, onCancelar
           {avisoCampo('metodoLaboratorio')}
         </div>
         {faltaTrazabilidad && <p className="hint hint-warn">Puedes guardar sin laboratorio o sin método, pero el análisis quedará como <strong>Registro incompleto</strong>. La app no completa estos datos por ti.</p>}
+        <Terminos ids={['profundidad', 'densidad-aparente', 'ph', 'metodo-laboratorio', 'bray-ii']} />
       </fieldset>
 
       <fieldset className="form-group">
         <legend>Nutrientes reportados</legend>
-        <p className="hint">Elige el elemento y la <strong>forma química</strong> exactamente como la reporta el laboratorio: P no es lo mismo que P₂O₅, ni K es lo mismo que K₂O, y la app no convierte entre formas. Si tu informe usa otra forma, elige “{OPCION_OTRO}” y escríbela tal cual. Si tu informe dice <strong>ppm</strong>, elige mg/kg (es lo mismo); si dice <strong>meq/100 g</strong>, elige cmol(+)/kg (también es lo mismo). Los valores en cmol(+)/kg se guardan sin convertir. Cada resultado necesita elemento, forma química, valor y unidad; una fila vacía no se guarda. Para valores muy pequeños puedes usar notación científica (por ejemplo, 1,5e-3).</p>
+        <p className="hint">Elige el elemento y la <Termino id="forma-quimica"><strong>forma química</strong></Termino> exactamente como la reporta el laboratorio: P no es lo mismo que P₂O₅, ni K es lo mismo que K₂O, y la app no convierte entre formas. Si tu informe usa otra forma, elige “{OPCION_OTRO}” y escríbela tal cual. Si tu informe dice <strong>ppm</strong>, elige mg/kg (es lo mismo); si dice <strong>meq/100 g</strong>, elige cmol(+)/kg (también es lo mismo). Los valores en cmol(+)/kg se guardan sin convertir. Cada resultado necesita elemento, forma química, valor y unidad; una fila vacía no se guarda. Para valores muy pequeños puedes usar notación científica (por ejemplo, 1,5e-3).</p>
+        <Terminos ids={['p-p2o5', 'k-k2o', 'ppm', 'cmol-kg']} />
         {entrada.nutrientes.map((n, i) => {
           const el = n.elementoLibre ? undefined : buscarElemento(n.elemento);
           const error = errores.nutrientes?.[i];

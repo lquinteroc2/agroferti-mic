@@ -22,6 +22,7 @@ import { MOTIVOS_CIERRE, opcionesCultivo, type CicloCultivo, type CicloVerificad
 import { OrigenBadge } from './ProductoDetalle';
 import { confirmar } from './Confirmacion';
 import { NotaObligatorios, Obligatorio } from './Campo';
+import { Terminos } from './Terminos';
 
 type Modo = { tipo: 'lista' } | { tipo: 'cerrar' } | { tipo: 'notas'; id: string };
 type Aviso = { tipo: 'ok' | 'error'; texto: string } | null;
@@ -315,6 +316,7 @@ export function HistorialLoteSeccion({ lote }: { lote: Lote }) {
           <div className="section-kicker">PASO 5 · CIERRE E HISTORIAL</div>
           <h2 id="titulo-historial">Historial del lote</h2>
           <p>Los cultivos que ha tenido este lote y lo registrado en cada uno, para comparar con cultivos anteriores. Al cosechar, cierra el ciclo y empieza el siguiente cultivo.</p>
+          <Terminos ids={['ciclo', 'cultivo-actual', 'cerrar-ciclo']} />
         </div>
         {enLista && lectura?.ok && <button className="btn btn-outline" onClick={() => abrir({ tipo: 'cerrar' })}>Cerrar ciclo y empezar uno nuevo</button>}
       </div>

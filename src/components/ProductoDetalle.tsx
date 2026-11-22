@@ -59,7 +59,7 @@ export function ProductoDetalle({ producto: v, onEditar, onEliminar }: Props) {
 
       {v.camposAdicionales.length > 0 && <div className="trace-box">
         <strong>Datos de otra versión conservados</strong>
-        <p>Este registro tiene campos que esta versión no muestra ni edita ({v.camposAdicionales.join(', ')}). Se conservan intactos al guardar cambios.</p>
+        <p>Este registro tiene campos que esta versión no muestra ni edita ({v.camposAdicionales.join(', ')}). Se conservan intactos al guardar cambios; no tienes que hacer nada.</p>
       </div>}
 
       {p && <>

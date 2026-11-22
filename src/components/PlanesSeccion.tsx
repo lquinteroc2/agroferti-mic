@@ -13,6 +13,7 @@ import type { DatosPlan } from '../lib/validacionPlan';
 import type { DatosRegistro } from '../lib/validacionSeguimiento';
 import type { AnalisisVerificado, EstadoPlan, Lote, PlanVerificado, ProductoFertilizante, RegistroAplicacion, RegistroVerificado } from '../types';
 import { confirmar } from './Confirmacion';
+import { Terminos } from './Terminos';
 
 type Aviso = { tipo: 'ok' | 'error'; texto: string } | null;
 type Lectura =
@@ -122,7 +123,8 @@ export function PlanesSeccion({ lote, onIrAProductos }: { lote: Lote; onIrAProdu
         <div>
           <div className="section-kicker">PASO 3 · PLAN</div>
           <h2 id="titulo-planes">Plan de fertilización</h2>
-          <p>La app propone metas según tu análisis de suelo y fertilizantes con registro ICA para cubrirlas; calcula cantidad y costo y explica cada operación.</p>
+          <p>La app propone metas según tu análisis de suelo, a partir de referencias técnicas citadas (para papa, Castro Franco, 2005), y fertilizantes con registro ICA para cubrirlas; calcula cantidad y costo y explica cada operación. <strong>Es una propuesta, no una prescripción:</strong> revisa el plan con tu asistente técnico antes de aplicar.</p>
+          <Terminos ids={['meta', 'propuesta', 'aprobado', 'asistente-tecnico']} />
         </div>
         {modoVisible === 'lista' && lectura?.ok && <button className="btn btn-outline" onClick={() => abrir('nuevo', null)}>+ Nueva propuesta</button>}
       </div>

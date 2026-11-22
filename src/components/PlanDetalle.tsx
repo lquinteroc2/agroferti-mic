@@ -6,6 +6,7 @@ import type { AnalisisVerificado, EstadoPlan, PlanVerificado, RegistroAplicacion
 import { AplicacionesPlan } from './AplicacionesPlan';
 import { EstadoPlanBadge, NOMBRE_ESTADO, PlanEstado, type DatosCambio } from './PlanEstado';
 import { OrigenBadge } from './ProductoDetalle';
+import { Terminos } from './Terminos';
 
 interface Props {
   plan: PlanVerificado;
@@ -97,7 +98,7 @@ export function PlanDetalle({
 
       {plan.camposAdicionales.length > 0 && <div className="trace-box">
         <strong>Datos de otra versión conservados</strong>
-        <p>Este registro tiene campos que esta versión no muestra ni edita ({plan.camposAdicionales.join(', ')}). Se conservan intactos al guardar cambios.</p>
+        <p>Este registro tiene campos que esta versión no muestra ni edita ({plan.camposAdicionales.join(', ')}). Se conservan intactos al guardar cambios; no tienes que hacer nada.</p>
       </div>}
 
       {plan.estado && plan.estado !== 'propuesta' && <div className="trace-box">
@@ -111,6 +112,7 @@ export function PlanDetalle({
 
       {calculo.lineas.length > 0 && <section className="plan-resumen" aria-labelledby={`resumen-plan-${plan.id}`}>
         <h4 id={`resumen-plan-${plan.id}`}>Qué comprar y aplicar en el lote</h4>
+        <Terminos ids={['dosis', 'kg-en-el-lote', 'bultos-exactos', 'costo-estimado']} />
         <div className="table-wrap"><table className="soil-table">
           <caption className="sr-only">Resumen del plan: producto, cantidad para el lote, bultos y costo</caption>
           <thead><tr><th scope="col">Producto</th><th scope="col">Para</th><th scope="col">Kg en el lote</th><th scope="col">Bultos</th><th scope="col">Costo</th></tr></thead>
@@ -156,6 +158,7 @@ export function PlanDetalle({
       <section className="soil-block calculated" aria-labelledby={`calc-plan-${plan.id}`}>
         <h4 id={`calc-plan-${plan.id}`}><span className="badge badge-calc">Resultados calculados</span> Cantidad y costo de cada producto</h4>
         <p className="calc-intro">Cada cantidad sale de la meta que escribiste y del porcentaje que declara la etiqueta para <strong>la misma forma química</strong>. Los datos del producto son la copia guardada en el plan.</p>
+        <Terminos ids={['tambien-aporta', 'diferencia-meta', 'precio-por-kg']} />
         {calculo.lineas.length === 0 && <p className="muted">Todavía no hay productos elegidos para las metas.</p>}
         {calculo.lineas.length > 0 && <div className="calc-step">
           <strong>Producto por hectárea, en el lote, bultos y costo</strong>
@@ -196,7 +199,7 @@ export function PlanDetalle({
 
       <div className="warning-box" role="note">
         <span className="badge badge-warn">Importante</span>
-        <p>Las cantidades se calculan con las metas del plan y con lo que declara la etiqueta. Las metas propuestas por la app salen de las referencias técnicas citadas en cada meta; la app no convierte entre formas químicas (P y P₂O₅, K y K₂O). Revisa el plan con un profesional antes de aplicarlo. Los valores con “≈” están redondeados para mostrarlos; el cálculo usa el valor completo.</p>
+        <p>Las cantidades salen de las metas del plan, cada una con su fuente técnica, y de lo que declara la etiqueta en la misma forma química: la app no convierte P en P₂O₅ ni K en K₂O. Los valores con “≈” están redondeados para mostrarlos; el cálculo usa el valor completo.</p>
       </div>
 
       {plan.id && <PlanEstado plan={plan} calculo={calculo} onCambiarEstado={onCambiarEstado} onCopiar={onCopiar} />}

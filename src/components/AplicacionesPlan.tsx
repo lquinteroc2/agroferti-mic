@@ -13,6 +13,7 @@ import {
 import type { LineaPlan, PlanVerificado, RegistroAplicacion } from '../types';
 import { OrigenBadge } from './ProductoDetalle';
 import { NotaObligatorios, Obligatorio } from './Campo';
+import { Terminos } from './Terminos';
 
 interface Props {
   plan: PlanVerificado;
@@ -184,6 +185,7 @@ export function AplicacionesPlan({ plan, calculo, aplicaciones, aplicacionesDana
     <section className="soil-block calculated" aria-labelledby={`aplicado-${plan.id}`}>
       <h4 id={`aplicado-${plan.id}`}><span className="badge badge-calc">Seguimiento</span> Lo aplicado frente al plan</h4>
       <p className="calc-intro">Registra cada aplicación real de un producto; puede hacerse en varias partes. El plan aprobado no cambia: aquí se compara lo planeado con lo que registras. Es un registro manual, no una medición de campo.</p>
+      <Terminos ids={['avance', 'planeado', 'costo-real', 'fracciones']} />
       {aplicacionesDanadas > 0 && <p className="calc-skip">Hay {aplicacionesDanadas} {aplicacionesDanadas === 1 ? 'aplicación' : 'aplicaciones'} de este plan con datos por corregir: no se suman al avance.</p>}
       {ajenas > 0 && <p className="calc-skip">Hay {ajenas} {ajenas === 1 ? 'aplicación' : 'aplicaciones'} de productos que no están en este plan: no se suman al avance ni al costo.</p>}
       {error && <div role="alert" className="error"><p>{error}</p></div>}

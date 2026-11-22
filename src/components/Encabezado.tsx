@@ -33,7 +33,13 @@ const SECCIONES: ReadonlyArray<[Seccion, string]> = [['inicio', 'Mis lotes'], ['
  * Encabezado de la app con sesión. En computador: secciones, avatar, saludo, correo y Cerrar sesión
  * en la misma barra. En celular: avatar y un menú hamburguesa con las secciones y Cerrar sesión.
  */
-export function Encabezado({ seccion, onIr, estado }: { seccion: Seccion; onIr: (s: Seccion) => void; estado: EstadoNube }) {
+export function Encabezado({ seccion, enRaiz = true, onIr, estado }: {
+  seccion: Seccion;
+  /** false si se está dentro de la sección (p. ej. el glosario dentro de Cómo funciona): no se anuncia como la página actual. */
+  enRaiz?: boolean;
+  onIr: (s: Seccion) => void;
+  estado: EstadoNube;
+}) {
   const [abierto, setAbierto] = useState(false);
   const [saliendo, setSaliendo] = useState(false);
   const menu = useRef<HTMLDivElement>(null);
@@ -71,7 +77,7 @@ export function Encabezado({ seccion, onIr, estado }: { seccion: Seccion; onIr: 
   const { usuario } = estado;
   const saludo = saludoDe(usuario);
   const enlaces = (claseExtra = '') => SECCIONES.map(([s, texto]) =>
-    <button key={s} type="button" className={`nav-link${seccion === s ? ' selected' : ''}${claseExtra}`} aria-current={seccion === s ? 'page' : undefined} onClick={() => ir(s)}>{texto}</button>);
+    <button key={s} type="button" className={`nav-link${seccion === s ? ' selected' : ''}${claseExtra}`} aria-current={seccion === s ? (enRaiz ? 'page' : 'true') : undefined} onClick={() => ir(s)}>{texto}</button>);
 
   return (
     <header className="topbar">

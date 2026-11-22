@@ -10,6 +10,7 @@ import type { DatosProducto } from '../lib/validacionPlan';
 import type { ProductoVerificado } from '../types';
 import { confirmar } from './Confirmacion';
 import { CatalogoFertilizantes } from './CatalogoFertilizantes';
+import { Terminos } from './Terminos';
 import { productoDesdeReferencia, type FertilizanteReferencia } from '../lib/referencias';
 
 type Aviso = { tipo: 'ok' | 'error'; texto: string } | null;
@@ -86,6 +87,7 @@ export function ProductosSeccion() {
           <div className="section-kicker">FERTILIZANTES</div>
           <h1 id="titulo-productos">Productos</h1>
           <p>En <strong>Mis productos</strong> están los fertilizantes que usas, tal como dice su etiqueta; sirven para todos tus lotes. En <strong>Buscar fertilizantes</strong> puedes ver todos los que tienen registro ICA en Colombia y de qué están compuestos.</p>
+          <Terminos ids={['etiqueta', 'registro-ica', 'grado', 'bulto']} />
         </div>
         {lectura?.ok && pestana === 'mios' && <button className="btn btn-outline" onClick={() => abrir('nuevo', null)}>+ Agregar producto</button>}
       </div> : <h1 id="titulo-productos" className="sr-only">Catálogo de productos</h1>}

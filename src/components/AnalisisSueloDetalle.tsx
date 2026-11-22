@@ -2,6 +2,7 @@ import { equivalenciasAnalisis, type Calculo } from '../lib/calculos';
 import { fechaLegible, formatearExacto, formatearResultado } from '../lib/formato';
 import { estadoDocumentacion } from '../lib/validacion';
 import type { AnalisisVerificado } from '../types';
+import { Terminos } from './Terminos';
 
 interface Props {
   analisis: AnalisisVerificado;
@@ -51,7 +52,7 @@ export function AnalisisSueloDetalle({ analisis, onEditar, onEliminar }: Props) 
 
       {analisis.camposAdicionales.length > 0 && <div className="trace-box">
         <strong>Datos de otra versión conservados</strong>
-        <p>Este registro tiene campos que esta versión no muestra ni edita ({analisis.camposAdicionales.join(', ')}). Se conservan intactos al guardar cambios.</p>
+        <p>Este registro tiene campos que esta versión no muestra ni edita ({analisis.camposAdicionales.join(', ')}). Se conservan intactos al guardar cambios; no tienes que hacer nada.</p>
       </div>}
 
       {!doc.documentado && <div className="trace-box">
@@ -93,6 +94,7 @@ export function AnalisisSueloDetalle({ analisis, onEditar, onEliminar }: Props) 
       <section className="soil-block calculated" aria-labelledby={`calc-${analisis.id}`}>
         <h4 id={`calc-${analisis.id}`}><span className="badge badge-calc">Resultados calculados</span> Tu resultado en kilos por hectárea (no es una dosis)</h4>
         <p className="calc-intro">Estos números solo cambian la unidad del resultado del laboratorio (de mg/kg a kg/ha). Dependen de la profundidad, de la densidad aparente y de que la muestra represente bien el lote.</p>
+        <Terminos ids={['equivalencia-dimensional', 'capa-arable', 'masa-de-suelo', 'densidad-aparente']} />
 
         <div className="calc-step">
           <strong>1. Área del lote en hectáreas</strong>

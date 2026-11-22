@@ -3,6 +3,7 @@ import type { ReglaDosis } from '../lib/referencias';
 import { citaDeSugerencia, sugerirMetas, type Sugerencia } from '../lib/sugerencias';
 import { nombreCultivo } from '../lib/formato';
 import type { AnalisisVerificado, Cultivo } from '../types';
+import { Terminos } from './Terminos';
 
 const TIPO_FUENTE: Record<string, string> = {
   'oficial-colombia': 'Fuente oficial colombiana',
@@ -37,7 +38,8 @@ export function SugerenciasPlan({ cultivo, analisis, reglas, descargadas, onUsar
         : !hayReglas ? <p className="hint">Todavía no hay referencias publicadas para {nombreCultivo(cultivo).toLowerCase()}. Escribe las metas de tu fuente técnica.</p>
         : <>
           <p className="hint">Según tu análisis de suelo y la zona del lote, la app busca en las referencias técnicas cuánto nitrógeno, fósforo y potasio aplicar. Al usar una sugerencia, la meta queda con el <strong>punto medio del rango</strong>; puedes cambiarla.</p>
-          <p className="hint hint-warn"><strong>Es una propuesta, no una prescripción.</strong> Cada rango sale de la fuente citada y puede ser antiguo o de otra zona. Revísalo con un agrónomo antes de aplicar.</p>
+          <p className="hint">Cada rango sale de la fuente citada y puede ser antiguo o de otra zona.</p>
+          <Terminos ids={['zona', 'rango', 'punto-medio', 'castro-franco', 'bray-ii']} />
           {resultado.regiones.length > 0 && <label className="sugerencias-region">Zona del lote
             <select value={region} onChange={e => setRegion(e.target.value)}>
               <option value="">Elige la zona…</option>

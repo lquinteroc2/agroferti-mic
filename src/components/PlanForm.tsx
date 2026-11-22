@@ -21,6 +21,7 @@ import { ProductosSugeridos } from './ProductosSugeridos';
 import type { Sugerencia } from '../lib/sugerencias';
 import { citaDeSugerencia } from '../lib/sugerencias';
 import { NotaObligatorios, Obligatorio } from './Campo';
+import { Termino, Terminos } from './Terminos';
 
 export interface OpcionesPlanFormulario {
   actualizarArea: boolean;
@@ -184,7 +185,7 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
     <form className="form-card" onSubmit={enviar} noValidate aria-labelledby="titulo-form-plan">
       <div className="section-kicker">PLAN DE FERTILIZACIÓN</div>
       <h2 id="titulo-form-plan">{inicial ? 'Editar propuesta de plan' : 'Nueva propuesta de plan'}</h2>
-      <p className="muted">La app te <strong>propone las metas</strong> (cuántos kg/ha de cada nutriente) según tu análisis de suelo y las referencias técnicas para papa, y te <strong>sugiere fertilizantes</strong> con registro ICA que las cubren. Con eso calcula la dosis de cada producto (kg/ha y kg del lote), los bultos y el costo. Revisa la propuesta con un agrónomo; tú decides qué guardar. <NotaObligatorios /></p>
+      <p className="muted">La app te <strong>propone las metas</strong> (cuántos kg/ha de cada nutriente) según tu análisis de suelo y las referencias técnicas para papa, y te <strong>sugiere fertilizantes</strong> con registro ICA que las cubren. Con eso calcula la dosis de cada producto (kg/ha y kg del lote), los bultos y el costo. Tú decides qué guardar. <NotaObligatorios /></p>
 
       <fieldset className="form-group">
         <legend>Plan</legend>
@@ -213,7 +214,8 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
 
       <fieldset className="form-group">
         <legend>Metas y productos</legend>
-        <p className="hint">Cada meta tiene el nutriente, su <strong>forma química</strong>, la cantidad en kg/ha y de dónde sale. Para cada una, elige el producto que la cubrirá: la app te muestra los fertilizantes que aportan esa forma. Solo se calcula si la meta y la etiqueta usan la misma forma química (una meta en P no se calcula con una etiqueta en P₂O₅). Puedes guardar una meta sin producto y completarla después; los demás datos de cada meta son obligatorios.</p>
+        <p className="hint">Cada meta tiene el nutriente, su <Termino id="forma-quimica"><strong>forma química</strong></Termino>, la cantidad en kg/ha y de dónde sale. Para cada una, elige el producto que la cubrirá: la app te muestra los fertilizantes que aportan esa forma. Solo se calcula si la meta y la etiqueta usan la misma forma química (una meta en P no se calcula con una etiqueta en P₂O₅). Puedes guardar una meta sin producto y completarla después; los demás datos de cada meta son obligatorios.</p>
+        <Terminos ids={['meta', 'fuente-tecnica', 'formas-distintas', 'copia-guardada', 'agregar-y-usar']} />
         {productos.length === 0 && <p className="hint hint-warn">Tu catálogo no tiene productos disponibles. Puedes guardar las metas ahora y registrar los productos en <strong>Productos</strong>.</p>}
         {entrada.metas.map((m, i) => {
           const el = m.elementoLibre ? undefined : buscarElemento(m.elemento);

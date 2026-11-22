@@ -10,6 +10,8 @@ import { PlanesSeccion } from './components/PlanesSeccion';
 import { ProductosSeccion } from './components/ProductosSeccion';
 import { NubeSeccion } from './components/NubeSeccion';
 import { PantallaIngreso } from './components/PantallaIngreso';
+import { Glosario } from './components/Glosario';
+import { Termino } from './components/Terminos';
 import { SeguimientoSeccion } from './components/SeguimientoSeccion';
 import { actualizarLote, db, eliminarLoteYRelacionados, leerEstadoNube } from './lib/db';
 import { alVolver, reemplazarPantalla, registrarPantalla, volverPantalla } from './lib/navegacion';
@@ -29,7 +31,7 @@ function useEnLinea(): boolean {
   }, () => navigator.onLine);
 }
 
-type Vista = 'inicio' | 'nuevo' | 'editar' | 'detalle' | 'informe' | 'informe-general' | 'productos' | 'ayuda';
+type Vista = 'inicio' | 'nuevo' | 'editar' | 'detalle' | 'informe' | 'informe-general' | 'productos' | 'ayuda' | 'glosario';
 interface Pantalla { vista: Vista; loteId: string | null }
 
 export default function App() {
@@ -151,7 +153,7 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <Encabezado seccion={vista === 'productos' || vista === 'ayuda' ? vista : 'inicio'} onIr={ir} estado={estadoNube} />
+      <Encabezado seccion={vista === 'productos' || vista === 'ayuda' ? vista : vista === 'glosario' ? 'ayuda' : 'inicio'} enRaiz={vista === 'inicio' || vista === 'productos' || vista === 'ayuda'} onIr={ir} estado={estadoNube} />
 
       <main className="container main-content">
         {vencida && <div role="status" className="notice notice-error"><span aria-hidden="true">!</span>Tu sesión venció. Puedes seguir trabajando sin internet; cuando tengas conexión tendrás que ingresar de nuevo para sincronizar.</div>}
@@ -191,7 +193,6 @@ export default function App() {
           <PlanesSeccion key={`plan-${activo.id}`} lote={activo} onIrAProductos={() => ir('productos')} />
           <SeguimientoSeccion key={`seg-${activo.id}`} lote={activo} />
           <HistorialLoteSeccion key={`hist-${activo.id}`} lote={activo} />
-          <div className="info-box"><strong>Importante:</strong> la app propone metas y fertilizantes a partir de referencias técnicas citadas (para papa, Castro Franco, 2005) y calcula la cantidad y el costo. Es una propuesta, no una prescripción: revisa el plan con tu asistente técnico antes de aplicar.</div>
           <button className="danger-link" onClick={() => void borrarLote()}>Eliminar este lote</button>
         </>}
 
@@ -200,17 +201,16 @@ export default function App() {
         {vista === 'productos' && <ProductosSeccion key={visita} />}
 
         {vista === 'ayuda' && <div className="page-narrow help"><div className="section-kicker">GUÍA PARA EL PRODUCTOR</div><h1>Cómo funciona AgroFerti MIC</h1><p className="muted">Organiza la información de tus lotes y registra lo que realmente pasa en el campo. Funciona en el celular y en el computador, también sin internet.</p>
+          <div className="ayuda-glosario"><p>¿Hay una palabra que no entiendes? El glosario explica cada término de la app.</p><button className="btn btn-outline" onClick={() => ir('glosario')}>Abrir el glosario</button></div>
           <div className="help-item"><span>1</span><div><h3>Crea tus lotes</h3><p>En <strong>Mis lotes</strong>, registra cada terreno con su nombre, cultivo, área, fecha de siembra y ubicación.</p></div></div>
-          <div className="help-item"><span>2</span><div><h3>Registra el análisis de suelo</h3><p>En la ficha del lote, copia los resultados del laboratorio o adjunta el informe. La app te muestra, paso a paso, a cuántos kilos por hectárea equivale cada resultado.</p>
-            <p><strong>Capa arable.</strong> Es la capa de arriba del suelo, donde están casi todas las raíces y se mezcla el fertilizante. La app la toma como la capa que se muestreó y calcula cuántos kilos de suelo tiene en una hectárea, con la <strong>profundidad de muestreo</strong> y la <strong>densidad aparente</strong> del informe:</p>
-            <p className="formula">Masa de la capa arable (kg/ha) = 10.000 m² × profundidad (m) × densidad (kg/m³)</p>
-            <p>Por ejemplo, 20 cm y 1,1 g/cm³: 10.000 × 0,20 × 1.100 = <strong>2.200.000 kg de suelo por hectárea</strong>. Con esa masa, un fósforo de 35 mg/kg equivale a 35 × 2.200.000 ÷ 1.000.000 = <strong>77 kg de P por hectárea</strong> en la capa arable. La app no supone la profundidad ni la densidad: si faltan, no hace este cálculo.</p></div></div>
+          <div className="help-item"><span>2</span><div><h3>Registra el análisis de suelo</h3><p>En la ficha del lote, adjunta el informe del laboratorio o copia sus resultados tal como aparecen. Si el informe trae la <Termino id="profundidad">profundidad de muestreo</Termino> y la <Termino id="densidad-aparente">densidad aparente</Termino>, la app también expresa cada resultado en kilos por hectárea de la <Termino id="capa-arable">capa arable</Termino>. Esos kilos no son una dosis.</p></div></div>
           <div className="help-item"><span>3</span><div><h3>Prepara el plan de fertilización</h3><p>En la ficha del lote, crea una propuesta de plan: la app te propone las metas de nitrógeno, fósforo y potasio según tu análisis de suelo y la zona, y te sugiere fertilizantes con registro ICA para cubrirlas. Con eso calcula cuánto aplicar, cuántos bultos y cuánto cuesta. Puedes cambiar todo antes de guardar; después, el plan se revisa y se aprueba.</p></div></div>
           <div className="help-item"><span>4</span><div><h3>Haz seguimiento</h3><p>Registra lo que aplicaste, tus observaciones y las tareas pendientes. La app compara lo aplicado con el plan aprobado.</p></div></div>
           <div className="help-item"><span>5</span><div><h3>Cierra el ciclo e imprime</h3><p>Al cosechar, cierra el ciclo en el <strong>historial del lote</strong> para empezar un nuevo ciclo sin perder lo anterior. Imprime o guarda en PDF el informe de un lote o el de todos tus lotes.</p></div></div>
           <div className="info-box"><strong>Tus datos:</strong> se guardan en este dispositivo y en tu cuenta en la nube (con tu autorización), así no se pierden si cambias de dispositivo. La app funciona sin internet y se sincroniza cuando hay conexión. Para tenerlos en papel o en PDF, usa <strong>Informe para el productor</strong> en la ficha de cada lote. Puedes borrar tus datos de la nube en <strong>Mi cuenta</strong>, en Mis lotes.</div>
-          <button className="btn btn-primary" onClick={() => ir('inicio')}>Ir a mis lotes</button>
+          <div className="detalle-botones"><button className="btn btn-primary" onClick={() => ir('inicio')}>Ir a mis lotes</button><button className="btn btn-outline" onClick={() => ir('glosario')}>Abrir el glosario</button></div>
         </div>}
+        {vista === 'glosario' && <Glosario onVolver={() => ir('ayuda')} />}
         {((vista === 'editar' || vista === 'detalle' || vista === 'informe') && !activo) && <div className="empty"><p>Selecciona un lote para continuar.</p><button className="btn btn-primary" onClick={() => ir('inicio')}>Ver mis lotes</button></div>}
       </main>
       <footer className="footer"><div className="container footer-inner"><span>AgroFerti MIC · Grupo 1 · SENA</span><span>Prototipo educativo</span></div></footer>

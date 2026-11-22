@@ -21,6 +21,7 @@ import type { Lote, RegistroSeguimiento, RegistroTarea, RegistroVerificado, Tipo
 import { OrigenBadge } from './ProductoDetalle';
 import { confirmar } from './Confirmacion';
 import { NotaObligatorios, Obligatorio } from './Campo';
+import { Terminos } from './Terminos';
 
 type Clase = 'observacion' | 'tarea';
 type Modo = { tipo: 'lista' } | { tipo: 'nuevo'; clase: Clase } | { tipo: 'editar'; id: string };
@@ -317,6 +318,7 @@ export function SeguimientoSeccion({ lote }: { lote: Lote }) {
           <div className="section-kicker">PASO 4 · SEGUIMIENTO</div>
           <h2 id="titulo-seguimiento">Seguimiento del lote</h2>
           <p>Observaciones, tareas y las aplicaciones registradas en los planes aprobados. Es un registro manual: no es una medición ni un sensor.</p>
+          <Terminos ids={['observacion', 'tarea', 'aplicacion', 'estado-tarea']} />
         </div>
         {enLista && lectura?.ok && <div className="seguimiento-botones">
           <button className="btn btn-outline" onClick={() => abrir({ tipo: 'nuevo', clase: 'observacion' })}>+ Observación</button>

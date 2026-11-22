@@ -9,6 +9,7 @@ import { fechaLegible, formatearNumero } from '../lib/formato';
 import type { DatosAnalisis } from '../lib/validacion';
 import type { AnalisisVerificado, Lote } from '../types';
 import { confirmar } from './Confirmacion';
+import { Terminos } from './Terminos';
 
 type Aviso = { tipo: 'ok' | 'error'; texto: string } | null;
 type Lectura = { ok: true; analisis: AnalisisVerificado[] } | { ok: false };
@@ -58,6 +59,7 @@ export function AnalisisSueloSeccion({ lote }: { lote: Lote }) {
           <div className="section-kicker">PASO 2 · SUELO</div>
           <h2 id="titulo-suelo">Análisis de suelo</h2>
           <p>Guarda los resultados del laboratorio y entiende sus unidades. Con ellos, el plan te propone las metas de fertilización.</p>
+          <Terminos ids={['analisis-de-suelo', 'muestra', 'leer-archivo']} />
         </div>
         {modoVisible === 'lista' && lectura?.ok && <button className="btn btn-outline" onClick={() => abrir('nuevo', null)}>+ Agregar análisis</button>}
       </div>

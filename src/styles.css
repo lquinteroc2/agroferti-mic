@@ -366,3 +366,31 @@
 .detalle-registro dd{margin:2px 0 0;overflow-wrap:anywhere}
 .help-item p+p{margin-top:8px}
 .help-item .formula{font-family:ui-monospace,Consolas,monospace;font-size:.84rem;background:#f3f7f0;border:1px solid #dce6d6;border-radius:8px;padding:8px 10px;color:#2f4b3c;overflow-wrap:anywhere}
+
+/* Revisión UX, tanda 2: glosario y ayudas de términos */
+.termino-boton{border:0;background:transparent;padding:0;font:inherit;color:inherit;text-decoration:underline dotted;text-underline-offset:3px;cursor:help}
+.termino-boton[aria-expanded=true]{color:#194c3b;font-weight:700}
+.termino-burbuja{display:block;margin:8px 0;background:#eef4fa;border:1px solid #d3e2ef;border-radius:10px;padding:10px 12px;font-size:.86rem;line-height:1.55;color:#24384a;font-weight:400;text-align:left}
+.termino-ejemplo{display:block;margin-top:6px;font-variant-numeric:tabular-nums}
+.termino-cerrar{display:block;margin-top:6px;font-size:.82rem}
+.terminos{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:4px 0 14px}
+.terminos-titulo{font-size:.8rem;font-weight:700;color:#5f7468;margin-right:2px}
+.termino-chip{border:1px solid #d7e0d6;background:#fafcf8;border-radius:99px;padding:6px 12px;min-height:44px;font-size:.82rem;color:#27503c;font-weight:600;cursor:pointer}
+.termino-chip:hover{border-color:#85ab83}
+.termino-chip[aria-expanded=true],.termino-chip[aria-pressed=true]{background:#194c3b;border-color:#194c3b;color:white}
+.terminos .termino-burbuja{flex-basis:100%;margin:2px 0 0}
+.glosario h1{font-size:2.3rem}
+.glosario-herramientas{position:sticky;top:0;z-index:2;background:#f7f9f5;padding:10px 0 2px;display:grid;gap:10px}
+.glosario-herramientas .hint{margin:0}
+.glosario-temas{display:flex;flex-wrap:wrap;gap:6px}
+.glosario-tema{margin-top:22px}
+.glosario-tema h2{font-size:1.2rem;border-bottom:2px solid #e5eee1;padding-bottom:6px;margin-bottom:4px}
+.glosario-lista{margin:0}
+.glosario-termino{padding:12px 0;border-bottom:1px solid #e5ebe2}
+.glosario-termino dt{font-family:Manrope,sans-serif;font-weight:800;color:#214734}
+.glosario-termino dd{margin:4px 0 0;color:#344d3e;font-size:.93rem;line-height:1.6}
+.glosario-termino .termino-ejemplo{background:#eef4fa;border-radius:8px;padding:6px 9px}
+.glosario-donde{display:block;margin-top:6px;color:#5f7468;font-size:.8rem}
+.ayuda-glosario{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;background:white;border:1px solid #e5e9e0;border-radius:12px;padding:14px 18px;margin:18px 0}
+.ayuda-glosario p{margin:0;color:#344d3e}
+@media(max-width:720px){.glosario h1{font-size:1.9rem}.ayuda-glosario .btn{flex:1}}

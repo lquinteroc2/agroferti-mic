@@ -6,6 +6,7 @@ import { registrosSinLote, versionesApartadas } from '../lib/db';
 import { fechaHoraDeMarca } from '../lib/formato';
 import { ErrorNube, type EstadoNube } from '../lib/nube';
 import { confirmar } from './Confirmacion';
+import { Terminos } from './Terminos';
 
 type Aviso = { tipo: 'ok' | 'error'; texto: string } | null;
 
@@ -76,6 +77,7 @@ export function NubeSeccion({ estado }: { estado: EstadoNube }) {
     <section className="respaldo nube" aria-labelledby="titulo-nube">
       <h2 id="titulo-nube">Mi cuenta</h2>
       <p>Ingresaste como <strong>{estado.usuario.nombre ? `${estado.usuario.nombre} (${estado.usuario.email})` : estado.usuario.email}</strong>. Tus datos se guardan en este dispositivo y se copian a la nube cuando hay internet. Para tener tus datos en papel o en PDF, usa <strong>Informe para el productor</strong> en la ficha de cada lote.</p>
+      <Terminos ids={['nube', 'sincronizar', 'cambios-que-chocaron', 'borrar-nube']} />
       <p className={`nube-estado${fase.fase === 'error' ? ' nube-estado-error' : ''}`} role="status">{textoEstado}</p>
       {resultado?.reiniciada && <p className="hint">Tu cuenta en la nube se había borrado y se creó de nuevo: este dispositivo volvió a subir todos sus datos.</p>}
       {resultado?.cuotaExcedida && <p className="error">Tu cuenta llegó al espacio máximo de la nube para este prototipo. Los cambios nuevos se guardan en este dispositivo, pero no se suben. Elimina lotes o registros que ya no necesites.</p>}
@@ -98,7 +100,7 @@ export function NubeSeccion({ estado }: { estado: EstadoNube }) {
       </div>}
 
       {resultado && resultado.sinLote > 0 && <div className="hint">
-        <strong>{resultado.sinLote} {resultado.sinLote === 1 ? 'registro pertenece' : 'registros pertenecen'} a un lote que ya no existe</strong> (por ejemplo, se eliminó en otro dispositivo mientras en este se agregaban datos). No se muestran en ninguna ficha.
+        <strong>{resultado.sinLote} {resultado.sinLote === 1 ? 'registro pertenece' : 'registros pertenecen'} a un lote que ya no existe</strong> (por ejemplo, se eliminó en otro dispositivo mientras en este se agregaban datos). No se muestran en ninguna ficha; si no los reconoces o ya no los necesitas, puedes eliminarlos.
         <div className="respaldo-acciones"><button type="button" className="danger-link" disabled={trabajando} onClick={eliminarSinLote}>Eliminarlos</button></div>
       </div>}
 

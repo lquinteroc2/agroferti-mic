@@ -34,7 +34,7 @@ export function MetodosLaboratorio({ valor, onChange }: { valor: string; onChang
           {FOSFORO.map(m => <option key={m} value={m}>{m}</option>)}
           <option value={OTRO}>Otro (escríbelo abajo)</option>
         </select>
-        <small>La sugerencia de dosis para papa usa fósforo medido con <strong>Bray II</strong>, el más común en Colombia.</small>
+        <small>La referencia de papa que usa la app (Castro Franco, 2005) da las metas de fósforo según el fósforo medido con <strong>Bray II</strong>.</small>
       </label>
       <label>Potasio, calcio y magnesio
         <select value={otroBases ? OTRO : partes.bases} onChange={e => elegir('bases', e.target.value, setOtroBases)}>

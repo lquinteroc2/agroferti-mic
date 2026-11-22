@@ -5,6 +5,7 @@ import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import { areaLoteATexto, UNIDADES_AREA, validarAreaEnUnidad, type UnidadArea } from '../lib/validacion';
 import { opcionesCultivo, type Cultivo, type Lote } from '../types';
 import { NotaObligatorios } from './Campo';
+import { Terminos } from './Terminos';
 
 export interface DatosLote {
   nombre: string;
@@ -92,6 +93,7 @@ export function LoteForm({ inicial, onGuardar, onCancelar }: Props) {
           <input value={ubicacion} onChange={e => setUbicacion(e.target.value)} maxLength={140} placeholder="Ej. Vereda, invernadero o sector" />
         </label>
       </div>
+      <Terminos ids={['lote', 'hectarea', 'fanegada']} />
       {error && <p role="alert" className="error">{error}</p>}
       <div className="form-actions">
         <button className="btn btn-outline" type="button" onClick={onCancelar}>Cancelar</button>

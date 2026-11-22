@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { formatearExacto, pesos } from '../lib/formato';
 import { filtrarCatalogo, nombreMes, resumenComposicion, type DetalleRegistro, type FertilizanteReferencia } from '../lib/referencias';
+import { Terminos } from './Terminos';
 
 const ETIQUETAS_DETALLE: ReadonlyArray<[keyof DetalleRegistro, string]> = [
   ['clase', 'Tipo de producto'], ['tipo', 'Presentación física'], ['uso', 'Uso registrado'], ['cultivos', 'Cultivos registrados'],
@@ -46,6 +47,7 @@ export function CatalogoFertilizantes({ referencias, registrosPropios, onAgregar
   return (
     <div className="catalogo-ica">
       <p className="muted">Los <strong>{formatearExacto(referencias.length)} fertilizantes</strong> con registro <strong>vigente ante el ICA</strong> para aplicar al suelo, con la composición garantizada que declara el registro. Los más comunes traen además el precio promedio del <strong>DANE</strong> por departamento. Busca por nombre, empresa o grado, o filtra por lo que necesitas que aporte.</p>
+      <Terminos ids={['composicion-garantizada', 'grado', 'sipsa', 'por-verificar-composicion']} />
       <div className="catalogo-filtros">
         <label className="catalogo-buscar">Buscar
           <input type="search" value={texto} onChange={e => { const v = e.target.value; cambiarFiltro(() => setTexto(v)); }} placeholder="Ej. urea, DAP, 15-15-15, Yara, sulfato…" />

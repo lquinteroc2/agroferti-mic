@@ -4,6 +4,7 @@ import { fechaHoraDeMarca } from '../lib/formato';
 import type { CalculoPlan } from '../lib/calculos';
 import { FALTA_RESPONSABLE, TRANSICIONES_PLAN, motivosCambioEstado } from '../lib/validacionPlan';
 import type { EstadoPlan, PlanVerificado } from '../types';
+import { Terminos } from './Terminos';
 
 export const NOMBRE_ESTADO: Record<EstadoPlan, string> = { propuesta: 'Propuesta', revisado: 'Revisado', aprobado: 'Aprobado' };
 
@@ -116,6 +117,7 @@ export function PlanEstado({ plan, calculo, onCambiarEstado, onCopiar }: Props) 
     <section className="soil-block plan-estado" aria-labelledby={`estado-plan-${plan.id}`}>
       <h4 id={`estado-plan-${plan.id}`}>Estado del plan: <EstadoPlanBadge estado={plan.estado} /></h4>
       <p className="hint">Propuesta: se puede editar. Revisado: alguien revisó metas, fuentes y productos. Aprobado: registro de solo lectura. El nombre lo escribe el usuario: la app no verifica identidades ni certifica aprobaciones técnicas. Lo aplicado en campo no es un estado del plan: se registra en «Lo aplicado frente al plan» cuando el plan está aprobado.</p>
+      <Terminos ids={['propuesta', 'revisado', 'aprobado', 'copiar-propuesta']} />
 
       {danado && <p className="calc-skip">Este plan tiene datos guardados dañados: no puede cambiar de estado ni copiarse.</p>}
       {hecho && <div role="status" className="notice notice-ok"><span aria-hidden="true">✓</span>{hecho}<button onClick={() => setHecho('')} aria-label="Cerrar aviso">×</button></div>}
@@ -134,7 +136,7 @@ export function PlanEstado({ plan, calculo, onCambiarEstado, onCopiar }: Props) 
         <p><strong>{ACCIONES[accion].boton}.</strong> {ACCIONES[accion].explicacion}</p>
         <div className="fields">
           <label><span className="campo-titulo">Nombre de quien registra el cambio <span className="required" aria-hidden="true">*</span></span>
-            <input value={responsable} onChange={e => { setResponsable(e.target.value); setErrores([]); }} maxLength={80} placeholder="Nombre y rol, p. ej. agrónomo" autoFocus />
+            <input value={responsable} onChange={e => { setResponsable(e.target.value); setErrores([]); }} maxLength={80} placeholder="Nombre y rol, p. ej. asistente técnico" autoFocus />
           </label>
           <label>Nota
             <input value={nota} onChange={e => setNota(e.target.value)} maxLength={200} placeholder={ACCIONES[accion].nota} />
