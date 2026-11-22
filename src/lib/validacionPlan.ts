@@ -657,8 +657,9 @@ export interface EntradaPlan {
 
 export type ErroresPlan = { nombre?: string; metas?: Record<number, string>; general?: string[] };
 
+/** Meta sin datos escritos ni producto. El origen no cuenta: empieza con un valor (real o EJEMPLO). */
 export function filaMetaVacia(m: EntradaMeta): boolean {
-  return !m.productoId && !m.origen && [m.elemento, m.forma, m.kgHa, m.fuente, m.fechaFuente].every(t => !t.trim());
+  return !m.productoId && [m.elemento, m.forma, m.kgHa, m.fuente, m.fechaFuente].every(t => !t.trim());
 }
 
 /** La meta la escribe el usuario con su fuente: la app no la calcula, no la sugiere ni la deriva del suelo. */

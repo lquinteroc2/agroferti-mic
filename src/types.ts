@@ -29,6 +29,8 @@ export interface Lote {
   ubicacion?: string;
   /** Región de las referencias técnicas (p. ej. "Subpáramos de Cundinamarca y Boyacá"), para proponer metas. */
   zona?: string;
+  /** Departamento (como lo escribe el DANE), para tomar el precio de referencia de los fertilizantes. */
+  departamento?: string;
   createdAt: string;
   updatedAt: string;
 }

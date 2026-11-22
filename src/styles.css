@@ -448,3 +448,15 @@
 .linea-estados .btn{justify-self:start}
 @media(max-width:720px){.pasos-lote{padding:14px}.paso button{font-size:.7rem}.paso-marca{width:22px;height:22px}.siguiente-paso .btn{flex:1 1 100%}.linea-estados ol{grid-template-columns:1fr}.linea-estados li{border-top:0;border-left:4px solid #e3e9e0;padding:0 0 0 10px}.linea-estados li.hecho{border-left-color:#6d9b42}.linea-estados li.actual{border-left-color:#194c3b}}
 @media(max-width:1100px){.usuario-boton .usuario-texto small{display:block}.usuario-correo{display:none}}
+
+/* Revisión UX, tanda 5: formularios más cortos */
+.fields label.check{flex-direction:row;align-items:flex-start;font-weight:600}
+.origen-dato{align-self:end}
+.origen-dato .field-error{flex-basis:100%}
+.notice-practica{background:#fff1c9;color:#6b4a00;border:1px solid #f0d78a}
+.modo-practica{margin-top:22px;padding-top:16px;border-top:1px solid #dce6ce}
+.modo-practica h2{font-size:1.05rem}
+.modo-practica .hint{margin-top:8px}
+.meta-compacta{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 14px;background:#f2f8ef;border:1px solid #d7e8cf;border-radius:10px;padding:10px 12px}
+.meta-compacta p{margin:0;font-size:.9rem;color:#2c4a35}
+.meta-compacta .link-button{min-height:44px}

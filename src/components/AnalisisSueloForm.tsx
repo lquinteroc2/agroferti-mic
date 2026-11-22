@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { CATALOGO_NUTRIENTES, OPCION_OTRO, buscarElemento } from '../lib/catalogoNutrientes';
+import { CATALOGO_NUTRIENTES, OPCION_OTRO, PLANTILLA_ANALISIS, buscarElemento } from '../lib/catalogoNutrientes';
 import { formatearNumero } from '../lib/formato';
 import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import {
@@ -43,7 +43,8 @@ interface Props {
 }
 
 /** Fila del formulario. `origen` es su posición en el registro guardado (undefined = fila nueva). */
-type FilaNutriente = EntradaNutriente & { clave: number; origen?: number; aviso?: string };
+/** `plantilla`: fila de la lista típica; si se deja sin valor, no se guarda. */
+type FilaNutriente = EntradaNutriente & { clave: number; origen?: number; aviso?: string; plantilla?: boolean };
 type EntradaFormulario = Omit<EntradaAnalisis, 'nutrientes'> & { nutrientes: FilaNutriente[] };
 type CampoSimple = Exclude<keyof EntradaAnalisis, 'nutrientes'>;
 
@@ -170,9 +171,11 @@ export function AnalisisSueloForm({ inicial, areaActualM2, cultivo, zona, reglas
       setErrorGeneral(['Antes de guardar, confirma qué hacer con cada dato guardado dañado:', ...sinResolver.map(p => `• ${p.etiqueta}`)]);
       return;
     }
-    // Una fila dañada confirmada y dejada vacía se descarta (con consentimiento); el resto se valida.
+    // Se descartan: una fila dañada confirmada y dejada vacía (con consentimiento) y las filas de la
+    // lista típica que quedaron sin valor (el informe no trae ese nutriente).
     const filas = entrada.nutrientes.filter(n =>
-      !(n.origen !== undefined && confirmados.has(claveFila(n.origen)) && filaNutrienteVacia(n)));
+      !(n.origen !== undefined && confirmados.has(claveFila(n.origen)) && filaNutrienteVacia(n))
+      && !(n.plantilla && !n.valor.trim()));
     const resultado = validarAnalisis({ ...entrada, nutrientes: filas });
     if (!resultado.ok) {
       // Los errores de fila se indexan sobre `filas`; se reubican en la lista visible.
@@ -198,6 +201,17 @@ export function AnalisisSueloForm({ inicial, areaActualM2, cultivo, zona, reglas
   }
 
   const areaHistorica = inicial?.areaM2AlRegistro;
+  // La lista típica se ofrece mientras no haya ninguna fila con datos.
+  const sinFilas = entrada.nutrientes.every(n => n.origen === undefined && filaNutrienteVacia(n));
+  function usarPlantilla() {
+    setEntrada(e => ({
+      ...e,
+      // Sin unidad: cada informe la trae a su manera y la app no la supone; se elige al escribir el valor.
+      nutrientes: PLANTILLA_ANALISIS.map(f => ({ ...filaVacia(), elemento: f.elemento, forma: f.forma, unidad: '', plantilla: true }))
+    }));
+    setErrores({});
+    setErrorGeneral([]);
+  }
   const avisosMetas = cultivo ? avisosParaSugerencias({ cultivo, region: zona, reglas, nutrientes: entrada.nutrientes, metodoLaboratorio: entrada.metodoLaboratorio }) : [];
   const faltaTrazabilidad = !entrada.laboratorio.trim() || !entrada.metodoLaboratorio.trim();
   const errorProps = (id: string, mensaje?: string) =>
@@ -326,7 +340,11 @@ export function AnalisisSueloForm({ inicial, areaActualM2, cultivo, zona, reglas
         })}
         {avisosMetas.length > 0 && <div className="hint hint-warn" role="status"><strong>Para que la app te proponga las metas:</strong><ul>{avisosMetas.map(a => <li key={a}>{a}</li>)}</ul></div>}
         {quitados.size > 0 && <p className="hint hint-warn">Quitaste {quitados.size} {quitados.size === 1 ? 'resultado guardado' : 'resultados guardados'}. Se eliminarán al guardar; si cancelas, no cambia nada.</p>}
-        <button type="button" className="btn btn-outline btn-small" onClick={() => setEntrada(e => ({ ...e, nutrientes: [...e.nutrientes, filaVacia()] }))}>+ Agregar nutriente</button>
+        <div className="detalle-botones">
+          <button type="button" className="btn btn-outline btn-small" onClick={() => setEntrada(e => ({ ...e, nutrientes: [...e.nutrientes, filaVacia()] }))}>+ Agregar nutriente</button>
+          {sinFilas && <button type="button" className="btn btn-outline btn-small" onClick={usarPlantilla}>Usar la lista típica de un análisis</button>}
+        </div>
+        {entrada.nutrientes.some(n => n.plantilla) && <p className="hint">Escribe solo los valores que trae tu informe y elige la unidad de cada uno tal como aparece (ppm es mg/kg; meq/100 g es cmol(+)/kg). Las filas que dejes sin valor no se guardan.</p>}
       </fieldset>
 
       <fieldset className="form-group">

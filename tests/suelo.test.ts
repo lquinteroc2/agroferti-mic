@@ -334,3 +334,25 @@ test('orden cronológico con desempate por creación e id; fechas inválidas al 
   ];
   assert.deepEqual(ordenarAnalisis(lista).map(a => a.id), ['c', 'e', 'd', 'a', 'b']);
 });
+
+// ---- Revisión UX (tanda 5): lista típica del análisis ----
+import { coherenciaNutriente as coherenciaPlantilla, PLANTILLA_ANALISIS } from '../src/lib/catalogoNutrientes.ts';
+import { UNIDADES_NUTRIENTE as UNIDADES_PLANTILLA } from '../src/lib/validacion.ts';
+
+test('revisión UX (tanda 5): la lista típica usa elementos y formas del catálogo, sin valores ni unidades supuestas', () => {
+  assert.equal(PLANTILLA_ANALISIS.length, 12);
+  for (const f of PLANTILLA_ANALISIS) {
+    assert.equal(coherenciaPlantilla(f.elemento, f.forma).reconocido, true, `${f.elemento} / ${f.forma}`);
+    assert.equal(Object.keys(f).sort().join(','), 'elemento,forma', 'solo elemento y forma: ni valores ni unidades');
+  }
+  // P y K como elemento: así los usa la referencia de papa para proponer metas.
+  assert.deepEqual(PLANTILLA_ANALISIS.slice(0, 2).map(f => f.forma), ['P', 'K']);
+  // Una fila de la lista con valor y sin unidad no se guarda: hay que elegir la unidad.
+  assert.equal(UNIDADES_PLANTILLA.includes('' as never), false);
+});
+
+test('revisión de la tanda 5: una fila con valor y sin unidad pide elegir la unidad del informe', () => {
+  const r = validarAnalisis(entrada({ nutrientes: [{ elemento: 'Potasio', forma: 'K', valor: '150', unidad: '', elementoLibre: false, formaLibre: false }] }), HOY);
+  assert.ok(!r.ok);
+  if (!r.ok) assert.match(r.errores.nutrientes?.[0] ?? '', /elige la que trae tu informe/);
+});

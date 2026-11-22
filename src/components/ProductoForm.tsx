@@ -17,6 +17,7 @@ import {
 import { buscarFertilizantes, nombreMes, productoDesdeReferencia, resumenComposicion, type FertilizanteReferencia } from '../lib/referencias';
 import { DetalleRegistroVista } from './CatalogoFertilizantes';
 import { Obligatorio } from './Campo';
+import { modoPractica } from '../lib/preferencias';
 import { Termino, Terminos } from './Terminos';
 import type { ContenidoDeclarado, ProductoVerificado } from '../types';
 
@@ -60,7 +61,8 @@ function entradaInicial(inicial?: ProductoVerificado): EntradaFormulario {
     fechaPrecio: p?.fechaPrecio ?? original('fechaPrecio'),
     registroIca: p?.registroIca ?? original('registroIca'),
     fuentePrecio: p?.fuentePrecio ?? original('fuentePrecio'),
-    esEjemplo: p?.esEjemplo ?? null
+    // Un producto nuevo empieza como real (o EJEMPLO en modo práctica); uno guardado sin origen válido se elige.
+    esEjemplo: p?.esEjemplo ?? (inicial ? null : modoPractica())
   };
 }
 
@@ -82,6 +84,8 @@ function vistaPrevia(precioTexto: string, kgTexto: string): string | null {
 
 export function ProductoForm({ inicial, onGuardar, onCancelar, referencias = [] }: Props) {
   const [entrada, setEntrada] = useState(() => entradaInicial(inicial));
+  // Un producto guardado con el origen dañado se corrige con los dos botones durante toda la edición.
+  const [origenConBotones] = useState(() => entrada.esEjemplo === null);
   const [descartarDanados, setDescartarDanados] = useState(false);
   const [errores, setErrores] = useState<ErroresProducto>({});
   const [errorGeneral, setErrorGeneral] = useState<string[]>([]);
@@ -265,7 +269,10 @@ export function ProductoForm({ inicial, onGuardar, onCancelar, referencias = [] 
             <small id="ayuda-registro-ica">Aparece en la etiqueta del bulto.</small>
           </label>
         </div>
-        <fieldset className="choice-group" aria-describedby={errores.esEjemplo ? 'err-ejemplo' : undefined}>
+        {!origenConBotones ? <label className="check origen-dato">
+          <input type="checkbox" checked={entrada.esEjemplo === true} onChange={e => elegirOrigen(e.target.checked)} />
+          <span>Son datos de práctica (<strong>EJEMPLO</strong>, ficticios), no de la etiqueta de un producto real</span>
+        </label> : <fieldset className="choice-group" aria-describedby={errores.esEjemplo ? 'err-ejemplo' : undefined}>
           <legend>¿De dónde salen estos datos? <span className="required" aria-hidden="true">*</span></legend>
           <label className="check">
             <input type="radio" name="origen-producto" checked={entrada.esEjemplo === false} onChange={() => elegirOrigen(false)} />
@@ -276,7 +283,7 @@ export function ProductoForm({ inicial, onGuardar, onCancelar, referencias = [] 
             Son datos de EJEMPLO (ficticios, para practicar o presentar)
           </label>
           {errores.esEjemplo && <span id="err-ejemplo" className="field-error">{errores.esEjemplo}</span>}
-        </fieldset>
+        </fieldset>}
       </fieldset>
 
       <fieldset className="form-group">

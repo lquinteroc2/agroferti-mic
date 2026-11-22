@@ -6,6 +6,7 @@
  *
  * Todo lo que llega se verifica: una referencia con la estructura equivocada se descarta.
  */
+import { DEPARTAMENTOS_COLOMBIA } from './departamentos.ts';
 import type { ContenidoDeclarado } from '../types.ts';
 import { esObjeto, validarFecha } from './validacion.ts';
 import { validarFilaContenido } from './validacionPlan.ts';
@@ -279,7 +280,38 @@ export function fertilizantesQueAportan(lista: ReadonlyArray<FertilizanteReferen
 export function departamentoDeUbicacion(f: FertilizanteReferencia, ubicacion?: string): string | undefined {
   if (!ubicacion?.trim()) return undefined;
   const donde = sinTildes(ubicacion);
-  return f.precios.find(p => donde.includes(sinTildes(p.departamento)))?.departamento;
+  // Primero se reconoce el departamento del texto, con el nombre más largo que aparezca: "Norte de
+  // Santander" se reconoce antes que "Santander". Después se busca el precio de ESE departamento.
+  const nombrado = NOMBRES_DEPARTAMENTO.find(n => contienePalabras(donde, n.clave));
+  if (nombrado) return f.precios.find(p => sinTildes(p.departamento) === sinTildes(nombrado.departamento))?.departamento;
+  // Un nombre que no está en la lista (otra forma de escribirlo): se compara con los precios, el más largo primero.
+  return [...f.precios].sort((a, b) => b.departamento.length - a.departamento.length)
+    .find(p => contienePalabras(donde, sinTildes(p.departamento)))?.departamento;
+}
+
+/** El texto contiene esas palabras completas ("meta" no está en "metálica"). Ambos sin tildes ni mayúsculas. */
+function contienePalabras(texto: string, palabras: string): boolean {
+  const escapadas = palabras.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`(^|[^a-z0-9])${escapadas}($|[^a-z0-9])`).test(texto);
+}
+
+/** Nombres de departamento que se buscan en una ubicación escrita (con formas cortas comunes), del más largo al más corto. */
+const NOMBRES_DEPARTAMENTO: ReadonlyArray<{ clave: string; departamento: string }> = [
+  ...DEPARTAMENTOS_COLOMBIA.map(d => ({ clave: sinTildes(d), departamento: d })),
+  // Forma corta sin riesgo de confundirse con un municipio de otro departamento.
+  { clave: 'bogota', departamento: 'Bogotá, D.C.' }
+].sort((a, b) => b.clave.length - a.clave.length);
+
+/**
+ * Departamento del lote con precio DANE para este fertilizante: el que se eligió en el lote (igual al
+ * nombre del DANE) o, si no se eligió, el que se lea en la ubicación escrita.
+ */
+export function departamentoDelLote(f: FertilizanteReferencia, lote: { departamento?: string; ubicacion?: string }): string | undefined {
+  if (lote.departamento?.trim()) {
+    const clave = sinTildes(lote.departamento.trim());
+    return f.precios.find(p => sinTildes(p.departamento) === clave)?.departamento;
+  }
+  return departamentoDeUbicacion(f, lote.ubicacion);
 }
 
 export interface FiltroCatalogo {

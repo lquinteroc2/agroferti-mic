@@ -21,7 +21,8 @@ import { resumenErrores } from '../lib/validacionPlan';
 import { MOTIVOS_CIERRE, opcionesCultivo, type CicloCultivo, type CicloVerificado, type Lote, type MotivoCierre } from '../types';
 import { OrigenBadge } from './ProductoDetalle';
 import { confirmar } from './Confirmacion';
-import { NotaObligatorios, Obligatorio } from './Campo';
+import { NotaObligatorios, Obligatorio, OrigenDato } from './Campo';
+import { origenInicial } from '../lib/preferencias';
 import { Terminos } from './Terminos';
 
 type Modo = { tipo: 'lista' } | { tipo: 'cerrar' } | { tipo: 'notas'; id: string };
@@ -45,7 +46,7 @@ function CierreForm({ lote, ultimoCierre, onGuardar, onCancelar }: {
   onCancelar: () => void;
 }) {
   const [entrada, setEntrada] = useState<EntradaCierre>({
-    fechaCierre: fechaLocalISO(), motivo: '', notas: '', origen: '', nuevoCultivo: opcionesCultivo().some(c => c.value === lote.cultivo) ? lote.cultivo : 'papa', nuevaFechaSiembra: ''
+    fechaCierre: fechaLocalISO(), motivo: '', notas: '', origen: origenInicial(), nuevoCultivo: opcionesCultivo().some(c => c.value === lote.cultivo) ? lote.cultivo : 'papa', nuevaFechaSiembra: ''
   });
   const [errores, setErrores] = useState<ErroresCierre>({});
   const [errorGeneral, setErrorGeneral] = useState<string[]>([]);
@@ -104,14 +105,7 @@ function CierreForm({ lote, ultimoCierre, onGuardar, onCancelar }: {
           <small>Lo escribes tú: la app no calcula rendimientos ni los interpreta.</small>
           {error('notas')}
         </label>
-        <label><Obligatorio>Origen del dato</Obligatorio>
-          <select value={entrada.origen} onChange={e => cambiar('origen', e.target.value)} aria-required="true" aria-invalid={!!errores.origen}>
-            <option value="">Elige…</option>
-            <option value="real">Dato real</option>
-            <option value="ejemplo">EJEMPLO (ficticio)</option>
-          </select>
-          {error('origen')}
-        </label>
+        <OrigenDato valor={entrada.origen} onCambiar={o => cambiar('origen', o)} error={errores.origen} />
         <label>Cultivo del nuevo ciclo
           <select value={entrada.nuevoCultivo} onChange={e => cambiar('nuevoCultivo', e.target.value)}>
             {opcionesCultivo().map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
@@ -168,12 +162,7 @@ function NotasForm({ ciclo, onGuardar, onCancelar }: {
             {MOTIVOS_CIERRE.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
           </select>
         </label>
-        <label>Origen del dato
-          <select value={origen} onChange={e => setOrigen(e.target.value as 'real' | 'ejemplo')}>
-            <option value="real">Dato real</option>
-            <option value="ejemplo">EJEMPLO (ficticio)</option>
-          </select>
-        </label>
+        <OrigenDato valor={origen} onCambiar={setOrigen} />
         <label className="full">Resultado y notas
           <textarea value={notas} onChange={e => { setNotas(e.target.value); setError([]); }} maxLength={MAX_NOTAS_CICLO} rows={3} />
         </label>

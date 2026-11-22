@@ -15,6 +15,7 @@ import {
 } from '../src/lib/calculos.ts';
 import { mismaForma } from '../src/lib/catalogoNutrientes.ts';
 import {
+  filaMetaVacia,
   copiarProducto,
   validarCambioEstado,
   validarPlanFormulario,
@@ -527,4 +528,10 @@ test('revisión 3d: los motivos no dependen del nombre y aceptan un cálculo ya 
   assert.deepEqual(motivosCambioEstado(plan(), 'revisado', calcularPlan(plan())), []);
   const sinNombre = validarCambioEstado(plan(), 'revisado', ' ');
   assert.ok(!sinNombre.ok && sinNombre.errores.length === 1 && sinNombre.errores[0] === FALTA_RESPONSABLE);
+});
+
+test('revisión UX (tanda 5): una meta nueva sin datos sigue vacía aunque su origen empiece como real o EJEMPLO', () => {
+  assert.equal(filaMetaVacia(filaMeta({ id: 'x', elemento: '', forma: '', kgHa: '', fuente: '', fechaFuente: '', origen: 'real', productoId: '' })), true);
+  assert.equal(filaMetaVacia(filaMeta({ id: 'x', elemento: '', forma: '', kgHa: '', fuente: '', fechaFuente: '', origen: 'ejemplo', productoId: '' })), true);
+  assert.equal(filaMetaVacia(filaMeta({ id: 'x', elemento: '', forma: '', kgHa: '90', fuente: '', fechaFuente: '', origen: 'real', productoId: '' })), false);
 });

@@ -6,6 +6,7 @@ import { registrosSinLote, versionesApartadas } from '../lib/db';
 import { fechaHoraDeMarca } from '../lib/formato';
 import { ErrorNube, type EstadoNube } from '../lib/nube';
 import { confirmar } from './Confirmacion';
+import { cambiarModoPractica, preferenciasExternas } from '../lib/preferencias';
 import { Terminos } from './Terminos';
 
 type Aviso = { tipo: 'ok' | 'error'; texto: string } | null;
@@ -29,6 +30,7 @@ function describirApartada(texto: string): string {
 /** Pantalla Mi cuenta (desde la foto o el nombre, arriba): sincronización, cerrar sesión y borrar los datos de la nube. */
 export function NubeSeccion({ estado }: { estado: EstadoNube }) {
   const { fase, cambiosLocales } = useSyncExternalStore(sincronizacionExterna.suscribir, sincronizacionExterna.leer);
+  const practica = useSyncExternalStore(preferenciasExternas.suscribir, preferenciasExternas.leer);
   const apartadas = useLiveQuery(versionesApartadas.listar, [], []);
   const [aviso, setAviso] = useState<Aviso>(null);
   const [trabajando, setTrabajando] = useState(false);
@@ -91,6 +93,15 @@ export function NubeSeccion({ estado }: { estado: EstadoNube }) {
         <button type="button" className="btn btn-outline" disabled={trabajando} onClick={salir}>Cerrar sesión</button>
       </div>
       <button type="button" className="danger-link" disabled={trabajando} onClick={borrarNube}>Borrar mis datos de la nube</button>
+
+      <div className="modo-practica">
+        <h2>Modo práctica</h2>
+        <label className="check">
+          <input type="checkbox" checked={practica} onChange={e => cambiarModoPractica(e.target.checked)} />
+          <span>Marcar como <strong>EJEMPLO</strong> lo nuevo que registre en este dispositivo</span>
+        </label>
+        <p className="hint">Sirve para practicar o presentar la app sin mezclar datos inventados con los de tu cultivo. Lo marcado como EJEMPLO se señala en las pantallas y en los informes. En cada formulario puedes cambiarlo. Solo aplica a este dispositivo.</p>
+      </div>
 
       {apartadas.length > 0 && <div className="hint">
         <strong>Cambios que chocaron entre dispositivos ({apartadas.length}).</strong> Cuando dos dispositivos cambian el mismo registro, se conserva el cambio más reciente y el otro queda aquí para que lo revises. Si lo que quedó guardado está bien, puedes descartarlos:

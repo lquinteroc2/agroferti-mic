@@ -27,6 +27,26 @@ export const CATALOGO_NUTRIENTES: ReadonlyArray<ElementoCatalogo> = [
 
 export const OPCION_OTRO = 'Otro / No reconocido';
 
+/**
+ * Filas típicas de un análisis de suelo, para no armarlas una por una: solo el elemento y su forma.
+ * No trae valores ni unidades: cada laboratorio reporta a su manera y el productor elige la unidad de
+ * cada valor que copia de su informe.
+ */
+export const PLANTILLA_ANALISIS: ReadonlyArray<{ elemento: string; forma: string }> = [
+  { elemento: 'Fósforo', forma: 'P' },
+  { elemento: 'Potasio', forma: 'K' },
+  { elemento: 'Calcio', forma: 'Ca' },
+  { elemento: 'Magnesio', forma: 'Mg' },
+  { elemento: 'Sodio', forma: 'Na' },
+  { elemento: 'Aluminio', forma: 'Al' },
+  { elemento: 'Azufre', forma: 'S' },
+  { elemento: 'Hierro', forma: 'Fe' },
+  { elemento: 'Manganeso', forma: 'Mn' },
+  { elemento: 'Cobre', forma: 'Cu' },
+  { elemento: 'Zinc', forma: 'Zn' },
+  { elemento: 'Boro', forma: 'B' }
+];
+
 const SUBINDICES: Record<string, string> = {
   '₀': '0', '₁': '1', '₂': '2', '₃': '3', '₄': '4', '₅': '5', '₆': '6', '₇': '7', '₈': '8', '₉': '9',
   '⁰': '0', '¹': '1', '²': '2', '³': '3', '⁴': '4', '⁵': '5', '⁶': '6', '⁷': '7', '⁸': '8', '⁹': '9',

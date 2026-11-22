@@ -12,7 +12,8 @@ import {
 } from '../lib/validacionSeguimiento';
 import type { LineaPlan, PlanVerificado, RegistroAplicacion } from '../types';
 import { OrigenBadge } from './ProductoDetalle';
-import { NotaObligatorios, Obligatorio } from './Campo';
+import { NotaObligatorios, Obligatorio, OrigenDato } from './Campo';
+import { origenInicial } from '../lib/preferencias';
 import { Terminos } from './Terminos';
 
 interface Props {
@@ -37,7 +38,7 @@ function entradaInicial(inicial?: RegistroAplicacion): EntradaAplicacion {
     costoCop: inicial?.costoCop !== undefined ? numeroSinAmbiguedad(inicial.costoCop) : '',
     responsable: inicial?.responsable ?? '',
     nota: inicial?.nota ?? '',
-    origen: inicial ? (inicial.esEjemplo ? 'ejemplo' : 'real') : ''
+    origen: inicial ? (inicial.esEjemplo ? 'ejemplo' : 'real') : origenInicial()
   };
 }
 
@@ -98,14 +99,7 @@ export function AplicacionForm({ linea, planId, inicial, onGuardar, onCancelar }
           <input inputMode="decimal" value={entrada.costoCop} onChange={e => cambiar('costoCop', e.target.value)} placeholder="Lo que costó, ej. 15000" aria-invalid={!!errores.costoCop} />
           {error('costoCop')}
         </label>
-        <label><Obligatorio>Origen del dato</Obligatorio>
-          <select value={entrada.origen} onChange={e => cambiar('origen', e.target.value)} aria-required="true" aria-invalid={!!errores.origen}>
-            <option value="">Elige…</option>
-            <option value="real">Aplicación real</option>
-            <option value="ejemplo">EJEMPLO (ficticia)</option>
-          </select>
-          {error('origen')}
-        </label>
+        <OrigenDato valor={entrada.origen} onCambiar={o => cambiar('origen', o)} error={errores.origen} real="Aplicación real" />
         <label>Responsable
           <input value={entrada.responsable} onChange={e => cambiar('responsable', e.target.value)} maxLength={80} placeholder="Quién aplicó" />
         </label>

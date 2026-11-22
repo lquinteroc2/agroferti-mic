@@ -183,6 +183,9 @@ export function validarAreaEnUnidad(texto: string, unidad: UnidadArea): Resultad
 /** Largo máximo de la zona del lote (los nombres de región de las referencias son más cortos). */
 export const MAX_ZONA_LOTE = 120;
 
+/** Largo máximo del departamento del lote (el nombre oficial más largo tiene unos 40 caracteres). */
+export const MAX_DEPARTAMENTO_LOTE = 60;
+
 /** Zona que se puede guardar en un lote: texto no vacío y no más largo que MAX_ZONA_LOTE. */
 export function zonaLoteValida(zona: unknown): zona is string {
   return typeof zona === 'string' && zona.trim().length > 0 && zona.length <= MAX_ZONA_LOTE;
@@ -204,6 +207,9 @@ export function problemaLote(r: Record<string, unknown>): string | null {
   }
   if (r.ubicacion !== undefined && typeof r.ubicacion !== 'string') return 'La ubicación del lote no es válida.';
   if (r.zona !== undefined && !zonaLoteValida(r.zona)) return 'La zona del lote no es válida.';
+  if (r.departamento !== undefined && (typeof r.departamento !== 'string' || !r.departamento.trim() || r.departamento.length > MAX_DEPARTAMENTO_LOTE)) {
+    return 'El departamento del lote no es válido.';
+  }
   // La lista de lotes se ordena por createdAt: sin fechas válidas el lote no aparecería.
   for (const campo of ['createdAt', 'updatedAt']) {
     const valor = r[campo];
@@ -313,6 +319,7 @@ export function validarNutriente(fila: EntradaNutriente): Resultado<NutrienteRep
   const nombres = validarElementoForma(fila, { donde: 'el informe', ejemplo: 'P o P₂O₅', revisar: 'el informe del laboratorio' });
   if (!nombres.ok) return nombres;
   const { elemento, forma } = nombres.valor;
+  if (!fila.unidad) return { ok: false, error: 'Unidad: elige la que trae tu informe (mg/kg o cmol(+)/kg).' };
   if (!esUnidadValida(fila.unidad)) return { ok: false, error: 'Unidad no válida: usa mg/kg o cmol(+)/kg.' };
   const valor = validarNumeroSinAmbiguedad(fila.valor, { campo: 'Valor', requerido: true });
   if (!valor.ok) return valor;

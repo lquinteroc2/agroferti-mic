@@ -83,3 +83,9 @@ test('revisión de la tanda 3: la misma regla de zona sirve para ofrecerla, guar
   assert.equal(zonaLoteValida('x'.repeat(MAX_ZONA_LOTE)), true);
   for (const zona of ['x'.repeat(MAX_ZONA_LOTE + 1), '', '  ', undefined, null, 3]) assert.equal(zonaLoteValida(zona), false);
 });
+
+test('revisión UX (tanda 5): el departamento del lote es opcional; si está, es un texto no vacío y corto', () => {
+  const lote = { id: 'l1', nombre: 'Lote EJEMPLO', cultivo: 'papa', areaM2: 6400, createdAt: '2026-11-01T10:00:00Z', updatedAt: '2026-11-01T10:00:00Z' };
+  assert.equal(problemaLote({ ...lote, departamento: 'Boyacá' }), null);
+  for (const departamento of [7, '', ' ', 'x'.repeat(61)]) assert.equal(problemaLote({ ...lote, departamento }), 'El departamento del lote no es válido.');
+});

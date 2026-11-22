@@ -23,7 +23,8 @@ import {
 import type { Lote, PlanVerificado, RegistroSeguimiento, RegistroTarea, RegistroVerificado, TipoRegistro } from '../types';
 import { OrigenBadge } from './ProductoDetalle';
 import { confirmar } from './Confirmacion';
-import { NotaObligatorios, Obligatorio } from './Campo';
+import { NotaObligatorios, Obligatorio, OrigenDato } from './Campo';
+import { origenInicial } from '../lib/preferencias';
 import { Terminos } from './Terminos';
 
 type Clase = 'observacion' | 'tarea';
@@ -60,7 +61,8 @@ function entradaInicial(v?: RegistroVerificado): Entrada {
     estado: estado === 'hecha' || estado === 'pendiente' ? estado : v ? '' : 'pendiente',
     fechaRealizada: valorInicial(v, 'fechaRealizada'),
     responsable: valorInicial(v, 'responsable'),
-    origen: v?.parcial.esEjemplo === true ? 'ejemplo' : v?.parcial.esEjemplo === false ? 'real' : ''
+    // Un registro nuevo empieza como real (o EJEMPLO en modo práctica); uno guardado con el origen dañado se elige.
+    origen: v?.parcial.esEjemplo === true ? 'ejemplo' : v?.parcial.esEjemplo === false ? 'real' : v ? '' : origenInicial()
   };
 }
 
@@ -164,14 +166,7 @@ function RegistroForm({ clase, inicial, onGuardar, onCancelar }: {
           <input value={entrada.responsable} onChange={e => cambiar('responsable', e.target.value)} maxLength={MAX_RESPONSABLE} placeholder="Quién lo registra" aria-invalid={!!errores.responsable} />
           {error('responsable')}
         </label>
-        <label><Obligatorio>Origen del dato</Obligatorio>
-          <select value={entrada.origen} onChange={e => cambiar('origen', e.target.value)} aria-required="true" aria-invalid={!!errores.origen}>
-            <option value="">Elige…</option>
-            <option value="real">Dato real</option>
-            <option value="ejemplo">EJEMPLO (ficticio)</option>
-          </select>
-          {error('origen')}
-        </label>
+        <OrigenDato valor={entrada.origen} onCambiar={o => cambiar('origen', o)} error={errores.origen} />
       </div>
       {errorGeneral.length > 0 && <div role="alert" className="error">{errorGeneral.map((m, i) => <p key={i}>{m}</p>)}</div>}
       <div className="form-actions">

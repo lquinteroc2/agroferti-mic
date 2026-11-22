@@ -105,7 +105,7 @@ export const repositorioCiclos = crearRepositorioCiclos({
   transaccion: fn => db.transaction('rw', db.lotes, db.ciclos, fn)
 });
 
-export type DatosEdicionLote = Pick<Lote, 'nombre' | 'cultivo' | 'areaM2' | 'fechaSiembra' | 'ubicacion' | 'zona'>;
+export type DatosEdicionLote = Pick<Lote, 'nombre' | 'cultivo' | 'areaM2' | 'fechaSiembra' | 'ubicacion' | 'zona' | 'departamento'>;
 
 /**
  * Guarda la edición de un lote sin pisar cambios hechos mientras el formulario estaba abierto (p. ej.
@@ -119,7 +119,7 @@ export async function actualizarLote(id: string, datos: DatosEdicionLote, versio
       throw new ErrorPersistencia('El lote cambió mientras lo editabas (por ejemplo, se cerró un ciclo en otra pestaña). No se guardó nada: vuelve al lote y abre de nuevo «Editar información».');
     }
     // Los campos que el formulario puede dejar vacíos no se heredan del lote guardado.
-    const { fechaSiembra: _f, ubicacion: _u, zona: _z, ...resto } = actual;
+    const { fechaSiembra: _f, ubicacion: _u, zona: _z, departamento: _d, ...resto } = actual;
     const lote: Lote = {
       ...resto,
       ...datos,

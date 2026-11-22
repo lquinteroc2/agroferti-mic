@@ -7,6 +7,7 @@ import { opcionesCultivo, type Cultivo, type Lote } from '../types';
 import { NotaObligatorios } from './Campo';
 import type { ReglaDosis } from '../lib/referencias';
 import { regionesDelCultivo } from '../lib/sugerencias';
+import { DEPARTAMENTOS_COLOMBIA } from '../lib/departamentos';
 import { Terminos } from './Terminos';
 
 export interface DatosLote {
@@ -16,6 +17,7 @@ export interface DatosLote {
   fechaSiembra?: string;
   ubicacion?: string;
   zona?: string;
+  departamento?: string;
 }
 
 interface Props {
@@ -37,6 +39,7 @@ export function LoteForm({ inicial, onGuardar, onCancelar, reglas }: Props) {
   const [fecha, setFecha] = useState(inicial?.fechaSiembra ?? '');
   const [ubicacion, setUbicacion] = useState(inicial?.ubicacion ?? '');
   const [zona, setZona] = useState(inicial?.zona ?? '');
+  const [departamento, setDepartamento] = useState(inicial?.departamento ?? '');
   const zonas = cultivo && reglas ? regionesDelCultivo(reglas, cultivo).filter(zonaLoteValida) : [];
   const [error, setError] = useState('');
   const [guardando, setGuardando] = useState(false);
@@ -57,7 +60,8 @@ export function LoteForm({ inicial, onGuardar, onCancelar, reglas }: Props) {
         areaM2: lecturaArea.valor,
         fechaSiembra: fecha || undefined,
         ubicacion: ubicacion.trim() || undefined,
-        zona: zona || undefined
+        zona: zona || undefined,
+        departamento: departamento || undefined
       }, versionInicial);
     } catch (e) {
       setError(e instanceof ErrorPersistencia ? e.message : 'No se pudo guardar. Verifica que tu navegador permita almacenamiento local.');
@@ -97,8 +101,16 @@ export function LoteForm({ inicial, onGuardar, onCancelar, reglas }: Props) {
         <label>Fecha de siembra
           <input type="date" value={fecha} onChange={e => setFecha(e.target.value)} />
         </label>
-        <label className="full">Ubicación o referencia
-          <input value={ubicacion} onChange={e => setUbicacion(e.target.value)} maxLength={140} placeholder="Ej. Vereda, invernadero o sector" />
+        <label>Departamento
+          <select value={departamento} onChange={e => setDepartamento(e.target.value)}>
+            <option value="">Sin elegir</option>
+            {DEPARTAMENTOS_COLOMBIA.map(d => <option key={d} value={d}>{d}</option>)}
+            {departamento && !DEPARTAMENTOS_COLOMBIA.includes(departamento) && <option value={departamento}>{departamento}</option>}
+          </select>
+          <small>Con él, la app usa el precio de referencia del DANE de tu departamento para los fertilizantes.</small>
+        </label>
+        <label>Ubicación o referencia
+          <input value={ubicacion} onChange={e => setUbicacion(e.target.value)} maxLength={140} placeholder="Ej. Vereda, municipio o sector" />
         </label>
         {(zonas.length > 0 || zona) && <label className="full">Zona del lote
           <select value={zona} onChange={e => setZona(e.target.value)}>

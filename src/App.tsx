@@ -20,6 +20,7 @@ import { contarTareasPendientes } from './lib/validacionSeguimiento';
 import { fechaLocalISO, problemaLote } from './lib/validacion';
 import { avancesPorLote } from './lib/avance';
 import { PasosLote } from './components/PasosLote';
+import { preferenciasExternas } from './lib/preferencias';
 import { ErrorPersistencia } from './lib/repositorioAnalisis';
 import { areaM2AHa } from './lib/calculos';
 import { fechaLegible, formatearNumero, nombreCultivo } from './lib/formato';
@@ -64,6 +65,7 @@ export default function App() {
   // undefined mientras se lee; null si el dispositivo aún no descargó las referencias.
   const reglas = useLiveQuery(async () => (await leerReferencias())?.conjunto.reglasDosis ?? null, []);
   const enLinea = useEnLinea();
+  const practica = useSyncExternalStore(preferenciasExternas.suscribir, preferenciasExternas.leer);
 
   /** Pantallas abiertas, en el mismo orden que el historial del navegador (para el botón "atrás"). */
   const pila = useRef<Pantalla[]>([{ vista: 'inicio', loteId: null }]);
@@ -173,6 +175,7 @@ export default function App() {
         enRaiz={vista === 'inicio' || vista === 'productos' || vista === 'ayuda' || vista === 'cuenta'} onIr={ir} estado={estadoNube} enLinea={enLinea} />
 
       <main className="container main-content">
+        {practica && <div role="status" className="notice notice-practica"><span aria-hidden="true">!</span><span>Modo práctica: lo nuevo que registres se marca como <strong>EJEMPLO</strong>. <button type="button" className="link-button" onClick={() => ir('cuenta')}>Desactivarlo en Mi cuenta</button></span></div>}
         {vencida && <div role="status" className="notice notice-error"><span aria-hidden="true">!</span>Tu sesión venció. Puedes seguir trabajando sin internet; cuando tengas conexión tendrás que ingresar de nuevo para sincronizar.</div>}
         {mensaje && <div role={mensajeEsError ? 'alert' : 'status'} className={`notice ${mensajeEsError ? 'notice-error' : 'notice-ok'}`}><span aria-hidden="true">{mensajeEsError ? '!' : '✓'}</span>{mensaje}<button onClick={() => setMensaje('')} aria-label="Cerrar aviso">×</button></div>}
 
@@ -211,7 +214,7 @@ export default function App() {
         {vista === 'editar' && activo && <div className="page-narrow"><button className="back" onClick={() => ir('detalle')}>← Volver al lote</button><LoteForm inicial={activo} reglas={reglas ?? undefined} onGuardar={guardarLote} onCancelar={() => ir('detalle')} /></div>}
         {vista === 'detalle' && activo && <>
           <button className="back" onClick={() => ir('inicio')}>← Volver a mis lotes</button>
-          <section className="detail-header"><div><div className="section-kicker">FICHA DEL LOTE</div><h1 id="titulo-ficha">{activo.nombre}</h1><p>{nombreCultivo(activo.cultivo)} · {activo.ubicacion || 'Ubicación no registrada'}{activo.zona ? ` · Zona: ${activo.zona}` : ''}</p></div><div className="detalle-botones"><button className="btn btn-primary" onClick={() => ir('informe')}>Informe para el productor</button><button className="btn btn-outline" onClick={() => ir('editar')}>Editar información</button></div></section>
+          <section className="detail-header"><div><div className="section-kicker">FICHA DEL LOTE</div><h1 id="titulo-ficha">{activo.nombre}</h1><p>{nombreCultivo(activo.cultivo)} · {[activo.ubicacion, activo.departamento].filter(Boolean).join(', ') || 'Ubicación no registrada'}{activo.zona ? ` · Zona: ${activo.zona}` : ''}</p></div><div className="detalle-botones"><button className="btn btn-primary" onClick={() => ir('informe')}>Informe para el productor</button><button className="btn btn-outline" onClick={() => ir('editar')}>Editar información</button></div></section>
           {avances?.get(activo.id) && <PasosLote avance={avances.get(activo.id)!} />}
           <div className="detail-grid"><div className="detail-panel"><span>Superficie</span><strong>{formatearNumero(activo.areaM2)} m²</strong><small>{formatearNumero(areaM2AHa(activo.areaM2), 4)} hectáreas</small></div><div className="detail-panel"><span>Cultivo</span><strong>{nombreCultivo(activo.cultivo)}</strong><small>Cultivo actual del lote</small></div><div className="detail-panel"><span>Fecha de siembra</span><strong className="detail-date">{fechaLegible(activo.fechaSiembra)}</strong></div></div>
           <AnalisisSueloSeccion key={activo.id} lote={activo} />

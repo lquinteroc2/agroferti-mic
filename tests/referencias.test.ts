@@ -223,7 +223,8 @@ test('catálogo: buscar por nombre o grado y elegir los que aportan una forma qu
   assert.deepEqual(fertilizantesQueAportan(lista, 'Mo'), []);
 });
 
-import { departamentoDeUbicacion } from '../src/lib/referencias.ts';
+import { departamentoDelLote, departamentoDeUbicacion } from '../src/lib/referencias.ts';
+import { DEPARTAMENTOS_COLOMBIA } from '../src/lib/departamentos.ts';
 
 test('catálogo: el precio del departamento se toma de la ubicación del lote', () => {
   const f = leerFertilizante(fertilizante())!;
@@ -251,4 +252,38 @@ test('catálogo: los datos del registro se conservan si son textos razonables; l
   const f = leerFertilizante(fertilizante({ detalle: { clase: 'Fertilizante inorgánico · simple N', tipo: 'Granulado', origen: 'x'.repeat(500), cultivos: 7, uso: '  ' } }))!;
   assert.deepEqual(f.detalle, { clase: 'Fertilizante inorgánico · simple N', tipo: 'Granulado' });
   assert.equal(leerFertilizante(fertilizante())!.detalle, undefined);
+});
+
+test('revisión UX (tanda 5): el departamento elegido en el lote toma su precio exacto; "Norte de Santander" no es "Santander"', () => {
+  const precio = (departamento: string, precioPromedioCop: number) => ({ departamento, precioPromedioCop, presentacion: 'Bulto x 50 kg', periodo: '2026-10' });
+  const f = leerFertilizante(fertilizante({ precios: [precio('Santander', 140000), precio('Norte de Santander', 150000), precio('Bogotá, D.C.', 160000)] }))!;
+  assert.equal(departamentoDelLote(f, { departamento: 'Norte de Santander' }), 'Norte de Santander');
+  assert.equal(departamentoDelLote(f, { departamento: 'Santander', ubicacion: 'Vereda X, Norte de Santander' }), 'Santander', 'el campo elegido manda sobre el texto');
+  assert.equal(departamentoDelLote(f, { departamento: 'bogota, d.c.' }), 'Bogotá, D.C.', 'sin importar tildes ni mayúsculas');
+  assert.equal(departamentoDelLote(f, { departamento: 'Boyacá', ubicacion: 'Santander' }), undefined, 'sin precio en el departamento elegido no se toma otro');
+  assert.equal(departamentoDelLote(f, { ubicacion: 'Pamplona, Norte de Santander' }), 'Norte de Santander', 'en el texto, el nombre más largo primero');
+  assert.equal(departamentoDeUbicacion(f, 'Pamplona, Norte de Santander'), 'Norte de Santander');
+  assert.equal(departamentoDelLote(f, {}), undefined);
+});
+
+test('revisión UX (tanda 5): la lista de departamentos tiene los 32 y Bogotá, sin repetidos', () => {
+  assert.equal(DEPARTAMENTOS_COLOMBIA.length, 33);
+  assert.equal(new Set(DEPARTAMENTOS_COLOMBIA).size, 33);
+  // Los departamentos con precio DANE en el catálogo cargado están escritos igual en la lista.
+  const datos = JSON.parse(readFileSync(new URL('../data/referencias/fertilizantes.json', import.meta.url), 'utf8')) as Array<{ precios?: Array<{ departamento: string }> }>;
+  const conPrecio = new Set(datos.flatMap(f => (f.precios ?? []).map(p => p.departamento)));
+  assert.deepEqual([...conPrecio].filter(d => !DEPARTAMENTOS_COLOMBIA.includes(d)), []);
+});
+
+test('revisión de la tanda 5: en la ubicación escrita se reconoce el departamento antes de buscar su precio', () => {
+  const precio = (departamento: string) => ({ departamento, precioPromedioCop: 150000, presentacion: 'Bulto x 50 kg', periodo: '2026-10' });
+  const soloSantander = leerFertilizante(fertilizante({ precios: [precio('Santander')] }))!;
+  assert.equal(departamentoDeUbicacion(soloSantander, 'Pamplona, Norte de Santander'), undefined, 'no toma el precio de Santander para Norte de Santander');
+  assert.equal(departamentoDeUbicacion(soloSantander, 'Bucaramanga, Santander'), 'Santander');
+  const varios = leerFertilizante(fertilizante({ precios: [precio('Bogotá, D.C.'), precio('Córdoba'), precio('Cesar'), precio('Meta')] }))!;
+  assert.equal(departamentoDeUbicacion(varios, 'Usme, Bogotá'), 'Bogotá, D.C.', 'la forma corta de Bogotá');
+  assert.equal(departamentoDeUbicacion(varios, 'San Andrés de Sotavento, Córdoba'), 'Córdoba', 'el municipio San Andrés no es el archipiélago');
+  assert.equal(departamentoDeUbicacion(varios, 'Valledupar, Cesar'), 'Cesar');
+  assert.equal(departamentoDeUbicacion(varios, 'Vereda La Metálica'), undefined, 'palabras completas: "Metálica" no es Meta');
+  assert.equal(departamentoDeUbicacion(varios, 'Granada, Meta'), 'Meta');
 });

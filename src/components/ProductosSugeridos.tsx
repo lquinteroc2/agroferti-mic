@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { formatearExacto, pesos } from '../lib/formato';
-import { departamentoDeUbicacion, fertilizantesQueAportan, nombreMes, resumenComposicion, type FertilizanteReferencia } from '../lib/referencias';
+import { departamentoDelLote, fertilizantesQueAportan, nombreMes, resumenComposicion, type FertilizanteReferencia } from '../lib/referencias';
 import type { ProductoFertilizante } from '../types';
 
 /**
@@ -8,11 +8,12 @@ import type { ProductoFertilizante } from '../types';
  * registro del ICA (los que tienen precio del DANE primero). Un producto del ICA se agrega a tu
  * catálogo con un toque, con el precio del departamento del lote si el DANE lo publica.
  */
-export function ProductosSugeridos({ forma, productos, referencias, ubicacion, onElegir, onAgregar }: {
+export function ProductosSugeridos({ forma, productos, referencias, lote, onElegir, onAgregar }: {
   forma: string;
   productos: ReadonlyArray<ProductoFertilizante>;
   referencias: ReadonlyArray<FertilizanteReferencia>;
-  ubicacion?: string;
+  /** Departamento elegido y ubicación escrita del lote, para tomar el precio DANE de esa zona. */
+  lote: { departamento?: string; ubicacion?: string };
   onElegir: (productoId: string) => void;
   onAgregar: (referencia: FertilizanteReferencia, departamento?: string) => Promise<string>;
 }) {
@@ -44,13 +45,13 @@ export function ProductosSugeridos({ forma, productos, referencias, ubicacion, o
           <button type="button" className="btn btn-outline btn-small" onClick={() => onElegir(p.id)}>Usar</button>
         </li>)}
         {delIca.map(r => {
-          const departamento = departamentoDeUbicacion(r, ubicacion);
+          const departamento = departamentoDelLote(r, lote);
           const precio = departamento ? r.precios.find(p => p.departamento === departamento) : undefined;
           return <li key={r.id}>
             <span>
               <strong>{r.nombre}</strong> · {resumenComposicion(r)} · registro ICA {r.registroIca}
               <small>{precio ? `Precio DANE ${precio.departamento}: ${pesos(Math.round(precio.precioPromedioCop))} (${precio.presentacion}, ${nombreMes(precio.periodo)})`
-                : r.precios.length ? 'Con precio DANE en otros departamentos: escribe el departamento en la ubicación del lote para usarlo.'
+                : r.precios.length ? (lote.departamento ? `El DANE no publica su precio en ${lote.departamento}; agrégalo después en Productos para calcular el costo.` : 'Con precio DANE en otros departamentos: elige el departamento del lote en «Editar información» para usarlo.')
                 : 'Sin precio: agrégalo después en Productos para calcular el costo.'}{r.verificacion !== 'ok' && ' · composición pendiente de verificar'}</small>
             </span>
             <button type="button" className="btn btn-outline btn-small" disabled={!!agregando} onClick={() => void agregar(r, departamento)}>{agregando === r.id ? 'Agregando…' : 'Agregar y usar'}</button>

@@ -20,7 +20,8 @@ import type { FertilizanteReferencia, ReglaDosis } from '../lib/referencias';
 import { ProductosSugeridos } from './ProductosSugeridos';
 import type { Sugerencia } from '../lib/sugerencias';
 import { citaDeSugerencia } from '../lib/sugerencias';
-import { NotaObligatorios, Obligatorio } from './Campo';
+import { NotaObligatorios, Obligatorio, OrigenDato } from './Campo';
+import { origenInicial } from '../lib/preferencias';
 import { Termino, Terminos } from './Terminos';
 
 export interface OpcionesPlanFormulario {
@@ -47,15 +48,18 @@ interface Props {
   onGuardarZona?: (zona: string) => Promise<void>;
 }
 
-/** Con rangoSugerido, la meta vino de una sugerencia: se muestra el rango junto al valor. */
-type FilaMeta = EntradaMeta & { clave: number; rangoSugerido?: { min: number; max: number } };
+/**
+ * Con rangoSugerido, la meta vino de una sugerencia: se muestra el rango junto al valor y, mientras el
+ * usuario no pida ver todo (`abierta`), solo el resumen, la meta en kg/ha y el producto.
+ */
+type FilaMeta = EntradaMeta & { clave: number; rangoSugerido?: { min: number; max: number }; abierta?: boolean };
 type CampoMeta = 'kgHa' | 'fuente' | 'fechaFuente' | 'origen' | 'productoId';
 
 const OTRO = '__otro';
 let siguienteClave = 0;
 const filaVacia = (): FilaMeta => ({
   clave: siguienteClave++, id: crypto.randomUUID(), elemento: '', forma: '', kgHa: '', fuente: '', fechaFuente: '',
-  origen: '', elementoLibre: false, formaLibre: false, productoId: ''
+  origen: origenInicial(), elementoLibre: false, formaLibre: false, productoId: ''
 });
 
 /** Usa las listas solo si el texto guardado coincide exactamente; si no, conserva el texto original. */
@@ -136,15 +140,17 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
       elemento: el?.nombre ?? s.forma, forma: s.forma, elementoLibre: !el, formaLibre: !el,
       fuente: citaDeSugerencia(s),
       fechaFuente: s.regla.fuente.anio ? String(s.regla.fuente.anio) + '-01-01' : '',
-      origen: 'real',
+      // Como cualquier registro nuevo: real, o EJEMPLO en modo práctica.
+      origen: origenInicial(),
       kgHa: numeroSinAmbiguedad((s.minKgHa + s.maxKgHa) / 2),
       rangoSugerido: { min: s.minKgHa, max: s.maxKgHa }
     };
     setEntrada(e => {
       const misma = e.metas.findIndex(m => m.forma === s.forma && m.elemento === fila.elemento);
       if (misma >= 0) {
-        const { clave: _, productoId: __, ...datos } = fila;
-        return { ...e, metas: e.metas.map((m, i) => (i === misma ? { ...m, ...datos } : m)) };
+        // Se conserva el origen que ya tenía la meta (el usuario pudo marcarla como EJEMPLO).
+        const { clave: _, productoId: __, origen: ___, ...datos } = fila;
+        return { ...e, metas: e.metas.map((m, i) => (i === misma ? { ...m, ...datos, origen: m.origen || fila.origen } : m)) };
       }
       // Una primera meta nueva y vacía se reemplaza en lugar de dejarla en blanco.
       const vacia = e.metas.length === 1 && !e.metas[0].existente && !e.metas[0].elemento && !e.metas[0].kgHa;
@@ -170,6 +176,9 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
     if (!resultado.ok) {
       setErrores(resultado.errores);
       setErrorGeneral(resumenErrores(resultado.errores));
+      // Una meta sugerida con error se abre y no se vuelve a plegar al corregirla.
+      const conError = resultado.errores.metas ?? {};
+      setEntrada(e => ({ ...e, metas: e.metas.map((m, i) => (conError[i] ? { ...m, abierta: true } : m)) }));
       return;
     }
     setErrores({});
@@ -230,10 +239,22 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
           const guardada = m.lineaGuardada?.producto;
           const enCatalogo = guardada && productos.find(p => p.id === guardada.productoId);
           const elegido = m.productoId === COPIA_GUARDADA ? guardada : productos.find(p => p.id === m.productoId);
+          // Meta sugerida: tarjeta corta, hasta que el usuario la abra o tenga un error (ver enviar).
+          const compacta = !!m.rangoSugerido && !m.abierta && !error;
+          // Productos que declaran la forma de la meta primero; los demás no permitirían calcularla.
+          const forma = m.elemento.trim() ? m.forma.trim() : '';
+          const aportan = forma ? productos.filter(p => p.contenido.some(c => mismaForma(c, { elemento: m.elemento, forma }))) : [];
+          const otros = productos.filter(p => !aportan.includes(p));
+          const opcion = (p: ProductoFertilizante) => <option key={p.id} value={p.id}>{p.nombre}{p.esEjemplo ? ' (EJEMPLO)' : ''}{p.id === guardada?.productoId ? ' — datos actuales del catálogo' : ''}</option>;
           return (
             <fieldset className="nutrient-row" key={m.clave} aria-describedby={error ? idError : undefined}>
               <legend className="nutrient-legend">Meta {i + 1}</legend>
               <div className="nutrient-fields fields meta-fields">
+                {compacta && <div className="meta-compacta full">
+                  <p><strong>{m.elemento} ({m.forma})</strong> · {m.fuente.split(' · ')[0]}{m.origen === 'ejemplo' ? ' · EJEMPLO' : ''}</p>
+                  <button type="button" className="link-button" onClick={() => cambiarFila(i, { abierta: true })}>Ver o cambiar el nutriente y la fuente</button>
+                </div>}
+                {!compacta && <>
                 <label><Obligatorio>Elemento</Obligatorio>
                   <select value={m.elementoLibre ? OTRO : m.elemento} onChange={e => elegirElemento(i, e.target.value)} aria-required="true" aria-invalid={!!error}>
                     <option value="">Elige…</option>
@@ -254,34 +275,32 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
                 {(m.elementoLibre || m.formaLibre) && <label><Obligatorio>Forma química (texto de la fuente)</Obligatorio>
                   <input value={m.forma} onChange={e => cambiarFila(i, { forma: e.target.value })} maxLength={20} placeholder="Ej. SO₃" aria-required="true" aria-invalid={!!error} />
                 </label>}
+                </>}
                 <label><Obligatorio>Meta (kg/ha)</Obligatorio>
                   <input inputMode="decimal" value={m.kgHa} onChange={e => cambiarCampo(i, 'kgHa', e.target.value)} aria-required="true" placeholder={m.rangoSugerido ? `Entre ${m.rangoSugerido.min} y ${m.rangoSugerido.max}` : 'Según tu fuente'} aria-invalid={!!error} />
                   {m.rangoSugerido && <small>Propuesta: punto medio del rango de la referencia ({m.rangoSugerido.min} a {m.rangoSugerido.max} kg/ha). Puedes cambiarla.</small>}
                 </label>
+                {!compacta && <>
                 <label><Obligatorio>Fuente técnica</Obligatorio>
                   <input value={m.fuente} onChange={e => cambiarCampo(i, 'fuente', e.target.value)} aria-required="true" maxLength={200} placeholder="Documento, profesional o laboratorio" aria-invalid={!!error} />
                 </label>
                 <label><Obligatorio>Fecha de la fuente</Obligatorio>
                   <input type="date" aria-required="true" value={m.fechaFuente} max={fechaLocalISO()} onChange={e => cambiarCampo(i, 'fechaFuente', e.target.value)} aria-invalid={!!error} />
                 </label>
-                <label><Obligatorio>Origen de la meta</Obligatorio>
-                  <select value={m.origen} onChange={e => cambiarCampo(i, 'origen', e.target.value)} aria-required="true" aria-invalid={!!error}>
-                    <option value="">Elige…</option>
-                    <option value="real">Fuente técnica real</option>
-                    <option value="ejemplo">EJEMPLO (ficticia)</option>
-                  </select>
-                </label>
+                <OrigenDato valor={m.origen} onCambiar={o => cambiarCampo(i, 'origen', o)} real="Fuente técnica real" />
+                </>}
                 <label className="full">Producto para esta meta
                   <select value={m.productoId} onChange={e => cambiarCampo(i, 'productoId', e.target.value)} aria-invalid={!!error}>
                     <option value="">Sin producto todavía</option>
                     {guardada && <option value={COPIA_GUARDADA}>{guardada.nombre}{guardada.esEjemplo ? ' (EJEMPLO)' : ''} — copia guardada en el plan{guardada.fechaPrecio ? `, precio del ${fechaLegible(guardada.fechaPrecio)}` : ''}</option>}
-                    {productos.map(p => <option key={p.id} value={p.id}>{p.nombre}{p.esEjemplo ? ' (EJEMPLO)' : ''}{p.id === guardada?.productoId ? ' — datos actuales del catálogo' : ''}</option>)}
+                    {aportan.length > 0 && <optgroup label={`Declaran ${forma}`}>{aportan.map(opcion)}</optgroup>}
+                    {forma ? otros.length > 0 && <optgroup label={`No declaran ${forma}: esta meta no se calcularía`}>{otros.map(opcion)}</optgroup> : otros.map(opcion)}
                   </select>
                 </label>
               </div>
               <button type="button" className="row-remove" onClick={() => quitarFila(i)}>Quitar meta {i + 1}</button>
               {!m.productoId && m.forma && onAgregarProducto && <ProductosSugeridos forma={m.forma} productos={productos} referencias={referencias}
-                ubicacion={lote.ubicacion} onElegir={id => cambiarCampo(i, 'productoId', id)} onAgregar={onAgregarProducto} />}
+                lote={lote} onElegir={id => cambiarCampo(i, 'productoId', id)} onAgregar={onAgregarProducto} />}
               <div className="full-row">
                 {avisoProducto(m, elegido)}
                 {m.productoId === COPIA_GUARDADA && guardada && enCatalogo && copiaDesactualizada(guardada, enCatalogo) &&
