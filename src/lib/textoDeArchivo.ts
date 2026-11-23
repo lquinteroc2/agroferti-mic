@@ -1,10 +1,12 @@
 import type { CeldaPdf } from './lecturaAnalisis';
+import { permitirRecorrerFlujos } from './compatibilidad.ts';
 
 /**
  * Texto de un informe de laboratorio a partir de un archivo, sin servicios de pago:
  * - PDF con texto (lo usual en informes de laboratorio): PDF.js, en el navegador. Se usa la versión
  *   "legacy" de PDF.js, que funciona también en navegadores de hace uno o dos años (la normal exige
- *   funciones muy recientes y falla, por ejemplo, en celulares que no se han actualizado).
+ *   funciones muy recientes y falla, por ejemplo, en celulares que no se han actualizado). Aun así,
+ *   a Safari le falta algo que usa PDF.js; lo agrega `permitirRecorrerFlujos` (ver `compatibilidad.ts`).
  * - Foto o PDF escaneado: Tesseract.js (reconocimiento de texto en español), en el navegador. La
  *   primera vez descarga el idioma español (unos pocos MB), por eso necesita internet.
  * Las librerías se cargan solo cuando se usan, para no hacer más pesada la app.
@@ -77,6 +79,7 @@ export async function leerArchivo(archivo: File, alAvanzar: (texto: string) => v
   if (formato === 'imagen') return { texto: await ocr([archivo], alAvanzar), celdas: [] };
 
   alAvanzar('Leyendo el PDF…');
+  permitirRecorrerFlujos(); // Safari (iPhone): PDF.js recorre flujos con `for await`, que Safari no trae.
   const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
   pdfjs.GlobalWorkerOptions.workerSrc = (await import('pdfjs-dist/legacy/build/pdf.worker.min.mjs?url')).default;
   const documento = await pdfjs.getDocument({ data: new Uint8Array(await archivo.arrayBuffer()) }).promise;
