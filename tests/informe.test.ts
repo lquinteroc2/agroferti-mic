@@ -6,7 +6,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { armarInforme, MAX_OBSERVACIONES, MAX_TAREAS_HECHAS } from '../src/lib/informe.ts';
 import { verificarAnalisis } from '../src/lib/validacion.ts';
-import { pesos, pesosResultado, textoCostoRegistrado } from '../src/lib/formato.ts';
+import { cerrarFrase, pesos, pesosResultado, textoCostoRegistrado } from '../src/lib/formato.ts';
 import { cambioAprobacion, copiarProducto, verificarPlan } from '../src/lib/validacionPlan.ts';
 import { verificarRegistro } from '../src/lib/validacionSeguimiento.ts';
 import type { Lote, PlanFertilizacion, ProductoFertilizante } from '../src/types.ts';
@@ -145,4 +145,10 @@ test('revisión UX: pesos con "$" pegado al número; el resultado redondeado con
   assert.equal(pesosResultado(3_333.333, 2), '≈ $\u00a03.333,33');
   assert.equal(pesosResultado(0.2), '< $\u00a01', 'un costo positivo que se redondearía a 0 no se muestra como $ 0');
   assert.equal(pesosResultado(Number.POSITIVE_INFINITY), '—');
+});
+
+// Revisión de las capturas: «Última vez: 22 de nov de 2026, 08:03 p. m..» tenía doble punto.
+test('revisión de las capturas: una frase que ya termina en punto (p. m.) no lleva otro', () => {
+  assert.equal(cerrarFrase('Última vez: 22 de nov de 2026, 08:03 p. m.'), 'Última vez: 22 de nov de 2026, 08:03 p. m.');
+  assert.equal(cerrarFrase('Última vez: 22 de nov de 2026, 20:03'), 'Última vez: 22 de nov de 2026, 20:03.');
 });

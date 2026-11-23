@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { borrarCuentaNube, cerrarSesion, sincronizacionExterna, sincronizarAhora } from '../lib/cuentaNube';
 import { decodificarRegistro } from '../lib/codificacion';
 import { registrosSinLote, versionesApartadas } from '../lib/db';
-import { fechaHoraDeMarca } from '../lib/formato';
+import { fechaHoraDeMarca, cerrarFrase } from '../lib/formato';
 import { ErrorNube, type EstadoNube } from '../lib/nube';
 import { confirmar } from './Confirmacion';
 import { cambiarModoPractica, preferenciasExternas } from '../lib/preferencias';
@@ -72,7 +72,7 @@ export function NubeSeccion({ estado }: { estado: EstadoNube }) {
   const textoEstado = fase.fase === 'sincronizando' ? 'Sincronizando…'
     : fase.fase === 'error' ? fase.error.message
     : cambiosLocales || (resultado && resultado.pendientes > 0) ? 'Hay cambios guardados en este dispositivo que se subirán en unos segundos.'
-    : estado.ultimaSincronizacion ? `Todo sincronizado. Última vez: ${fechaHoraDeMarca(estado.ultimaSincronizacion)}.`
+    : estado.ultimaSincronizacion ? cerrarFrase(`Todo sincronizado. Última vez: ${fechaHoraDeMarca(estado.ultimaSincronizacion)}`)
     : 'Preparando la primera sincronización…';
 
   return (

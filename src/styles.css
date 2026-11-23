@@ -27,7 +27,7 @@
 .soil-block h4{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 14px;font-size:.95rem;color:#2e4a3a}
 .soil-block.entered{background:#f7f9f5;border:1px solid #e3e9df}
 .soil-block.calculated{background:#f1f6fb;border:1px solid #d7e3ee}
-.badge{display:inline-block;font-size:.7rem;font-weight:800;letter-spacing:.04em;padding:4px 9px;border-radius:99px}
+.badge{display:inline-block;font-size:.7rem;font-weight:800;letter-spacing:.04em;padding:4px 9px;border-radius:99px;white-space:nowrap}
 .badge-entered{background:#e2ebdc;color:#3f6a36}
 .badge-calc{background:#d9e7f3;color:#2b5679}
 .badge-warn{background:#fbe6c8;color:#8a5413}
@@ -66,6 +66,9 @@
 .error p+p{margin-top:4px}
 .error-box{background:#fff2f0;border:1px solid #f0bdb9;color:#8c2f29;border-radius:12px;padding:14px 16px;margin-bottom:18px;font-size:.86rem;overflow-wrap:anywhere}
 .error,.trace-box,.calc-skip,.data-list dd,.soil-table td{overflow-wrap:anywhere}
+/* En las tablas que se pueden desplazar a lo ancho, no se parten palabras («Nitrógen o»). Las del
+   informe no se desplazan: ahí se puede partir una palabra para no salirse de la pantalla. */
+.table-wrap .soil-table td{overflow-wrap:break-word}
 .error-box ul,.trace-box ul{margin:8px 0;padding-left:20px;line-height:1.6}
 .error-box p,.trace-box p{margin:0;font-size:.84rem}
 .error-box code{font-size:.8rem;background:#ffffffaa;padding:1px 4px;border-radius:4px;overflow-wrap:anywhere}
@@ -464,10 +467,13 @@
 .fields label.check{flex-direction:row;align-items:flex-start;font-weight:600}
 .origen-dato{align-self:end}
 .origen-dato .field-error{flex-basis:100%}
-.notice-practica{background:#fff1c9;color:#6b4a00;border:1px solid #f0d78a}
+.notice-practica{background:#fff1c9;color:#6b4a00;border:1px solid #f0d78a;align-items:flex-start}
+.notice-practica>span[aria-hidden]{font-weight:800;line-height:1.65}
+/* El enlace va dentro del texto, del mismo tamaño (el botón de cerrar de los avisos es más grande). */
+.notice-practica .link-button{margin-left:0;font-size:inherit}
 .modo-practica{margin-top:22px;padding-top:16px;border-top:1px solid #dce6ce}
 .modo-practica h2{font-size:1.05rem}
 .modo-practica .hint{margin-top:8px}
-.meta-compacta{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 14px;background:#f2f8ef;border:1px solid #d7e8cf;border-radius:10px;padding:10px 12px}
+.meta-compacta{grid-column:1 / -1;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 14px;background:#f2f8ef;border:1px solid #d7e8cf;border-radius:10px;padding:10px 12px}
 .meta-compacta p{margin:0;font-size:.9rem;color:#2c4a35}
 .meta-compacta .link-button{min-height:44px}

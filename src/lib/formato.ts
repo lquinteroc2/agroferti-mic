@@ -90,6 +90,11 @@ export function fechaDeMarca(iso?: string) {
 }
 
 /** Fecha y hora local de una marca de tiempo ISO (historial de cambios). */
+/** Termina una frase con punto, salvo que ya termine en uno (p. ej. la hora "08:03 p. m."). */
+export function cerrarFrase(texto: string): string {
+  return /[.!?…]$/.test(texto.trim()) ? texto : `${texto}.`;
+}
+
 export function fechaHoraDeMarca(iso?: string) {
   return iso ? fechaLocal(new Date(iso), true) : 'Sin registrar';
 }

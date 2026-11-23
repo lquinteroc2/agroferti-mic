@@ -34,8 +34,10 @@ const normalizar = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toL
 /** Forma química del nutriente que mide la condición (P y K se reportan como elemento en el análisis). */
 const FORMA_ANALISIS: Record<string, string[]> = { P: ['P'], K: ['K', 'K⁺'], Ca: ['Ca', 'Ca²⁺'], Mg: ['Mg', 'Mg²⁺'], N: ['N'] };
 
+/** Número con coma decimal, como en el resto de la app (0,25), sin redondear. */
+const num = (n: number) => String(n).replace('.', ',');
 const rangoTexto = (min: number | null, max: number | null) =>
-  min !== null && max !== null ? `entre ${min} y ${max}` : min !== null ? `${min} o más` : max !== null ? `menos de ${max}` : 'cualquier valor';
+  min !== null && max !== null ? `entre ${num(min)} y ${num(max)}` : min !== null ? `${num(min)} o más` : max !== null ? `menos de ${num(max)}` : 'cualquier valor';
 
 function enRango(valor: number, min: number | null, max: number | null): boolean {
   // Mínimo incluido y máximo excluido: así los rangos contiguos de una tabla (< 40, 40-60, > 60) no se solapan.
@@ -98,7 +100,7 @@ export function sugerirMetas(
       const v = valorDelAnalisis(analisis, regla);
       if ('motivo' in v) { noAplican.push({ regla, motivo: v.motivo }); continue; }
       if (!enRango(v.valor, c.min, c.max)) continue; // otra fila de la misma tabla es la que aplica
-      motivo = `${c.nutriente}${c.metodo ? ` (${c.metodo})` : ''} = ${v.valor} ${c.unidad ?? ''}, ${rangoTexto(c.min, c.max)}`.replace(/\s+,/, ',');
+      motivo = `${c.nutriente}${c.metodo ? ` (${c.metodo})` : ''} = ${num(v.valor)} ${c.unidad ?? ''}, ${rangoTexto(c.min, c.max)}`.replace(/\s+,/, ',');
     }
     for (const r of regla.recomendacion) sugerencias.push({ forma: r.forma, minKgHa: r.minKgHa, maxKgHa: r.maxKgHa, regla, motivo });
   }

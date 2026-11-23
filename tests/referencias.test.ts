@@ -97,6 +97,8 @@ test('sugerencias: el nivel del análisis elige la fila de la tabla; el nitróge
   const r = sugerirMetas({ cultivo: 'papa', region: 'Región EJEMPLO', analisis: analisisEjemplo(), reglas });
   assert.deepEqual(r.sugerencias.map(s => [s.regla.id, s.forma, s.minKgHa, s.maxKgHa]).sort(), [['k-bajo', 'K₂O', 125, 150], ['n', 'N', 120, 160], ['p-bajo', 'P₂O₅', 300, 375]]);
   assert.match(r.sugerencias.find(s => s.forma === 'P₂O₅')!.motivo, /P \(Bray II\) = 35 mg\/kg, menos de 40/);
+  // Revisión de las capturas: los decimales se escriben con coma, como en el resto de la app.
+  assert.match(r.sugerencias.find(s => s.forma === 'K₂O')!.motivo, /K \(Acetato de amonio\) = 0,25 cmol\(\+\)\/kg, menos de 0,3/);
   assert.deepEqual(r.regiones.sort(), ['Otra región EJEMPLO', 'Región EJEMPLO']);
   // El límite de 40 pertenece a la fila siguiente (los rangos de la tabla no se solapan).
   const en40 = sugerirMetas({ cultivo: 'papa', region: 'Región EJEMPLO', analisis: analisisEjemplo({ nutrientes: [{ elemento: 'Fósforo', forma: 'P', valor: 40, unidad: 'mg/kg' }] }), reglas });
