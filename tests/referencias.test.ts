@@ -106,7 +106,9 @@ test('sugerencias: el nivel del análisis elige la fila de la tabla; el nitróge
 test('sugerencias: no se sugiere si el método, la unidad o la forma no coinciden, y se explica por qué', () => {
   const otroMetodo = sugerirMetas({ cultivo: 'papa', region: 'Región EJEMPLO', analisis: analisisEjemplo({ metodoLaboratorio: 'Olsen' }), reglas });
   assert.ok(!otroMetodo.sugerencias.some(s => s.forma === 'P₂O₅'));
-  assert.ok(otroMetodo.noAplican.some(n => /método Bray II/.test(n.motivo)));
+  assert.ok(otroMetodo.noAplican.some(n => /otro método \(«Olsen»\) y la tabla usa Bray II/.test(n.motivo)));
+  const sinMetodo = sugerirMetas({ cultivo: 'papa', region: 'Región EJEMPLO', analisis: analisisEjemplo({ metodoLaboratorio: '' }), reglas });
+  assert.ok(sinMetodo.noAplican.some(n => /no dice cómo se midió el fósforo \(P\)\. Si el laboratorio usó Bray II, edita el análisis/.test(n.motivo)), 'fase 6: sin método se dice qué hacer');
   const p2o5 = sugerirMetas({ cultivo: 'papa', region: 'Región EJEMPLO', analisis: analisisEjemplo({ nutrientes: [{ elemento: 'Fósforo', forma: 'P₂O₅', valor: 35, unidad: 'mg/kg' }] }), reglas });
   assert.ok(!p2o5.sugerencias.some(s => s.forma === 'P₂O₅'), 'P₂O₅ del análisis no se toma como P');
   const kMgKg = sugerirMetas({ cultivo: 'papa', region: 'Región EJEMPLO', analisis: analisisEjemplo({ nutrientes: [{ elemento: 'Potasio', forma: 'K', valor: 120, unidad: 'mg/kg' }] }), reglas });
@@ -133,7 +135,7 @@ test('revisión UX (tanda 3): requisitos visibles para que la app proponga metas
   const olsen = requisitosSugerencias({ cultivo: 'papa', region: 'Región EJEMPLO', analisis: analisisEjemplo({ metodoLaboratorio: 'Olsen (fósforo), acetato de amonio' }), reglas });
   const p = olsen.find(r => r.clave.startsWith('nutriente:P'))!;
   assert.equal(p.cumple, false);
-  assert.match(p.motivo ?? '', /método Bray II/);
+  assert.match(p.motivo ?? '', /otro método \(«Olsen»\) y la tabla usa Bray II/);
   assert.equal(olsen.find(r => r.clave.startsWith('nutriente:K'))!.cumple, true);
 
   assert.equal(requisitosSugerencias({ cultivo: 'papa', region: 'Región inventada', analisis: analisisEjemplo(), reglas }).at(-1)!.cumple, false, 'una zona que no está en las referencias no sirve');
@@ -147,7 +149,12 @@ test('revisión UX (tanda 3): avisos al escribir el análisis si un nutriente no
   assert.deepEqual(avisos([{ forma: 'P', unidad: 'mg/kg', valor: '35' }, { forma: 'K', unidad: 'cmol(+)/kg', valor: '0,25' }], 'Bray II (fósforo), Acetato de amonio (potasio, calcio y magnesio)'), []);
   const metodo = avisos([{ forma: 'P', unidad: 'mg/kg', valor: '35' }], 'Olsen (fósforo)');
   assert.equal(metodo.length, 1);
-  assert.match(metodo[0], /fósforo \(P\) medido con Bray II/);
+  assert.match(metodo[0], /midió el fósforo \(P\) con otro método y la tabla de metas usa Bray II/);
+  // Fase 6: si el informe no dice el método, se pide en palabras sencillas y se aclara a qué afecta.
+  const sinMetodo = avisos([{ forma: 'P', unidad: 'mg/kg', valor: '35' }], '');
+  assert.equal(sinMetodo.length, 1);
+  assert.match(sinMetodo[0], /Falta saber cómo midió el laboratorio el fósforo \(P\)/);
+  assert.match(sinMetodo[0], /Esto solo afecta esa meta/);
   const unidad = avisos([{ forma: 'K⁺', unidad: 'mg/kg', valor: '120' }], 'Acetato de amonio');
   assert.equal(unidad.length, 1);
   assert.match(unidad[0], /potasio \(K\) en cmol\(\+\)\/kg \(meq\/100 g\)/);

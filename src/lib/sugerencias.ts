@@ -8,6 +8,7 @@
  */
 import type { AnalisisVerificado } from '../types.ts';
 import { CATALOGO_NUTRIENTES } from './catalogoNutrientes.ts';
+import { metodoDeclarado } from './metodosLaboratorio.ts';
 import type { NivelSuelo, ReglaDosis } from './referencias.ts';
 
 export interface Sugerencia {
@@ -65,7 +66,11 @@ function valorDelAnalisis(analisis: AnalisisVerificado, regla: ReglaDosis): { va
     return { motivo: otraUnidad ? `El análisis reporta ${c.nutriente} en ${otraUnidad.unidad}; la referencia usa ${c.unidad}. La app no convierte.` : `El análisis no tiene ${c.nutriente} (${c.unidad ?? 'sin unidad'}).` };
   }
   if (c.metodo && !usaMetodo(analisis.metodoLaboratorio, c.metodo)) {
-    return { motivo: `La referencia usa el método ${c.metodo}; el análisis indica «${analisis.metodoLaboratorio || 'sin método'}». Con otro método los valores no son comparables.` };
+    const nombre = nombreNutriente(c.nutriente);
+    const declarado = metodoDeclarado(analisis.metodoLaboratorio ?? '', c.nutriente);
+    return { motivo: declarado
+      ? `El ${nombre} se midió con otro método («${declarado}») y la tabla usa ${c.metodo}: los valores no se pueden comparar. Esta meta la escribes tú con tu asistente técnico.`
+      : `El análisis no dice cómo se midió el ${nombre}. Si el laboratorio usó ${c.metodo}, edita el análisis y márcalo.` };
   }
   return { valor: n.valor };
 }
@@ -192,7 +197,9 @@ export function avisosParaSugerencias(
     if (c.unidad && !filas.some(n => n.unidad === c.unidad)) {
       avisos.add(`La referencia técnica usa el ${nombre} en ${unidadConNombre(c.unidad)}. Con otra unidad, la app no podrá proponerte la meta que depende de él.`);
     } else if (c.metodo && !usaMetodo(metodoLaboratorio, c.metodo)) {
-      avisos.add(`La referencia técnica usa el ${nombre} medido con ${c.metodo}. Si tu informe usa ese método, elígelo arriba; con otro método, la app no podrá proponerte la meta que depende de él.`);
+      avisos.add(metodoDeclarado(metodoLaboratorio, c.nutriente!)
+        ? `Tu laboratorio midió el ${nombre} con otro método y la tabla de metas usa ${c.metodo}: la meta del ${nombre} la escribes con tu asistente técnico. Esto solo afecta esa meta.`
+        : `Falta saber cómo midió el laboratorio el ${nombre} (la tabla de metas usa ${c.metodo}). Respóndelo arriba; mientras no se sepa, la app no te propone la meta del ${nombre}. Esto solo afecta esa meta.`);
     }
   }
   return [...avisos];

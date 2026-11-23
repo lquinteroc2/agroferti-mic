@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { CATALOGO_NUTRIENTES, OPCION_OTRO, PLANTILLA_ANALISIS, buscarElemento } from '../lib/catalogoNutrientes';
-import { formatearNumero } from '../lib/formato';
+import { fechaLegible, formatearNumero } from '../lib/formato';
 import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import {
   ETIQUETA_UNIDAD,
@@ -275,7 +275,7 @@ export function AnalisisSueloForm({ inicial, areaActualM2, cultivo, zona, reglas
             <input value={entrada.laboratorio} onChange={e => cambiar('laboratorio', e.target.value)} maxLength={100} placeholder="Nombre del laboratorio" />
             {avisoCampo('laboratorio')}
           </label>
-          <MetodosLaboratorio key={versionMetodo} valor={entrada.metodoLaboratorio} onChange={t => cambiar('metodoLaboratorio', t)} />
+          <MetodosLaboratorio key={versionMetodo} valor={entrada.metodoLaboratorio} onChange={t => cambiar('metodoLaboratorio', t)} fechaLegible={/^\d{4}-\d{2}-\d{2}$/.test(entrada.fechaAnalisis) ? fechaLegible(entrada.fechaAnalisis) : undefined} />
           {avisoCampo('metodoLaboratorio')}
         </div>
         {faltaTrazabilidad && <p className="hint hint-warn">Puedes guardar sin laboratorio o sin método, pero el análisis quedará como <strong>Registro incompleto</strong>. La app no completa estos datos por ti.</p>}
