@@ -101,3 +101,11 @@ Hecho: base `agroferti-db` creada y con sus tablas, Client ID de Google configur
 3. API que comprueba el token de Google (firma, `aud`, `iss`, `exp`) y separa los datos por usuario (`sub` de Google, no el correo).
 4. Sincronización en la app: botón "Iniciar sesión con Google", estado "Sincronizado / pendiente / sin conexión" y autorización de datos personales.
 5. Pruebas, recorrido en el navegador y publicación.
+
+## Precios del DANE cada mes (desde el 23 de noviembre de 2026)
+
+- La acción de GitHub **Precios DANE** (`.github/workflows/precios-dane.yml`) revisa cada día del 14 al 28 si el DANE publicó el anexo departamental de insumos (SIPSA-I) del mes anterior. Si lo hay, actualiza `data/referencias/`, corre pruebas y build y hace un commit en `main`. No usa credenciales: solo el token temporal de GitHub.
+- Cloudflare publica la app con cada push a `main`, y el build incluye las referencias (`dist/api/referencias/`), que el Worker entrega en `GET /api/referencias`. No hace falta cargar nada en D1; `npm run referencias:nube` queda solo de respaldo.
+- **Por revisar la primera vez (hacia el 15 de diciembre de 2026, cuando el DANE publique noviembre):** que la acción haya hecho su commit y que Cloudflare lo haya publicado (un push hecho por `github-actions[bot]` debe disparar el despliegue igual que uno propio). Si no se publicó, se puede correr a mano: `npm run precios:dane`, commit y push.
+- Para correrla cuando se quiera: GitHub → Actions → **Precios DANE** → *Run workflow*.
+

@@ -1,0 +1,61 @@
+# Precios del DANE cada mes (SIPSA-I, anexo departamental de insumos).
+# El DANE publica el mes anterior hacia mediados de mes. Esta acción revisa cada día del 14 al 28: si
+# hay un mes nuevo, actualiza data/referencias/, corre las pruebas y el build, y lo guarda en main.
+# Cloudflare publica la app con cada cambio en main, y con ella las referencias nuevas (vite.config.ts),
+# así que los precios llegan a los teléfonos sin pasos a mano. Sin credenciales: solo usa el token
+# temporal que GitHub da a cada ejecución. Fuente de los precios: DANE, www.dane.gov.co.
+name: Precios DANE
+
+on:
+  schedule:
+    - cron: '30 20 14-28 * *' # 3:30 p. m. en Colombia
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: precios-dane
+  cancel-in-progress: false
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Buscar el mes nuevo del DANE y actualizar los precios
+        id: precios
+        run: node --experimental-strip-types scripts/precios-dane.ts
+
+      - name: ¿Cambió algo?
+        id: cambios
+        run: |
+          if git diff --quiet -- data/referencias; then echo "hay=no" >> "$GITHUB_OUTPUT"; else echo "hay=si" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Instalar dependencias
+        if: steps.cambios.outputs.hay == 'si'
+        run: npm ci
+
+      - name: Pruebas
+        if: steps.cambios.outputs.hay == 'si'
+        run: npm run test
+
+      - name: Build
+        if: steps.cambios.outputs.hay == 'si'
+        run: npm run build
+
+      - name: Guardar en main
+        if: steps.cambios.outputs.hay == 'si'
+        env:
+          MES: ${{ steps.precios.outputs.mes }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/referencias
+          git commit -m "chore: precios del DANE de ${MES}" -m "Actualización automática (SIPSA-I, anexo departamental). Fuente: DANE, www.dane.gov.co."
+          git push

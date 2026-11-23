@@ -239,9 +239,19 @@ const TIPOS_REFERENCIA: Record<string, 'fertilizantes' | 'reglasDosis' | 'nivele
  */
 async function referencias(request: Request, env: Env): Promise<Response> {
   await cuentaDeSesion(request, env);
+  const pedida = new URL(request.url).searchParams.get('version');
+  // Primero, las que se publicaron con este despliegue (vite.config.ts): así los precios del DANE de
+  // cada mes llegan sin cargar nada a mano en D1. El cuerpo se entrega tal cual, sin leerlo (cuida el
+  // tiempo de CPU del plan gratuito). Si el archivo faltara, se usa la copia en D1.
+  const desplegada = await referenciasDesplegadas(request, env);
+  if (desplegada) {
+    if (pedida === desplegada.version) return json({ sinCambios: true, version: desplegada.version });
+    const datos = await env.ASSETS.fetch(new URL('/api/referencias/datos.json', request.url));
+    if (datos.ok && datos.body) return new Response(datos.body, { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });
+  }
   const meta = await env.DB.prepare("SELECT valor FROM referencias_meta WHERE clave = 'version'").first<{ valor: string }>();
   if (!meta) return json({ version: '', fertilizantes: [], reglasDosis: [], niveles: [] });
-  if (new URL(request.url).searchParams.get('version') === meta.valor) return json({ sinCambios: true, version: meta.valor });
+  if (pedida === meta.valor) return json({ sinCambios: true, version: meta.valor });
   const filas = (await env.DB.prepare('SELECT tipo, datos FROM referencias ORDER BY tipo, id').all<{ tipo: string; datos: string }>()).results;
   // Con miles de fertilizantes, leer y volver a escribir cada fila gastaría el tiempo de CPU del plan
   // gratuito: se unen los textos tal como están (los escribió scripts/referencias-sql.ts con
@@ -253,6 +263,18 @@ async function referencias(request: Request, env: Env): Promise<Response> {
   }
   const cuerpo = `{"version":${JSON.stringify(meta.valor)},"fertilizantes":[${partes.fertilizantes.join(',')}],"reglasDosis":[${partes.reglasDosis.join(',')}],"niveles":[${partes.niveles.join(',')}]}`;
   return new Response(cuerpo, { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });
+}
+
+/** Versión de las referencias publicadas con el despliegue, o null si no están (p. ej. sin build). */
+async function referenciasDesplegadas(request: Request, env: Env): Promise<{ version: string } | null> {
+  try {
+    const r = await env.ASSETS.fetch(new URL('/api/referencias/version.json', request.url));
+    if (!r.ok) return null;
+    const v = await r.json() as { version?: unknown };
+    return typeof v.version === 'string' && /^[0-9a-f]{16}$/.test(v.version) ? { version: v.version } : null;
+  } catch {
+    return null;
+  }
 }
 
 /** Derecho de supresión (Ley 1581): borra todos los datos del usuario en la nube. El dispositivo no cambia. */

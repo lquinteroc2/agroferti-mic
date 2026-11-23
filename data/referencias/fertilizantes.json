@@ -354,6 +354,12 @@
     "presentacionKg": 50,
     "precios": [
       {
+        "departamento": "Casanare",
+        "precioPromedioCop": 125000,
+        "presentacion": "50 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
         "departamento": "Córdoba",
         "precioPromedioCop": 121000,
         "presentacion": "50 kilogramos",
@@ -392,12 +398,6 @@
       {
         "departamento": "Valle del Cauca",
         "precioPromedioCop": 128433.3333333,
-        "presentacion": "50 kilogramos",
-        "periodo": "2026-10"
-      },
-      {
-        "departamento": "Casanare",
-        "precioPromedioCop": 125000,
         "presentacion": "50 kilogramos",
         "periodo": "2026-10"
       }
@@ -1223,6 +1223,12 @@
         "periodo": "2026-10"
       },
       {
+        "departamento": "Casanare",
+        "precioPromedioCop": 155600,
+        "presentacion": "46 kilogramos",
+        "periodo": "2026-10"
+      },
+      {
         "departamento": "Cauca",
         "precioPromedioCop": 143333.3333333,
         "presentacion": "46 kilogramos",
@@ -1273,12 +1279,6 @@
       {
         "departamento": "Valle del Cauca",
         "precioPromedioCop": 156052.3809524,
-        "presentacion": "46 kilogramos",
-        "periodo": "2026-10"
-      },
-      {
-        "departamento": "Casanare",
-        "precioPromedioCop": 155600,
         "presentacion": "46 kilogramos",
         "periodo": "2026-10"
       }

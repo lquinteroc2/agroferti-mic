@@ -2,34 +2,17 @@
  * Genera el SQL que carga las referencias técnicas de data/referencias/ en D1 (tabla `referencias`).
  * Antes valida cada referencia con las mismas reglas que usa la app; si alguna no es válida, se
  * detiene sin generar nada. Uso: `npm run referencias:local` o `npm run referencias:nube`.
+ * Desde el 23 de noviembre de 2026 la app recibe las referencias del archivo que se publica con cada
+ * despliegue (ver vite.config.ts); la copia en D1 queda de respaldo, por si ese archivo faltara.
  */
 import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { leerFertilizante, leerNivelSuelo, leerReglaDosis } from '../src/lib/referencias.ts';
+import { ARCHIVOS_REFERENCIAS, validarReferencias } from '../src/lib/paqueteReferencias.ts';
 
 const RAIZ = new URL('../', import.meta.url);
 const leer = (archivo: string): unknown[] => JSON.parse(readFileSync(new URL(`data/referencias/${archivo}`, RAIZ), 'utf8'));
 
-const conjuntos = [
-  { tipo: 'fertilizante', archivo: 'fertilizantes.json', leer: leerFertilizante },
-  // Todo el registro del ICA (generado con scripts/catalogo-ica.ts); sin precios.
-  { tipo: 'fertilizante', archivo: 'fertilizantes-ica.json', leer: leerFertilizante },
-  { tipo: 'dosis', archivo: 'dosis.json', leer: leerReglaDosis },
-  { tipo: 'nivel', archivo: 'niveles.json', leer: leerNivelSuelo }
-] as const;
-
-const filas: Array<{ tipo: string; id: string; datos: string }> = [];
-const errores: string[] = [];
-for (const c of conjuntos) {
-  const ids = new Set<string>();
-  leer(c.archivo).forEach((item, i) => {
-    const valido = c.leer(item);
-    if (!valido) { errores.push(`${c.archivo}, posición ${i}: no cumple el formato (revisa fuente, rangos y contenido).`); return; }
-    if (ids.has(valido.id)) { errores.push(`${c.archivo}: el id "${valido.id}" está repetido.`); return; }
-    ids.add(valido.id);
-    filas.push({ tipo: c.tipo, id: valido.id, datos: JSON.stringify(valido) });
-  });
-}
+const { filas, errores } = validarReferencias(ARCHIVOS_REFERENCIAS.map(a => ({ ...a, items: leer(a.archivo) })));
 if (errores.length) {
   console.error(`No se generó el SQL. ${errores.length} problema(s):\n- ${errores.join('\n- ')}`);
   process.exit(1);
