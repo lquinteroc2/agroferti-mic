@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { precioPorKgCop } from '../lib/calculos';
 import { fechaLegible, formatearExacto, pesos, pesosResultado } from '../lib/formato';
 import type { ProductoFertilizante, ProductoVerificado } from '../types';
@@ -6,6 +7,8 @@ interface Props {
   producto: ProductoVerificado;
   onEditar: () => void;
   onEliminar: () => void;
+  /** Aviso para ponerle precio (el del DANE o el que escribe el productor), si hace falta. */
+  precio?: ReactNode;
 }
 
 const sinDato = <span className="missing">No registrado</span>;
@@ -35,7 +38,7 @@ function PrecioPorKg({ p }: { p: ProductoFertilizante }) {
   }
 }
 
-export function ProductoDetalle({ producto: v, onEditar, onEliminar }: Props) {
+export function ProductoDetalle({ producto: v, onEditar, onEliminar, precio }: Props) {
   const p = v.producto;
   return (
     <article className="soil-detail" aria-labelledby={`titulo-producto-${v.id}`}>
@@ -81,6 +84,7 @@ export function ProductoDetalle({ producto: v, onEditar, onEliminar }: Props) {
             {p.fuentePrecio && <div><dt>Fuente del precio</dt><dd>{p.fuentePrecio}</dd></div>}
             {p.registroIca && <div><dt>Registro ICA</dt><dd>{p.registroIca}</dd></div>}
           </dl>
+          {precio}
         </section>
 
         <section className="soil-block calculated" aria-labelledby={`calc-producto-${v.id}`}>

@@ -122,6 +122,11 @@ export function PlanDetalle({
           </tr>)}</tbody>
         </table></div>
         <p className="plan-resumen-total">Costo total estimado: <strong>{calculo.costoTotalCop.ok ? cop(calculo.costoTotalCop.valor) : 'sin calcular (falta el precio de algún producto)'}</strong></p>
+        {!calculo.costoTotalCop.ok && calculo.lineas.some(r => r.linea.producto.precioPresentacionCop === undefined) && <p className="hint hint-warn">
+          {plan.estado === 'propuesta'
+            ? <>Para calcular el costo, toca <strong>Editar</strong> en esta propuesta: debajo de cada producto sin precio puedes usar el precio del DANE o escribir lo que te cobran.</>
+            : <>El plan conserva el precio que tenía cada producto cuando se guardó. Para calcular el costo, usa <strong>Copiar como nueva propuesta</strong> (al final) y ponle precio al producto en la copia.</>}
+        </p>}
       </section>}
 
       <section className="soil-block entered" aria-labelledby={`metas-plan-${plan.id}`}>

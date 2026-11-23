@@ -6,7 +6,7 @@
  *
  * Todo lo que llega se verifica: una referencia con la estructura equivocada se descarta.
  */
-import { DEPARTAMENTOS_COLOMBIA } from './departamentos.ts';
+import { CAPITALES, DEPARTAMENTOS_COLOMBIA } from './departamentos.ts';
 import type { ContenidoDeclarado } from '../types.ts';
 import { esObjeto, validarFecha } from './validacion.ts';
 import { validarFilaContenido } from './validacionPlan.ts';
@@ -222,19 +222,131 @@ export const nombreMes = (periodo: string) => {
   return MESES[mes - 1] ? `${MESES[mes - 1]} de ${anio}` : periodo;
 };
 
-/** Datos con que se llena el formulario de producto a partir de una referencia (el usuario puede cambiarlos). */
-export function productoDesdeReferencia(f: FertilizanteReferencia, departamento?: string) {
+/**
+ * Datos con que se llena el formulario de producto a partir de una referencia (el usuario puede
+ * cambiarlos). `sinPrecioEn`: departamento del lote donde el DANE no publica el precio (se usó el de
+ * `departamento`, el más cercano que sí lo publica); queda dicho en la fuente del precio.
+ */
+export function productoDesdeReferencia(f: FertilizanteReferencia, departamento?: string, sinPrecioEn?: string) {
   const precio = departamento ? f.precios.find(p => p.departamento === departamento) : undefined;
   return {
     nombre: f.nombre,
     contenido: f.contenido.map(c => ({ ...c })),
     presentacionKg: f.presentacionKg,
-    // El promedio del DANE puede traer decimales; un precio de bulto se escribe en pesos enteros.
-    precioPresentacionCop: precio ? Math.round(precio.precioPromedioCop) : undefined,
-    fechaPrecio: precio ? finDeMes(precio.periodo) : undefined,
-    registroIca: f.registroIca,
-    fuentePrecio: precio ? `Precio promedio DANE-SIPSA, ${precio.departamento}, ${nombreMes(precio.periodo)}` : undefined
+    // Con precio, los kg del bulto son los de la presentación que publica el DANE.
+    ...(precio ? datosDePrecio({ precio, sinPrecioEn }) : { precioPresentacionCop: undefined, fechaPrecio: undefined, fuentePrecio: undefined }),
+    registroIca: f.registroIca
   };
+}
+
+/** Precio del DANE elegido para un departamento. `sinPrecioEn`: el departamento pedido, si el precio es de otro. */
+export interface PrecioElegido {
+  precio: PrecioReferencia;
+  sinPrecioEn?: string;
+}
+
+/** Largo máximo de la fuente del precio de un producto (igual que en la validación del producto). */
+const MAX_FUENTE = 120;
+
+/** Kg de una presentación del DANE ("50 kilogramos" → 50, "900 gramos" → 0,9); undefined si no es en peso (litros). */
+export function kgDePresentacion(presentacion: string): number | undefined {
+  const m = /^\s*(\d+(?:[.,]\d+)?)\s*(kilogramos?|kg|gramos?|g)\s*$/i.exec(presentacion);
+  if (!m) return undefined;
+  const n = Number(m[1].replace(',', '.'));
+  if (!(n > 0)) return undefined;
+  return /^k/i.test(m[2]) ? n : Math.round(n) / 1000;
+}
+
+/**
+ * Campos de precio de un producto tomados del DANE (pesos enteros, fecha de fin de mes y fuente). El
+ * precio es de la presentación que publica el DANE, así que también se toman sus kg: un precio de
+ * bulto de 25 kg con un bulto de 50 kg daría un costo por kg equivocado.
+ */
+export function datosDePrecio({ precio, sinPrecioEn }: PrecioElegido) {
+  const base = `Precio promedio DANE-SIPSA, ${precio.departamento}, ${nombreMes(precio.periodo)}`;
+  const conAviso = sinPrecioEn ? `${base} (no se publica en ${sinPrecioEn})` : base;
+  const kg = kgDePresentacion(precio.presentacion);
+  return {
+    ...(kg !== undefined ? { presentacionKg: kg } : {}),
+    // El promedio del DANE puede traer decimales; un precio de bulto se escribe en pesos enteros.
+    precioPresentacionCop: Math.round(precio.precioPromedioCop),
+    fechaPrecio: finDeMes(precio.periodo),
+    fuentePrecio: conAviso.length <= MAX_FUENTE ? conAviso : sinPrecioEn ? `${base} (de otro departamento)`.slice(0, MAX_FUENTE) : base.slice(0, MAX_FUENTE)
+  };
+}
+
+/** Distancia aproximada entre las capitales de dos departamentos (en grados; solo sirve para comparar). */
+function distancia(a: string, b: string): number {
+  const pa = CAPITALES[a], pb = CAPITALES[b];
+  if (!pa || !pb) return Infinity;
+  const dy = pa[0] - pb[0];
+  const dx = (pa[1] - pb[1]) * Math.cos(((pa[0] + pb[0]) / 2) * Math.PI / 180);
+  return Math.hypot(dx, dy);
+}
+
+/**
+ * Precio del DANE para un fertilizante en un departamento: el de ese departamento o, si el DANE no
+ * lo publica allí, el del departamento más cercano (por la distancia entre capitales) que sí lo
+ * publica, con `sinPrecioEn` para decirlo. Sin departamento o sin precios, undefined.
+ */
+export function precioParaDepartamento(f: FertilizanteReferencia, departamento?: string): PrecioElegido | undefined {
+  const nombre = departamento?.trim() ? departamentoConocido(departamento) : undefined;
+  if (!nombre || !f.precios.length) return undefined;
+  const propio = f.precios.find(p => sinTildes(p.departamento) === sinTildes(nombre));
+  if (propio) return { precio: propio };
+  const cercano = [...f.precios]
+    .map(p => ({ p, d: distancia(nombre, departamentoConocido(p.departamento) ?? p.departamento) }))
+    .filter(x => Number.isFinite(x.d))
+    // A igual distancia (Bogotá y Cundinamarca comparten capital) se prefiere el departamento sobre el distrito.
+    .sort((a, b) => a.d - b.d || Number(a.p.departamento === 'Bogotá, D.C.') - Number(b.p.departamento === 'Bogotá, D.C.') || a.p.departamento.localeCompare(b.p.departamento))[0];
+  return cercano ? { precio: cercano.p, sinPrecioEn: nombre } : undefined;
+}
+
+/** Nombre del departamento tal como está en la lista (sin importar tildes ni mayúsculas), o undefined. */
+function departamentoConocido(nombre: string): string | undefined {
+  const clave = sinTildes(nombre.trim());
+  return DEPARTAMENTOS_COLOMBIA.find(d => sinTildes(d) === clave) ?? (clave === 'bogota' ? 'Bogotá, D.C.' : undefined);
+}
+
+/** Departamento del lote: el elegido o, si no se eligió, el que se lea en la ubicación escrita. */
+export function departamentoNombrado(lote: { departamento?: string; ubicacion?: string }): string | undefined {
+  if (lote.departamento?.trim()) return departamentoConocido(lote.departamento) ?? lote.departamento.trim();
+  if (!lote.ubicacion?.trim()) return undefined;
+  const donde = sinTildes(lote.ubicacion);
+  return NOMBRES_DEPARTAMENTO.find(n => contienePalabras(donde, n.clave))?.departamento;
+}
+
+/** Departamento más frecuente entre los lotes (para los productos, que sirven para todos los lotes). */
+export function departamentoPreferido(lotes: ReadonlyArray<{ departamento?: string; ubicacion?: string }>): string | undefined {
+  const cuenta = new Map<string, number>();
+  for (const l of lotes) {
+    const d = departamentoNombrado(l);
+    if (d) cuenta.set(d, (cuenta.get(d) ?? 0) + 1);
+  }
+  return [...cuenta].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0]?.[0];
+}
+
+/**
+ * Precio del DANE que se puede ofrecer para un producto de "Mis productos" (por su registro ICA),
+ * o undefined si no hay o si no hace falta. Con un producto sin precio se ofrece el del departamento
+ * (o el más cercano). Con un precio del DANE, solo si es del mismo departamento y de un mes más
+ * reciente (así no se alternan los precios de lotes en departamentos distintos ni se ofrece un mes
+ * viejo). Un precio escrito por el productor (no viene del DANE) nunca se reemplaza.
+ */
+export function precioDaneParaProducto(
+  producto: { registroIca?: string; precioPresentacionCop?: number; fechaPrecio?: string; fuentePrecio?: string },
+  referencias: ReadonlyArray<FertilizanteReferencia>,
+  departamento?: string
+): PrecioElegido | undefined {
+  if (!producto.registroIca) return undefined;
+  const ref = referencias.find(r => r.registroIca === producto.registroIca);
+  const eleccion = ref && precioParaDepartamento(ref, departamento);
+  if (!eleccion) return undefined;
+  if (producto.precioPresentacionCop === undefined) return eleccion;
+  const deDane = /DANE-SIPSA, (.+?), [a-z]+ de \d{4}/.exec(producto.fuentePrecio ?? '');
+  if (!deDane) return undefined;
+  const mesProducto = producto.fechaPrecio?.slice(0, 7) ?? '';
+  return eleccion.precio.departamento === deDane[1] && eleccion.precio.periodo > mesProducto ? eleccion : undefined;
 }
 
 const sinTildes = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
@@ -262,14 +374,20 @@ export function buscarFertilizantes(lista: ReadonlyArray<FertilizanteReferencia>
 /**
  * Fertilizantes del catálogo que aportan una forma química (p. ej. P₂O₅), para cubrir una meta.
  * Orden: primero los que tienen precio del DANE (se consiguen en el mercado y se puede estimar el
- * costo), luego los verificados y, entre ellos, los de mayor concentración de esa forma. Solo ordena
+ * costo), y entre ellos los que lo tienen en el departamento del lote; luego los verificados y, entre ellos, los de mayor concentración de esa forma. Solo ordena
  * lo que declara el registro: no es una recomendación agronómica.
  */
-export function fertilizantesQueAportan(lista: ReadonlyArray<FertilizanteReferencia>, forma: string, limite = 5): FertilizanteReferencia[] {
+export function fertilizantesQueAportan(lista: ReadonlyArray<FertilizanteReferencia>, forma: string, limite = 5, departamento?: string): FertilizanteReferencia[] {
   const porcentaje = (f: FertilizanteReferencia) => f.contenido.find(c => c.forma === forma)?.porcentaje ?? 0;
+  // Con el departamento del lote, primero los que tienen precio allí; luego los que lo tienen en otro.
+  const conPrecio = (f: FertilizanteReferencia) => {
+    if (!f.precios.length) return 0;
+    const eleccion = precioParaDepartamento(f, departamento);
+    return eleccion && !eleccion.sinPrecioEn ? 2 : 1;
+  };
   return lista
     .filter(f => porcentaje(f) > 0)
-    .sort((a, b) => Number(b.precios.length > 0) - Number(a.precios.length > 0)
+    .sort((a, b) => conPrecio(b) - conPrecio(a)
       || Number(b.verificacion === 'ok') - Number(a.verificacion === 'ok')
       || porcentaje(b) - porcentaje(a)
       || a.nombre.localeCompare(b.nombre))

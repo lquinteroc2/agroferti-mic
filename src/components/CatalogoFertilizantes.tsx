@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { formatearExacto, pesos } from '../lib/formato';
-import { filtrarCatalogo, nombreMes, resumenComposicion, type DetalleRegistro, type FertilizanteReferencia } from '../lib/referencias';
+import { filtrarCatalogo, nombreMes, precioParaDepartamento, resumenComposicion, type DetalleRegistro, type FertilizanteReferencia } from '../lib/referencias';
 import { Terminos } from './Terminos';
 
 const ETIQUETAS_DETALLE: ReadonlyArray<[keyof DetalleRegistro, string]> = [
@@ -29,17 +29,24 @@ const POR_PAGINA = 30;
  * Todos los fertilizantes del catálogo de referencia (registro ICA vigente y precios DANE), para
  * buscar qué existe en el mercado y de qué está compuesto. Uno se agrega a "Mis productos" con un toque.
  */
-export function CatalogoFertilizantes({ referencias, registrosPropios, onAgregar }: {
+export function CatalogoFertilizantes({ referencias, registrosPropios, departamentoPreferido, onAgregar }: {
   referencias: ReadonlyArray<FertilizanteReferencia>;
   /** Registros ICA que ya están en "Mis productos". */
   registrosPropios: ReadonlySet<string>;
-  onAgregar: (r: FertilizanteReferencia, departamento?: string) => Promise<void>;
+  /** Departamento más frecuente de los lotes: su precio DANE (o el del más cercano) viene elegido. */
+  departamentoPreferido?: string;
+  onAgregar: (r: FertilizanteReferencia, departamento?: string, sinPrecioEn?: string) => Promise<void>;
 }) {
   const [texto, setTexto] = useState('');
   const [formas, setFormas] = useState<string[]>([]);
   const [soloConPrecio, setSoloConPrecio] = useState(false);
   const [mostrar, setMostrar] = useState(POR_PAGINA);
   const resultado = useMemo(() => filtrarCatalogo(referencias, { texto, formas, soloConPrecio }), [referencias, texto, formas, soloConPrecio]);
+  // Mes más reciente de los precios del DANE (cambia cada mes con la actualización automática).
+  const mesPrecios = useMemo(() => {
+    const ultimo = referencias.reduce((m, r) => r.precios.reduce((n, p) => (p.periodo > n ? p.periodo : n), m), '');
+    return ultimo ? nombreMes(ultimo) : '';
+  }, [referencias]);
   const cambiarFiltro = (f: () => void) => { f(); setMostrar(POR_PAGINA); };
 
   if (!referencias.length) return <div className="empty"><p>El catálogo de fertilizantes se descarga de la nube al sincronizar. Conéctate a internet y vuelve a abrir esta pantalla.</p></div>;
@@ -63,16 +70,21 @@ export function CatalogoFertilizantes({ referencias, registrosPropios, onAgregar
       </div>
       <p className="hint" role="status">{resultado.length === 0 ? 'No se encontraron fertilizantes con esos filtros.' : `${formatearExacto(resultado.length)} ${resultado.length === 1 ? 'fertilizante' : 'fertilizantes'}`}</p>
       <ul className="catalogo-lista">
-        {resultado.slice(0, mostrar).map(r => <FichaReferencia key={r.id} r={r} propio={registrosPropios.has(r.registroIca)} onAgregar={onAgregar} />)}
+        {resultado.slice(0, mostrar).map(r => <FichaReferencia key={r.id} r={r} propio={registrosPropios.has(r.registroIca)} departamentoPreferido={departamentoPreferido} onAgregar={onAgregar} />)}
       </ul>
       {resultado.length > mostrar && <button type="button" className="btn btn-outline" onClick={() => setMostrar(m => m + POR_PAGINA)}>Ver {Math.min(POR_PAGINA, resultado.length - mostrar)} más</button>}
-      <p className="hint">Fuente: ICA, Registros de productos fertilizantes de uso agrícola (1 nov. 2026), y DANE, SIPSA insumos (oct. 2026). Revisa siempre la etiqueta del bulto: es la que vale.</p>
+      <p className="hint">Fuente: ICA, Registros de productos fertilizantes de uso agrícola (1 nov. 2026){mesPrecios ? <>, y DANE, SIPSA insumos ({mesPrecios})</> : null}. Revisa siempre la etiqueta del bulto: es la que vale.</p>
     </div>
   );
 }
 
-function FichaReferencia({ r, propio, onAgregar }: { r: FertilizanteReferencia; propio: boolean; onAgregar: (r: FertilizanteReferencia, departamento?: string) => Promise<void> }) {
-  const [departamento, setDepartamento] = useState('');
+function FichaReferencia({ r, propio, departamentoPreferido, onAgregar }: { r: FertilizanteReferencia; propio: boolean; departamentoPreferido?: string; onAgregar: (r: FertilizanteReferencia, departamento?: string, sinPrecioEn?: string) => Promise<void> }) {
+  // Viene elegido el precio del departamento de tus lotes o, si el DANE no lo publica allí, el del más cercano.
+  // Mientras la persona no elija, se sigue al departamento de los lotes (puede llegar después de mostrar la lista).
+  const eleccion = precioParaDepartamento(r, departamentoPreferido);
+  const [elegido, setDepartamento] = useState<string | null>(null);
+  const departamento = elegido ?? eleccion?.precio.departamento ?? '';
+  const sinPrecioEn = eleccion?.sinPrecioEn && departamento === eleccion.precio.departamento ? eleccion.sinPrecioEn : undefined;
   const [agregando, setAgregando] = useState(false);
   return (
     <li>
@@ -91,9 +103,10 @@ function FichaReferencia({ r, propio, onAgregar }: { r: FertilizanteReferencia; 
               <option value="">Agregar sin precio</option>
               {r.precios.map(p => <option key={p.departamento} value={p.departamento}>{p.departamento}: {pesos(Math.round(p.precioPromedioCop))} ({p.presentacion}, {nombreMes(p.periodo)})</option>)}
             </select>
+            {sinPrecioEn && <small>El DANE no lo publica en {sinPrecioEn} (el departamento de tus lotes); viene elegido el del departamento más cercano que sí lo publica.</small>}
           </label>}
           <p className="referencia-fuente">Fuente: {r.fuente}</p>
-          <button type="button" className="btn btn-outline btn-small" disabled={agregando} onClick={async () => { setAgregando(true); try { await onAgregar(r, departamento || undefined); } finally { setAgregando(false); } }}>
+          <button type="button" className="btn btn-outline btn-small" disabled={agregando} onClick={async () => { setAgregando(true); try { await onAgregar(r, departamento || undefined, sinPrecioEn); } finally { setAgregando(false); } }}>
             {agregando ? 'Agregando…' : propio ? 'Agregar otra copia a Mis productos' : 'Agregar a Mis productos'}
           </button>
         </div>

@@ -16,7 +16,8 @@ import {
 import type { AnalisisVerificado, CopiaProducto, Lote, MetaNutrimental, PlanVerificado, ProductoFertilizante } from '../types';
 import { resumenContenido } from './ProductoDetalle';
 import { SugerenciasPlan } from './SugerenciasPlan';
-import type { FertilizanteReferencia, ReglaDosis } from '../lib/referencias';
+import { departamentoNombrado, type FertilizanteReferencia, type ReglaDosis } from '../lib/referencias';
+import { PrecioDane, type DatosPrecio } from './PrecioDane';
 import { ProductosSugeridos } from './ProductosSugeridos';
 import type { Sugerencia } from '../lib/sugerencias';
 import { citaDeSugerencia } from '../lib/sugerencias';
@@ -43,7 +44,9 @@ interface Props {
   /** Catálogo de referencia (registro ICA) para sugerir fertilizantes por meta. */
   referencias?: ReadonlyArray<FertilizanteReferencia>;
   /** Agrega un fertilizante de referencia al catálogo del usuario y devuelve su id. */
-  onAgregarProducto?: (referencia: FertilizanteReferencia, departamento?: string) => Promise<string>;
+  onAgregarProducto?: (referencia: FertilizanteReferencia, departamento?: string, sinPrecioEn?: string) => Promise<string>;
+  /** Pone el precio a un producto de "Mis productos" (el del DANE o el que escribe el productor). */
+  onGuardarPrecio?: (productoId: string, precio: DatosPrecio) => Promise<void>;
   /** Guarda la zona elegida en las sugerencias como zona del lote. */
   onGuardarZona?: (zona: string) => Promise<void>;
 }
@@ -84,7 +87,8 @@ function avisoProducto(fila: FilaMeta, producto?: Pick<CopiaProducto, 'nombre' |
   return <p className="hint hint-warn">{declara} <strong>Esta meta no se calculará:</strong> la meta está en {forma} y la etiqueta no declara esa forma. La app no convierte entre formas químicas (P y P₂O₅, K y K₂O).</p>;
 }
 
-export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCancelar, reglas, referencias = [], onAgregarProducto, onGuardarZona }: Props) {
+export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCancelar, reglas, referencias = [], onAgregarProducto, onGuardarPrecio, onGuardarZona }: Props) {
+  const departamentoLote = departamentoNombrado(lote);
   // Si el análisis de referencia se eliminó, la referencia se quita al guardar (con aviso), en lugar de impedir guardar.
   const [referenciaPerdida] = useState(() =>
     !!inicial?.analisisReferenciaId && !analisis.some(a => a.id === inicial.analisisReferenciaId));
@@ -238,7 +242,8 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
           // La copia guardada es una opción propia; el mismo producto del catálogo copia sus datos actuales.
           const guardada = m.lineaGuardada?.producto;
           const enCatalogo = guardada && productos.find(p => p.id === guardada.productoId);
-          const elegido = m.productoId === COPIA_GUARDADA ? guardada : productos.find(p => p.id === m.productoId);
+          const elegidoDelCatalogo = productos.find(p => p.id === m.productoId);
+          const elegido = m.productoId === COPIA_GUARDADA ? guardada : elegidoDelCatalogo;
           // Meta sugerida: tarjeta corta, hasta que el usuario la abra o tenga un error (ver enviar).
           const compacta = !!m.rangoSugerido && !m.abierta && !error;
           // Productos que declaran la forma de la meta primero; los demás no permitirían calcularla.
@@ -303,6 +308,13 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
                 lote={lote} onElegir={id => cambiarCampo(i, 'productoId', id)} onAgregar={onAgregarProducto} />}
               <div className="full-row">
                 {avisoProducto(m, elegido)}
+                {onGuardarPrecio && m.productoId && m.productoId !== COPIA_GUARDADA && elegidoDelCatalogo &&
+                  <PrecioDane key={elegidoDelCatalogo.id} producto={elegidoDelCatalogo} referencias={referencias} departamento={departamentoLote} onGuardar={p => onGuardarPrecio(elegidoDelCatalogo.id, p)} />}
+                {/* Copia guardada sin precio (al editar o copiar un plan): se le pone precio al producto de
+                    Mis productos y la meta pasa a usar sus datos actuales, para que el costo se calcule. */}
+                {onGuardarPrecio && m.productoId === COPIA_GUARDADA && guardada && guardada.precioPresentacionCop === undefined && enCatalogo &&
+                  <PrecioDane key={enCatalogo.id} producto={enCatalogo} referencias={referencias} departamento={departamentoLote}
+                    onGuardar={async p => { await onGuardarPrecio(enCatalogo.id, p); cambiarCampo(i, 'productoId', enCatalogo.id); }} />}
                 {m.productoId === COPIA_GUARDADA && guardada && enCatalogo && copiaDesactualizada(guardada, enCatalogo) &&
                   <p className="hint hint-warn">Este producto cambió en el catálogo después de copiarlo al plan. Para usar los datos nuevos, elige “{enCatalogo.nombre} — datos actuales del catálogo”.</p>}
               </div>

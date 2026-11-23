@@ -14,6 +14,7 @@ import type { DatosRegistro } from '../lib/validacionSeguimiento';
 import type { AnalisisVerificado, EstadoPlan, Lote, PlanVerificado, ProductoFertilizante, RegistroAplicacion, RegistroVerificado } from '../types';
 import { confirmar } from './Confirmacion';
 import { Terminos } from './Terminos';
+import type { DatosPrecio } from './PrecioDane';
 
 type Aviso = { tipo: 'ok' | 'error'; texto: string } | null;
 type Lectura =
@@ -98,8 +99,15 @@ export function PlanesSeccion({ lote, onIrAProductos }: { lote: Lote; onIrAProdu
   const reglas = useLiveQuery(async () => (await leerReferencias())?.conjunto.reglasDosis ?? null, []);
   const fertilizantes = useLiveQuery(async () => (await leerReferencias())?.conjunto.fertilizantes ?? [], [], []);
   /** Agrega al catálogo del usuario un fertilizante del registro ICA (con el precio DANE del departamento, si hay). */
-  const agregarProducto = (r: FertilizanteReferencia, departamento?: string) =>
-    repositorioProductos.guardar({ ...productoDesdeReferencia(r, departamento), esEjemplo: false });
+  const agregarProducto = (r: FertilizanteReferencia, departamento?: string, sinPrecioEn?: string) =>
+    repositorioProductos.guardar({ ...productoDesdeReferencia(r, departamento, sinPrecioEn), esEjemplo: false });
+  /** Pone el precio a un producto de "Mis productos" desde el plan (el del DANE o el que escribe el productor). */
+  async function guardarPrecio(productoId: string, precio: DatosPrecio) {
+    const producto = productos.find(p => p.id === productoId);
+    if (!producto) throw new Error('El producto ya no está en Mis productos.');
+    const { id, createdAt: _c, updatedAt: _u, ...datos } = producto;
+    await repositorioProductos.guardar({ ...datos, ...precio }, { id });
+  }
   const productos = lectura?.ok ? lectura.productos : [];
   const analisis = lectura?.ok ? lectura.analisis : [];
   const registros = lectura?.ok ? lectura.registros : [];
@@ -139,8 +147,8 @@ export function PlanesSeccion({ lote, onIrAProductos }: { lote: Lote; onIrAProdu
         No se pudieron leer los planes guardados en este navegador. Tus datos no se han borrado. Recarga la página; si el problema sigue, revisa que el navegador permita almacenamiento local y no esté en modo privado.
       </div>}
 
-      {modo === 'nuevo' && <PlanForm lote={lote} productos={productos} analisis={analisis} reglas={reglas ?? undefined} referencias={fertilizantes} onAgregarProducto={agregarProducto} onGuardarZona={zona => guardarZonaLote(lote.id, zona)} onGuardar={guardar} onCancelar={() => abrir('lista', null)} />}
-      {modo === 'editar' && seleccionado && <PlanForm key={seleccionado.id} inicial={seleccionado} lote={lote} productos={productos} analisis={analisis} reglas={reglas ?? undefined} referencias={fertilizantes} onAgregarProducto={agregarProducto} onGuardarZona={zona => guardarZonaLote(lote.id, zona)} onGuardar={guardar} onCancelar={() => abrir('ver')} />}
+      {modo === 'nuevo' && <PlanForm lote={lote} productos={productos} analisis={analisis} reglas={reglas ?? undefined} referencias={fertilizantes} onAgregarProducto={agregarProducto} onGuardarPrecio={guardarPrecio} onGuardarZona={zona => guardarZonaLote(lote.id, zona)} onGuardar={guardar} onCancelar={() => abrir('lista', null)} />}
+      {modo === 'editar' && seleccionado && <PlanForm key={seleccionado.id} inicial={seleccionado} lote={lote} productos={productos} analisis={analisis} reglas={reglas ?? undefined} referencias={fertilizantes} onAgregarProducto={agregarProducto} onGuardarPrecio={guardarPrecio} onGuardarZona={zona => guardarZonaLote(lote.id, zona)} onGuardar={guardar} onCancelar={() => abrir('ver')} />}
       {modo === 'ver' && seleccionado && <>
         <button className="back" onClick={() => abrir('lista', null)}>← Volver a los planes del lote</button>
         <PlanDetalle

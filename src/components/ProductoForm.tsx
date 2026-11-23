@@ -14,7 +14,7 @@ import {
   type EntradaProducto,
   type ErroresProducto
 } from '../lib/validacionPlan';
-import { buscarFertilizantes, nombreMes, productoDesdeReferencia, resumenComposicion, type FertilizanteReferencia } from '../lib/referencias';
+import { buscarFertilizantes, nombreMes, precioParaDepartamento, productoDesdeReferencia, resumenComposicion, type FertilizanteReferencia } from '../lib/referencias';
 import { DetalleRegistroVista } from './CatalogoFertilizantes';
 import { Obligatorio } from './Campo';
 import { modoPractica } from '../lib/preferencias';
@@ -27,6 +27,8 @@ interface Props {
   onCancelar: () => void;
   /** Fertilizantes de referencia (registro ICA y precios DANE) para llenar el formulario. */
   referencias?: ReadonlyArray<FertilizanteReferencia>;
+  /** Departamento más frecuente de los lotes: su precio DANE (o el del más cercano) viene elegido. */
+  departamentoPreferido?: string;
 }
 
 type FilaContenido = EntradaContenido & { clave: number };
@@ -82,7 +84,7 @@ function vistaPrevia(precioTexto: string, kgTexto: string): string | null {
   }
 }
 
-export function ProductoForm({ inicial, onGuardar, onCancelar, referencias = [] }: Props) {
+export function ProductoForm({ inicial, onGuardar, onCancelar, referencias = [], departamentoPreferido }: Props) {
   const [entrada, setEntrada] = useState(() => entradaInicial(inicial));
   // Un producto guardado con el origen dañado se corrige con los dos botones durante toda la edición.
   const [origenConBotones] = useState(() => entrada.esEjemplo === null);
@@ -103,7 +105,9 @@ export function ProductoForm({ inicial, onGuardar, onCancelar, referencias = [] 
   /** Llena el formulario con la referencia elegida; el usuario puede revisar y cambiar todo antes de guardar. */
   function usarReferencia() {
     if (!referencia) return;
-    const d = productoDesdeReferencia(referencia, departamento || undefined);
+    const eleccion = precioParaDepartamento(referencia, departamentoPreferido);
+    const sinPrecioEn = eleccion?.sinPrecioEn && eleccion.precio.departamento === departamento ? eleccion.sinPrecioEn : undefined;
+    const d = productoDesdeReferencia(referencia, departamento || undefined, sinPrecioEn);
     setEntrada(e => ({
       ...e,
       nombre: d.nombre,
@@ -234,7 +238,7 @@ export function ProductoForm({ inicial, onGuardar, onCancelar, referencias = [] 
           </label>
           {busqueda.trim() && !referencia && <div className="full referencia-resultados" role="list">
             {resultados.length === 0 && <p className="hint">No se encontró. Prueba con otra palabra o con el grado (ej. 10-30-10).</p>}
-            {resultados.map(r => <button key={r.id} type="button" role="listitem" className="referencia-opcion" onClick={() => setReferenciaId(r.id)}>
+            {resultados.map(r => <button key={r.id} type="button" role="listitem" className="referencia-opcion" onClick={() => { setReferenciaId(r.id); setDepartamento(precioParaDepartamento(r, departamentoPreferido)?.precio.departamento ?? ''); }}>
               <strong>{r.nombre}</strong>
               <span>{resumenComposicion(r)} · {r.empresa}{r.precios.length > 0 ? ' · con precio DANE' : ''}</span>
             </button>)}

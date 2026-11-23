@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { OrigenBadge, ProductoDetalle, resumenContenido } from './ProductoDetalle';
 import { ProductoForm } from './ProductoForm';
 import { useSeleccionViva, type ModoSeccion } from './useSeleccionViva';
-import { leerReferencias, repositorioProductos } from '../lib/db';
+import { db, leerReferencias, repositorioProductos } from '../lib/db';
 import { fechaLegible, formatearExacto, pesos } from '../lib/formato';
 import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import type { DatosProducto } from '../lib/validacionPlan';
@@ -11,7 +11,8 @@ import type { ProductoVerificado } from '../types';
 import { confirmar } from './Confirmacion';
 import { CatalogoFertilizantes } from './CatalogoFertilizantes';
 import { Terminos } from './Terminos';
-import { productoDesdeReferencia, type FertilizanteReferencia } from '../lib/referencias';
+import { departamentoPreferido, productoDesdeReferencia, type FertilizanteReferencia } from '../lib/referencias';
+import { PrecioDane, type DatosPrecio } from './PrecioDane';
 
 type Aviso = { tipo: 'ok' | 'error'; texto: string } | null;
 type Lectura = { ok: true; productos: ProductoVerificado[] } | { ok: false };
@@ -41,6 +42,8 @@ export function ProductosSeccion() {
   const seleccion = useSeleccionViva(productos, 'titulo-productos');
   // Catálogo de referencia (ICA y DANE), descargado de la nube y guardado en el dispositivo.
   const referencias = useLiveQuery(async () => (await leerReferencias())?.conjunto.fertilizantes ?? [], [], []);
+  // Los productos sirven para todos los lotes: el precio DANE se toma del departamento más frecuente de ellos.
+  const departamento = useLiveQuery(async () => departamentoPreferido(await db.lotes.toArray()), [], undefined);
   const { modo, modoVisible, seleccionado, esperando } = seleccion;
 
   function abrir(m: ModoSeccion, id?: string | null) {
@@ -56,15 +59,23 @@ export function ProductosSeccion() {
   }
 
   /** Copia un fertilizante del catálogo de referencia a "Mis productos" y lo abre para revisarlo. */
-  async function agregarDeCatalogo(r: FertilizanteReferencia, departamento?: string) {
+  async function agregarDeCatalogo(r: FertilizanteReferencia, departamentoPrecio?: string, sinPrecioEn?: string) {
     try {
-      const id = await repositorioProductos.guardar({ ...productoDesdeReferencia(r, departamento), esEjemplo: false });
+      const id = await repositorioProductos.guardar({ ...productoDesdeReferencia(r, departamentoPrecio, sinPrecioEn), esEjemplo: false });
       setPestana('mios');
       seleccion.verGuardado(id);
-      setAviso({ tipo: 'ok', texto: `«${r.nombre}» se agregó a Mis productos. Revisa que coincida con la etiqueta de tu bulto${departamento ? '' : ' y agrega el precio si lo conoces'}.` });
+      setAviso({ tipo: 'ok', texto: `«${r.nombre}» se agregó a Mis productos. Revisa que coincida con la etiqueta de tu bulto${departamentoPrecio ? '' : ' y agrega el precio si lo conoces'}.` });
     } catch (error) {
       setAviso({ tipo: 'error', texto: error instanceof ErrorPersistencia ? error.message : 'No se pudo agregar el producto. Vuelve a intentarlo.' });
     }
+  }
+
+  /** Pone el precio a un producto (el del DANE o el que escribe el productor) sin tocar lo demás. */
+  async function guardarPrecio(v: ProductoVerificado, precio: DatosPrecio) {
+    if (!v.producto) return;
+    const { id, createdAt: _c, updatedAt: _u, ...datos } = v.producto;
+    await repositorioProductos.guardar({ ...datos, ...precio }, { id });
+    setAviso({ tipo: 'ok', texto: 'El precio del producto se guardó.' });
   }
 
   async function borrar(p: ProductoVerificado) {
@@ -104,13 +115,14 @@ export function ProductosSeccion() {
 
       {modo === 'nuevo' && <>
         <button className="back" onClick={() => abrir('lista', null)}>← Volver al catálogo</button>
-        <ProductoForm referencias={referencias} onGuardar={guardar} onCancelar={() => abrir('lista', null)} />
+        <ProductoForm referencias={referencias} departamentoPreferido={departamento} onGuardar={guardar} onCancelar={() => abrir('lista', null)} />
       </>}
       {modo === 'editar' && seleccionado && <button className="back" onClick={() => abrir('ver')}>← Volver al producto</button>}
       {modo === 'editar' && seleccionado && <ProductoForm key={seleccionado.id} inicial={seleccionado} onGuardar={guardar} onCancelar={() => abrir('ver')} />}
       {modo === 'ver' && seleccionado && <>
         <button className="back" onClick={() => abrir('lista', null)}>← Volver al catálogo</button>
-        <ProductoDetalle producto={seleccionado} onEditar={() => abrir('editar')} onEliminar={() => void borrar(seleccionado)} />
+        <ProductoDetalle producto={seleccionado} onEditar={() => abrir('editar')} onEliminar={() => void borrar(seleccionado)}
+          precio={seleccionado.producto && <PrecioDane producto={seleccionado.producto} referencias={referencias} departamento={departamento} onGuardar={p => guardarPrecio(seleccionado, p)} />} />
       </>}
 
       {esperando && <div className="empty"><p>Cargando producto…</p></div>}
@@ -121,7 +133,7 @@ export function ProductosSeccion() {
       </div>}
 
       {modoVisible === 'lista' && pestana === 'catalogo' && <div id="panel-productos" role="tabpanel" aria-labelledby="pestana-catalogo">
-        <CatalogoFertilizantes referencias={referencias} registrosPropios={new Set((productos ?? []).flatMap(v => (v.producto?.registroIca ? [v.producto.registroIca] : [])))} onAgregar={agregarDeCatalogo} />
+        <CatalogoFertilizantes referencias={referencias} departamentoPreferido={departamento} registrosPropios={new Set((productos ?? []).flatMap(v => (v.producto?.registroIca ? [v.producto.registroIca] : [])))} onAgregar={agregarDeCatalogo} />
       </div>}
 
       {modoVisible === 'lista' && pestana === 'mios' && (

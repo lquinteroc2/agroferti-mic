@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { formatearExacto, pesos } from '../lib/formato';
-import { departamentoDelLote, fertilizantesQueAportan, nombreMes, resumenComposicion, type FertilizanteReferencia } from '../lib/referencias';
+import { departamentoNombrado, fertilizantesQueAportan, nombreMes, precioParaDepartamento, resumenComposicion, type FertilizanteReferencia } from '../lib/referencias';
 import type { ProductoFertilizante } from '../types';
 
 /**
  * Fertilizantes que aportan la forma química de una meta: primero los de tu catálogo y luego los del
- * registro del ICA (los que tienen precio del DANE primero). Un producto del ICA se agrega a tu
- * catálogo con un toque, con el precio del departamento del lote si el DANE lo publica.
+ * registro del ICA (primero los que tienen precio del DANE en el departamento del lote). Un producto
+ * del ICA se agrega a tu catálogo con un toque, con el precio del DANE del departamento del lote o,
+ * si allí no se publica, el del departamento más cercano que lo publica (dicho claramente).
  */
 export function ProductosSugeridos({ forma, productos, referencias, lote, onElegir, onAgregar }: {
   forma: string;
@@ -15,20 +16,21 @@ export function ProductosSugeridos({ forma, productos, referencias, lote, onEleg
   /** Departamento elegido y ubicación escrita del lote, para tomar el precio DANE de esa zona. */
   lote: { departamento?: string; ubicacion?: string };
   onElegir: (productoId: string) => void;
-  onAgregar: (referencia: FertilizanteReferencia, departamento?: string) => Promise<string>;
+  onAgregar: (referencia: FertilizanteReferencia, departamento?: string, sinPrecioEn?: string) => Promise<string>;
 }) {
   const [agregando, setAgregando] = useState('');
   const [error, setError] = useState('');
   const propios = productos.filter(p => p.contenido.some(c => c.forma === forma)).slice(0, 4);
   const yaEnCatalogo = new Set(productos.map(p => p.registroIca).filter(Boolean));
-  const delIca = fertilizantesQueAportan(referencias.filter(r => !yaEnCatalogo.has(r.registroIca)), forma, 3);
+  const departamentoLote = departamentoNombrado(lote);
+  const delIca = fertilizantesQueAportan(referencias.filter(r => !yaEnCatalogo.has(r.registroIca)), forma, 3, departamentoLote);
   if (!propios.length && !delIca.length) return null;
 
-  async function agregar(r: FertilizanteReferencia, departamento?: string) {
+  async function agregar(r: FertilizanteReferencia, departamento?: string, sinPrecioEn?: string) {
     setAgregando(r.id);
     setError('');
     try {
-      onElegir(await onAgregar(r, departamento));
+      onElegir(await onAgregar(r, departamento, sinPrecioEn));
     } catch {
       setError('No se pudo agregar el producto. Vuelve a intentarlo o regístralo en Productos.');
     } finally {
@@ -45,16 +47,16 @@ export function ProductosSugeridos({ forma, productos, referencias, lote, onEleg
           <button type="button" className="btn btn-outline btn-small" onClick={() => onElegir(p.id)}>Usar</button>
         </li>)}
         {delIca.map(r => {
-          const departamento = departamentoDelLote(r, lote);
-          const precio = departamento ? r.precios.find(p => p.departamento === departamento) : undefined;
+          const eleccion = precioParaDepartamento(r, departamentoLote);
+          const precio = eleccion?.precio;
           return <li key={r.id}>
             <span>
               <strong>{r.nombre}</strong> · {resumenComposicion(r)} · registro ICA {r.registroIca}
-              <small>{precio ? `Precio DANE ${precio.departamento}: ${pesos(Math.round(precio.precioPromedioCop))} (${precio.presentacion}, ${nombreMes(precio.periodo)})`
-                : r.precios.length ? (lote.departamento ? `El DANE no publica su precio en ${lote.departamento}; agrégalo después en Productos para calcular el costo.` : 'Con precio DANE en otros departamentos: elige el departamento del lote en «Editar información» para usarlo.')
-                : 'Sin precio: agrégalo después en Productos para calcular el costo.'}{r.verificacion !== 'ok' && ' · composición pendiente de verificar'}</small>
+              <small>{precio ? `Precio DANE ${precio.departamento}: ${pesos(Math.round(precio.precioPromedioCop))} (${precio.presentacion}, ${nombreMes(precio.periodo)})${eleccion.sinPrecioEn ? ` · en ${eleccion.sinPrecioEn} el DANE no lo publica; es el del departamento más cercano que sí` : ''}`
+                : r.precios.length ? 'Con precio DANE en otros departamentos: elige el departamento del lote en «Editar información» para usarlo.'
+                : 'Sin precio del DANE: después de agregarlo puedes escribir lo que te cobran.'}{r.verificacion !== 'ok' && ' · composición pendiente de verificar'}</small>
             </span>
-            <button type="button" className="btn btn-outline btn-small" disabled={!!agregando} onClick={() => void agregar(r, departamento)}>{agregando === r.id ? 'Agregando…' : 'Agregar y usar'}</button>
+            <button type="button" className="btn btn-outline btn-small" disabled={!!agregando} onClick={() => void agregar(r, precio?.departamento, eleccion?.sinPrecioEn)}>{agregando === r.id ? 'Agregando…' : 'Agregar y usar'}</button>
           </li>;
         })}
       </ul>
