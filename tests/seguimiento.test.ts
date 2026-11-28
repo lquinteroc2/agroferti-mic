@@ -75,11 +75,22 @@ test('avance: sin aplicaciones es cero; aplicar de más da una diferencia positi
   const [demas] = avancePlan(planEjemplo(), [{ lineaId: 'l-dap', cantidadKg: 12 }]);
   assert.ok(demas.diferenciaKg?.ok && demas.diferenciaKg.valor > 0);
   if (demas.porcentaje?.ok) cerca(demas.porcentaje.valor, 110.4);
-  const plan = planEjemplo({ metas: [{ ...planEjemplo().metas[0], forma: 'P' }] });
+  const plan = planEjemplo({ metas: [{ ...planEjemplo().metas[0], elemento: 'Potasio', forma: 'K₂O' }] });
   const [sinCalculo] = avancePlan(plan, [{ lineaId: 'l-dap', cantidadKg: 5 }], calcularPlan(plan));
   assert.equal(sinCalculo.planeadoKg.ok, false);
   assert.ok(sinCalculo.aplicadoKg.ok && sinCalculo.aplicadoKg.valor === 5, 'lo aplicado se suma aunque el plan no se pueda calcular');
   assert.equal(sinCalculo.porcentaje, undefined);
+});
+
+test('avance con conversión (27 nov 2026): meta en P con DAP (P₂O₅) → lo aplicado se expresa en P', () => {
+  const fP = (2 * 30.973762 + 5 * 15.9994) / (2 * 30.973762);
+  const plan = planEjemplo({ metas: [{ ...planEjemplo().metas[0], forma: 'P', kgHa: 40 }] });
+  const [a] = avancePlan(plan, [{ lineaId: 'l-dap', cantidadKg: 10 }], calcularPlan(plan));
+  // 10 kg × 10.000 ÷ 500 m² = 200 kg/ha de DAP; × 46 % = 92 kg/ha de P₂O₅; × 0,4364 = 40,15 kg/ha de P.
+  assert.ok(a.conversion && Math.abs(a.conversion.aplicadoEtiquetaKgHa - 92) < 1e-9);
+  assert.equal(a.conversion?.desde, 'P₂O₅');
+  assert.equal(a.conversion?.hacia, 'P');
+  assert.ok(a.aplicadoFormaKgHa?.ok && Math.abs(a.aplicadoFormaKgHa.valor - 92 / fP) < 1e-9);
 });
 
 // ---- Validación ----

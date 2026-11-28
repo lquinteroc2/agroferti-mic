@@ -7,7 +7,8 @@
  * sugiere nada y se explica por qué. La sugerencia es un rango: el usuario decide el valor.
  */
 import type { AnalisisVerificado } from '../types.ts';
-import { CATALOGO_NUTRIENTES } from './catalogoNutrientes.ts';
+import { buscarElemento, CATALOGO_NUTRIENTES } from './catalogoNutrientes.ts';
+import { conversionEntre, factorTexto } from './conversionFormas.ts';
 import { metodoDeclarado } from './metodosLaboratorio.ts';
 import type { NivelSuelo, ReglaDosis } from './referencias.ts';
 
@@ -57,12 +58,27 @@ function filasDelNutriente<T extends { forma: string; valor?: unknown }>(nutrien
 const deLaZona = (reglas: ReadonlyArray<ReglaDosis>, region?: string) =>
   region ? reglas.filter(r => !r.region || r.region === region) : [...reglas];
 
-/** Valor del análisis para una condición (nutriente, unidad y método), o el motivo por el que no hay. */
-function valorDelAnalisis(analisis: AnalisisVerificado, regla: ReglaDosis): { valor: number } | { motivo: string } {
+/**
+ * Valor del análisis para una condición (nutriente, unidad y método), o el motivo por el que no hay.
+ * Si el laboratorio reporta el óxido en mg/kg (P₂O₅ en lugar de P), se convierte con la relación
+ * química exacta y `nota` lo dice (decisión del 27 de noviembre de 2026). Las unidades no se convierten.
+ */
+function valorDelAnalisis(analisis: AnalisisVerificado, regla: ReglaDosis): { valor: number; nota?: string } | { motivo: string } {
   const c = regla.condicion;
   if (!c.nutriente) return { motivo: '' };
   const filas = filasDelNutriente(analisis.nutrientes, c.nutriente);
-  const n = filas.find(x => !c.unidad || x.unidad === c.unidad);
+  let n = filas.find(x => !c.unidad || x.unidad === c.unidad);
+  let convertido: { valor: number; nota: string } | undefined;
+  if (!n && c.unidad === 'mg/kg') {
+    for (const x of analisis.nutrientes) {
+      const conv = x.unidad === c.unidad && x.valor !== undefined ? conversionEntre(x, { elemento: x.elemento, forma: c.nutriente }) : undefined;
+      if (conv && buscarElemento(x.elemento)?.simbolo === c.nutriente) {
+        n = x;
+        convertido = { valor: x.valor! * conv.factor, nota: `de ${conv.desde} ${num(x.valor!)} ${x.unidad} × ${factorTexto(conv.factor)}` };
+        break;
+      }
+    }
+  }
   if (!n || n.valor === undefined) {
     const otraUnidad = filas[0];
     return { motivo: otraUnidad ? `El análisis reporta ${c.nutriente} en ${otraUnidad.unidad}; la referencia usa ${c.unidad}. La app no convierte.` : `El análisis no tiene ${c.nutriente} (${c.unidad ?? 'sin unidad'}).` };
@@ -74,7 +90,7 @@ function valorDelAnalisis(analisis: AnalisisVerificado, regla: ReglaDosis): { va
       ? `El ${nombre} se midió con otro método («${declarado}») y la tabla usa ${c.metodo}: los valores no se pueden comparar. Esta meta la escribes tú con tu asistente técnico.`
       : `El análisis no dice cómo se midió el ${nombre}. Si el laboratorio usó ${c.metodo}, edita el análisis y márcalo.` };
   }
-  return { valor: n.valor };
+  return convertido ?? { valor: n.valor };
 }
 
 /**
@@ -100,7 +116,9 @@ export function sugerirMetas(
       const v = valorDelAnalisis(analisis, regla);
       if ('motivo' in v) { noAplican.push({ regla, motivo: v.motivo }); continue; }
       if (!enRango(v.valor, c.min, c.max)) continue; // otra fila de la misma tabla es la que aplica
-      motivo = `${c.nutriente}${c.metodo ? ` (${c.metodo})` : ''} = ${num(v.valor)} ${c.unidad ?? ''}, ${rangoTexto(c.min, c.max)}`.replace(/\s+,/, ',');
+      // Un valor convertido se muestra redondeado y con «≈»: la comparación con el rango usa el valor completo.
+      const valorTexto = 'nota' in v && v.nota ? `≈ ${num(Math.round(v.valor * 1000) / 1000)} ${c.unidad ?? ''} (${v.nota})` : `${num(v.valor)} ${c.unidad ?? ''}`;
+      motivo = `${c.nutriente}${c.metodo ? ` (${c.metodo})` : ''} = ${valorTexto}, ${rangoTexto(c.min, c.max)}`.replace(/\s+,/, ',');
     }
     for (const r of regla.recomendacion) sugerencias.push({ forma: r.forma, minKgHa: r.minKgHa, maxKgHa: r.maxKgHa, regla, motivo });
   }

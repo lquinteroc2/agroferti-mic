@@ -124,20 +124,53 @@ test('resumen por forma: meta frente a la suma de aportes, sin ajustar nada', ()
   assert.equal(calculada(c.lineas[1]).productoKgHa, 120 / 0.46);
 });
 
-test('nunca convierte P↔P₂O₅ ni K↔K₂O: si la forma no coincide, no calcula y explica', () => {
+test('decisión del 27 de noviembre de 2026: convierte P↔P₂O₅ y K↔K₂O con la relación química exacta y lo deja en el resultado', () => {
+  const fP = (2 * 30.973762 + 5 * 15.9994) / (2 * 30.973762);
   const c = calcularPlan(plan({ metas: [meta({ forma: 'P', kgHa: 40 }), metaN] }));
-  const r = c.lineas[0];
-  assert.equal(r.estado, 'sin-calculo');
-  if (r.estado !== 'sin-calculo') return;
-  assert.equal(r.motivo, 'forma-distinta');
-  assert.match(r.mensaje, /meta está en P y la etiqueta de DAP EJEMPLO declara P₂O₅/);
-  assert.match(r.mensaje, /no convierte/);
-  assert.ok(!('productoKgHa' in r), 'sin cantidad de producto');
-  assert.equal(c.costoTotalCop.ok, false, 'sin total parcial');
-  assert.ok(c.resumen.every(x => x.incompleto));
+  const r = calculada(c.lineas[0]);
+  assert.equal(r.conversion?.desde, 'P');
+  assert.equal(r.conversion?.hacia, 'P₂O₅');
+  cerca(r.conversion!.metaConvertidaKgHa, 40 * fP);
+  cerca(r.productoKgHa, (40 * fP) / (46 / 100), 'la meta en P se pasa a P₂O₅ y se divide por el % de la etiqueta');
+  assert.equal(r.porcentaje, 46);
+  const p2o5 = r.aportes.find(a => a.forma === 'P₂O₅')!;
+  assert.ok(p2o5.principal);
+  cerca(valor(p2o5.kgHa), 40 * fP);
+  // En el resumen, el P₂O₅ del DAP se suma a la meta en P, convertido de vuelta: exactamente la meta.
+  const p = c.resumen.find(x => x.forma === 'P')!;
+  cerca(valor(p.aportadoKgHa), 40);
+  assert.deepEqual(p.convertidos?.map(x => x.desde), ['P₂O₅']);
+  assert.ok(!c.resumen.some(x => x.forma === 'P₂O₅'), 'no queda una fila aparte de P₂O₅');
+  assert.equal(c.costoTotalCop.ok, true, 'con la conversión, el plan tiene costo');
 
+  const fK = (2 * 39.0983 + 15.9994) / (2 * 39.0983);
   const k = calcularPlan(plan({ metas: [meta({ id: 'm-k', elemento: 'Potasio', forma: 'K', kgHa: 80 })], lineas: [linea('l', 'm-k', KCL)] }));
-  assert.equal(k.lineas[0].estado, 'sin-calculo');
+  cerca(calculada(k.lineas[0]).productoKgHa, (80 * fK) / (60 / 100));
+
+  // Una forma que no es el elemento ni el óxido (K⁺ del análisis) no se convierte: no calcula y lo explica.
+  const ion = calcularPlan(plan({ metas: [meta({ id: 'm-k', elemento: 'Potasio', forma: 'K⁺', kgHa: 80 })], lineas: [linea('l', 'm-k', KCL)] }));
+  const ri = ion.lineas[0];
+  assert.ok(ri.estado === 'sin-calculo' && ri.motivo === 'forma-distinta');
+  if (ri.estado === 'sin-calculo') assert.match(ri.mensaje, /meta está en K⁺ y la etiqueta de KCl EJEMPLO declara K₂O. Esas formas no se pueden convertir/);
+  assert.equal(ion.costoTotalCop.ok, false, 'sin total parcial');
+});
+
+test('revisión de la conversión: el resumen no cuenta dos veces, cada línea va a su meta y la meta queda exacta', () => {
+  // La meta exacta, aunque se haya convertido de ida y vuelta (3 kg/ha de P con DAP).
+  const tres = calcularPlan(plan({ metas: [meta({ forma: 'P', kgHa: 3 }), metaN] }));
+  assert.equal(valor(tres.resumen.find(x => x.forma === 'P')!.aportadoKgHa), 3);
+  // Una etiqueta que declara P y P₂O₅ (el mismo fósforo escrito de dos maneras) no se suma dos veces.
+  const doble: ProductoFertilizante = { ...DAP, id: 'doble', nombre: 'Doble EJEMPLO', contenido: [{ elemento: 'Fósforo', forma: 'P', porcentaje: 20 }, { elemento: 'Fósforo', forma: 'P₂O₅', porcentaje: 45.8 }] };
+  const d = calcularPlan(plan({ metas: [meta({ forma: 'P', kgHa: 50 })], lineas: [linea('l', 'm-p', doble)] }));
+  assert.equal(valor(d.resumen.find(x => x.forma === 'P')!.aportadoKgHa), 50);
+  // Metas en las dos formas (datos guardados antes de la regla de una meta por nutriente): cada línea va a la suya.
+  const tsp: ProductoFertilizante = { ...DAP, id: 'tsp', nombre: 'TSP EJEMPLO', contenido: [{ elemento: 'Fósforo', forma: 'P₂O₅', porcentaje: 46 }] };
+  const dos = calcularPlan(plan({
+    metas: [meta({ id: 'm-p', forma: 'P', kgHa: 50 }), meta({ id: 'm-p2', forma: 'P₂O₅', kgHa: 100 })],
+    lineas: [linea('l1', 'm-p', tsp), linea('l2', 'm-p2', tsp)]
+  }));
+  assert.equal(valor(dos.resumen.find(x => x.forma === 'P')!.aportadoKgHa), 50);
+  assert.equal(valor(dos.resumen.find(x => x.forma === 'P₂O₅')!.aportadoKgHa), 100);
 });
 
 test('la forma se compara sin importar cómo se escriba, pero distingue elemento y forma', () => {
@@ -303,7 +336,7 @@ test('estados: propuesta → revisado → aprobado; nada cambia un plan aprobado
   assert.match(errores(plan(), 'revisado', '  '), /nombre de quien registra/);
   assert.match(errores(plan({ estado: 'aprobado' }), 'propuesta'), /crea una copia/);
   assert.match(errores(plan({ lineas: [] }), 'revisado'), /La meta de Fósforo \(P₂O₅\) no tiene producto/);
-  assert.match(errores(plan({ metas: [meta({ forma: 'P' }), metaN] }), 'revisado'), /DAP EJEMPLO: .*no convierte/);
+  assert.match(errores(plan({ metas: [meta({ elemento: 'Potasio', forma: 'K₂O' }), metaN] }), 'revisado'), /DAP EJEMPLO: .*no declara Potasio \(K₂O\)/);
   const danado = plan({ problemas: [{ campo: 'x', etiqueta: 'X', detalle: 'd', valorOriginal: 'v' }] });
   assert.match(errores(danado, 'revisado'), /datos guardados dañados/);
 });
@@ -446,8 +479,13 @@ test('formulario del plan: la meta exige fuente, fecha, origen y un número clar
   assert.match(repetidas.metas?.[1] ?? '', /Ya hay otra meta para Fósforo/);
 });
 
-test('formulario del plan: una forma distinta a la etiqueta se guarda en propuesta, pero no se calcula', () => {
-  const r = validarPlanEjemplo(planForm({ metas: [filaMeta({ forma: 'P', kgHa: '40' })] }));
+test('formulario del plan: una sola meta por nutriente (P y P₂O₅ son el mismo fósforo)', () => {
+  const r = erroresPlan(planForm({ metas: [filaMeta({ forma: 'P', kgHa: '50' }), filaMeta({ id: 'm-p2', forma: 'P₂O₅', kgHa: '100' })] }));
+  assert.match(r.metas?.[1] ?? '', /Ya hay una meta para Fósforo en P: es el mismo nutriente que P₂O₅/);
+});
+
+test('formulario del plan: una meta que la etiqueta no declara se guarda en propuesta, pero no se calcula', () => {
+  const r = validarPlanEjemplo(planForm({ metas: [filaMeta({ elemento: 'Potasio', forma: 'K₂O', kgHa: '40' })] }));
   assert.ok(r.ok);
   if (!r.ok) return;
   const [linea] = calcularPlan({ ...r.datos, areaM2AlCrear: 500 }).lineas;

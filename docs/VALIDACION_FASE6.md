@@ -53,7 +53,7 @@ Para cada lote de papa (la app trabaja solo con papa desde el 19 de noviembre de
 ### 2.4 Meta nutricional (por nutriente)
 - Nutriente, **forma química** (la misma de la etiqueta del producto que la va a cubrir), kg/ha.
 - **Fuente técnica y fecha de la fuente** (documento, profesional o laboratorio). Sin fuente real, la meta se marca **EJEMPLO**.
-- La app **no propone** metas ni las saca del análisis de suelo. Si la fuente da la meta en P y la etiqueta en P₂O₅, **no se convierte**: se consulta con agronomía para obtener la meta en la forma de la etiqueta, citando la fuente.
+- Si la fuente da la meta en P y la etiqueta en P₂O₅ (o K y K₂O), la app **convierte** la meta con la relación química exacta (P₂O₅ = P × 2,2914; K₂O = K × 1,2046; pesos atómicos IUPAC) y muestra la operación en el detalle del plan (desde el 27 de noviembre de 2026).
 
 ### 2.5 Aplicaciones (si las hay)
 - Fecha (no futura), kg de producto aplicados, costo real (opcional), responsable.
@@ -208,7 +208,7 @@ La diferencia del N es solo aritmética: la app no dice si sobra o falta agronó
 
 | # | Qué probar | Resultado esperado |
 |---|---|---|
-| L1 | Meta en **P** (p. ej. 52 kg/ha) con DAP, cuya etiqueta declara **P₂O₅**. Igual con meta en **K** y etiqueta en **K₂O**. | El formulario avisa "Esta meta no se calculará"; el detalle dice **"Formas químicas distintas"** y no muestra cantidad, bultos ni costo. **Nunca convierte.** |
+| L1 | Meta en **P** (52 kg/ha) con DAP (P₂O₅ 46 %) en 2.500 m². Igual con meta en **K** (125 kg/ha) y KCl (K₂O 60 %). | Desde el 27 de noviembre de 2026 **convierte** y muestra la operación: 52 × 2,2914 = ≈ 119,15 kg/ha de P₂O₅; ÷ 0,46 = ≈ 259,02 kg/ha de DAP; ≈ 64,76 kg en el lote. K: 125 × 1,2046 = ≈ 150,58 kg/ha de K₂O; ÷ 0,60 = ≈ 250,96 kg/ha de KCl. Una forma que no se puede convertir (K⁺ frente a K₂O) sigue sin calcularse. |
 | L2 | Análisis **sin densidad aparente**. | Se guarda; muestra **"Falta un dato para calcular"** y no muestra kg/ha. |
 | L3 | Nutriente en **cmol(+)/kg**. | Se guarda tal cual y **no** se convierte a kg/ha. |
 | L4 | Área `1.500`, meta `1.200`, kg aplicados `1.500`, precio `150.000`. | Rechazo: "se puede leer de dos formas. Escribe 1500…". |
@@ -229,7 +229,7 @@ Si el valor manual y el de la app **no coinciden**:
 5. **No se corrige nada sin confirmar** con el equipo que es un error de la app (y no del dato o del cálculo manual). Se corrige solo ese error, se ejecutan `npm run test` y `npm run build`, y se hace un commit por corrección.
 6. Se vuelve a comparar y se marca la fila como resuelta en la columna `observacion`.
 
-Diferencias que **no** son error de la app: el "≈" (solo indica redondeo al mostrar), el redondeo de pasos intermedios en el cálculo manual, y que la app no convierta P↔P₂O₅ o K↔K₂O.
+Diferencias que **no** son error de la app: el "≈" (solo indica redondeo al mostrar) y el redondeo de pasos intermedios en el cálculo manual (por ejemplo, usar 2,29 en lugar de 2,2914 al convertir P a P₂O₅).
 
 ---
 

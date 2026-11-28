@@ -4,6 +4,7 @@
  */
 import type { ContenidoDeclarado, LineaPlan, MetaNutrimental, NutrienteLeido, ProblemaDato } from '../types';
 import { mismaForma, mismoElemento } from './catalogoNutrientes.ts';
+import { conversionEntre, type Conversion } from './conversionFormas.ts';
 
 /** Resultado fuera del rango en que JavaScript representa números con precisión (muy grande o muy pequeño). */
 export class ErrorDesbordamiento extends RangeError {
@@ -195,6 +196,14 @@ export type MotivoSinCalculoLinea = MotivoSinCalculo | 'forma-distinta';
 /** Lo que aporta el producto de cada forma declarada en su etiqueta. */
 export interface AporteForma extends ContenidoDeclarado {
   kgHa: Calculo<number>;
+  /** Es la forma de la etiqueta con la que se cubre la meta (la misma forma o la convertida). */
+  principal?: boolean;
+}
+
+/** Meta pasada a la forma de la etiqueta (p. ej. P → P₂O₅) para calcular la cantidad de producto. */
+export interface ConversionMeta extends Conversion {
+  /** Meta expresada en la forma de la etiqueta, kg/ha. */
+  metaConvertidaKgHa: number;
 }
 
 export type ResultadoLineaPlan =
@@ -202,8 +211,10 @@ export type ResultadoLineaPlan =
       estado: 'calculada';
       linea: LineaPlan;
       meta: MetaNutrimental;
-      /** % de la forma de la meta en la etiqueta. */
+      /** % de la forma de la etiqueta con que se cubre la meta (la misma forma o su conversión). */
       porcentaje: number;
+      /** Si la etiqueta declara otra forma del mismo nutriente (P₂O₅ para una meta en P), la conversión. */
+      conversion?: ConversionMeta;
       productoKgHa: number;
       productoKgLote: Calculo<number>;
       precioKgCop: Calculo<number>;
@@ -223,6 +234,8 @@ export interface ResumenForma {
   diferenciaKgHa?: Calculo<number>;
   /** Hay líneas o aportes sin calcular, o datos dañados: la suma no está completa. */
   incompleto: boolean;
+  /** Aportes declarados en otra forma del mismo nutriente, sumados después de convertirlos a esta. */
+  convertidos?: Conversion[];
 }
 
 export interface CalculoPlan {
@@ -250,17 +263,29 @@ function calcularLinea(linea: LineaPlan, entrada: EntradaPlan, areaHa: Calculo<n
     return { estado: 'sin-calculo', linea, meta, motivo: 'falta-dato', mensaje: 'La meta no tiene fuente técnica y fecha: no se calcula ninguna cantidad.' };
   }
   const { producto } = linea;
-  const contenido = producto.contenido.find(c => mismaForma(c, meta));
+  // La misma forma de la meta; si la etiqueta declara otra forma del mismo nutriente (P₂O₅ para una
+  // meta en P), se convierte con la relación química exacta (conversionFormas.ts).
+  let contenido = producto.contenido.find(c => mismaForma(c, meta));
+  let conversion: Conversion | undefined;
+  if (!contenido) {
+    for (const c of producto.contenido) {
+      const conv = conversionEntre(meta, c);
+      if (conv) { contenido = c; conversion = conv; break; }
+    }
+  }
   if (!contenido) {
     const otras = producto.contenido.filter(c => mismoElemento(c.elemento, meta.elemento)).map(c => c.forma);
     return {
       estado: 'sin-calculo', linea, meta, motivo: 'forma-distinta',
       mensaje: otras.length
-        ? `La meta está en ${meta.forma} y la etiqueta de ${producto.nombre} declara ${otras.join(', ')}. La app no convierte entre formas químicas: escribe la meta en la misma forma que la etiqueta, según la fuente técnica.`
+        ? `La meta está en ${meta.forma} y la etiqueta de ${producto.nombre} declara ${otras.join(', ')}. Esas formas no se pueden convertir entre sí: escribe la meta en la misma forma que la etiqueta, según la fuente técnica.`
         : `La etiqueta de ${producto.nombre} no declara ${meta.elemento} (${meta.forma}).`
     };
   }
-  const kgHa = calcular(() => productoKgHa(meta.kgHa, contenido.porcentaje));
+  const principal = contenido;
+  const metaEtiqueta = conversion ? calcular(() => resultadoSeguro('Meta convertida', meta.kgHa * conversion.factor, true)) : { ok: true as const, valor: meta.kgHa };
+  if (!metaEtiqueta.ok) return { estado: 'sin-calculo', linea, meta, motivo: metaEtiqueta.motivo, mensaje: metaEtiqueta.mensaje };
+  const kgHa = calcular(() => productoKgHa(metaEtiqueta.valor, principal.porcentaje));
   if (!kgHa.ok) return { estado: 'sin-calculo', linea, meta, motivo: kgHa.motivo, mensaje: kgHa.mensaje };
 
   // Sin área válida, el total del lote hereda el motivo del área.
@@ -276,20 +301,22 @@ function calcularLinea(linea: LineaPlan, entrada: EntradaPlan, areaHa: Calculo<n
   const bultos = !productoKgLote.ok ? productoKgLote
     : presentacionKg === undefined ? sinBulto
       : calcular(() => bultosNecesarios(productoKgLote.valor, presentacionKg));
-  // La forma de la meta aporta exactamente la meta (evita redondeos de ida y vuelta).
-  const aportes = producto.contenido.map((c): AporteForma => ({
-    ...c,
-    kgHa: c === contenido ? { ok: true, valor: meta.kgHa } : calcular(() => aporteKgHa(kgHa.valor, c.porcentaje))
-  }));
+  // La forma con que se cubre la meta aporta exactamente la meta, en la forma de la etiqueta (evita
+  // redondeos de ida y vuelta).
+  const aportes = producto.contenido.map((c): AporteForma => (c === principal
+    ? { ...c, kgHa: { ok: true, valor: metaEtiqueta.valor }, principal: true }
+    : { ...c, kgHa: calcular(() => aporteKgHa(kgHa.valor, c.porcentaje)) }));
   return {
-    estado: 'calculada', linea, meta, porcentaje: contenido.porcentaje, productoKgHa: kgHa.valor,
+    estado: 'calculada', linea, meta, porcentaje: principal.porcentaje, productoKgHa: kgHa.valor,
+    ...(conversion ? { conversion: { ...conversion, metaConvertidaKgHa: metaEtiqueta.valor } } : {}),
     productoKgLote, precioKgCop, costoCop: costo, bultos, aportes
   };
 }
 
 /**
  * Cantidad y costo de cada línea del plan, sin lanzar errores. Solo calcula si la meta tiene fuente
- * y fecha y si su forma química coincide con la de la etiqueta: nunca convierte P↔P₂O₅ ni K↔K₂O.
+ * y fecha y si la etiqueta declara la forma de la meta o la otra forma del mismo nutriente (P↔P₂O₅,
+ * K↔K₂O, Ca↔CaO, Mg↔MgO), que se convierte con la relación química exacta y queda en el resultado.
  * Usa el área guardada con el plan (nunca el área actual del lote).
  */
 export function calcularPlan(entrada: EntradaPlan): CalculoPlan {
@@ -300,27 +327,48 @@ export function calcularPlan(entrada: EntradaPlan): CalculoPlan {
   const lineas = entrada.lineas.map(linea => calcularLinea(linea, entrada, areaHa));
   const hayFaltas = (entrada.problemas ?? []).length > 0 || lineas.some(l => l.estado !== 'calculada');
 
-  const grupos: Array<{ elemento: string; forma: string; metaKgHa?: number; valores: number[]; incompleto: boolean }> = [];
+  const grupos: Array<{ elemento: string; forma: string; metaKgHa?: number; valores: number[]; incompleto: boolean; convertidos: Conversion[] }> = [];
   const grupo = (f: { elemento: string; forma: string }) => {
     let g = grupos.find(x => mismaForma(x, f));
-    if (!g) grupos.push(g = { elemento: f.elemento, forma: f.forma, valores: [], incompleto: hayFaltas });
+    if (!g) grupos.push(g = { elemento: f.elemento, forma: f.forma, valores: [], incompleto: hayFaltas, convertidos: [] });
     return g;
   };
   for (const meta of entrada.metas) grupo(meta).metaKgHa = meta.kgHa;
   for (const l of lineas) {
     if (l.estado !== 'calculada') continue;
+    const declara = (f: { elemento: string; forma: string }) => l.linea.producto.contenido.some(c => mismaForma(c, f));
     for (const aporte of l.aportes) {
-      const g = grupo(aporte);
-      if (aporte.kgHa.ok) g.valores.push(aporte.kgHa.valor);
+      if (aporte.principal) {
+        // Lo que cubre la meta va a la fila de esa meta, con su valor exacto (en la forma de la meta).
+        const g = grupo(l.meta);
+        const conv = mismaForma(aporte, l.meta) ? undefined : conversionEntre(aporte, l.meta);
+        if (conv && !g.convertidos.some(c => c.desde === conv.desde)) g.convertidos.push(conv);
+        g.valores.push(l.meta.kgHa);
+        continue;
+      }
+      // Un aporte acompañante en otra forma del nutriente de una meta (P₂O₅ para una meta en P) se suma a
+      // esa meta, convertido; salvo que la misma etiqueta ya declare esa forma (sería contar dos veces).
+      const exacto = grupos.find(x => mismaForma(x, aporte));
+      const conMeta = exacto?.metaKgHa === undefined
+        ? grupos.find(x => x.metaKgHa !== undefined && !declara(x) && conversionEntre(aporte, x))
+        : undefined;
+      const conv = conMeta ? conversionEntre(aporte, conMeta) : undefined;
+      const g = conv && conMeta ? conMeta : grupo(aporte);
+      if (conv && !g.convertidos.some(c => c.desde === conv.desde)) g.convertidos.push(conv);
+      if (!aporte.kgHa.ok) { g.incompleto = true; continue; }
+      const valor = aporte.kgHa.valor;
+      if (!conv) { g.valores.push(valor); continue; }
+      const convertido = calcular(() => resultadoSeguro('Aporte convertido', valor * conv.factor, valor > 0));
+      if (convertido.ok) g.valores.push(convertido.valor);
       else g.incompleto = true;
     }
   }
-  const resumen = grupos.map(({ elemento, forma, metaKgHa, valores, incompleto }): ResumenForma => {
+  const resumen = grupos.map(({ elemento, forma, metaKgHa, valores, incompleto, convertidos }): ResumenForma => {
     const aportadoKgHa = calcular(() => resultadoSeguro('Aporte total', valores.reduce((a, b) => a + b, 0)));
     const diferenciaKgHa = metaKgHa !== undefined && aportadoKgHa.ok
       ? calcular(() => resultadoSeguro('Diferencia', aportadoKgHa.valor - metaKgHa))
       : undefined;
-    return { elemento, forma, metaKgHa, incompleto, aportadoKgHa, diferenciaKgHa };
+    return { elemento, forma, metaKgHa, incompleto, aportadoKgHa, diferenciaKgHa, ...(convertidos.length ? { convertidos } : {}) };
   });
 
   const costos = lineas.map(l => (l.estado === 'calculada' ? l.costoCop : null));
@@ -363,6 +411,11 @@ export interface AvanceLinea<T extends AplicacionAvance = AplicacionAvance> {
   aplicadoFormaKgHa?: Calculo<number>;
   /** % de la forma de la meta en la etiqueta, el que usa `aplicadoFormaKgHa`. */
   porcentajeEtiqueta?: number;
+  /**
+   * Si la etiqueta declara otra forma del nutriente de la meta: lo aplicado en la forma de la etiqueta
+   * y la conversión a la forma de la meta (p. ej. P₂O₅ → P), con la que se obtiene `aplicadoFormaKgHa`.
+   */
+  conversion?: Conversion & { aplicadoEtiquetaKgHa: number };
 }
 
 /**
@@ -385,13 +438,19 @@ export function avancePlan<T extends AplicacionAvance>(
     }
     const planeadoKg = r.productoKgLote;
     if (!planeadoKg.ok || !aplicadoKg.ok) return { ...base, planeadoKg };
+    const enEtiqueta = area === undefined ? undefined : calcular(() => aporteKgHa(kgLoteAKgHa(aplicadoKg.valor, area), r.porcentaje));
+    // Con conversión, lo aplicado se pasa de la forma de la etiqueta a la de la meta (factor inverso).
+    const conv = r.conversion && enEtiqueta?.ok
+      ? { desde: r.conversion.hacia, hacia: r.conversion.desde, factor: 1 / r.conversion.factor, aplicadoEtiquetaKgHa: enEtiqueta.valor }
+      : undefined;
     return {
       ...base,
       planeadoKg,
       diferenciaKg: calcular(() => resultadoSeguro('Diferencia', aplicadoKg.valor - planeadoKg.valor)),
       porcentaje: calcular(() => resultadoSeguro('Avance', (aplicadoKg.valor / planeadoKg.valor) * 100)),
       porcentajeEtiqueta: r.porcentaje,
-      aplicadoFormaKgHa: area === undefined ? undefined : calcular(() => aporteKgHa(kgLoteAKgHa(aplicadoKg.valor, area), r.porcentaje))
+      aplicadoFormaKgHa: conv ? calcular(() => resultadoSeguro('Aplicado en la forma de la meta', conv.aplicadoEtiquetaKgHa * conv.factor, conv.aplicadoEtiquetaKgHa > 0)) : enEtiqueta,
+      ...(conv ? { conversion: conv } : {})
     };
   });
 }

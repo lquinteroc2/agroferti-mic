@@ -232,15 +232,19 @@ test('Caso B (segundo lote de papa EJEMPLO) · una aplicación igual a lo planea
 
 // ======================= CASOS LÍMITE: la app debe rechazar o no calcular =======================
 
-test('Límite L1: meta en P con etiqueta en P₂O₅ → no calcula ni convierte', () => {
+test('Caso L1 (desde el 27 de noviembre de 2026): meta en P con etiqueta en P₂O₅ → convierte (P₂O₅ = P × 2,2914)', () => {
   const c = calcularPlan({ areaM2AlCrear: 2500, metas: [meta('mp', 'Fósforo', 'P', 52)], lineas: [{ id: 'l', metaId: 'mp', producto: DAP }] });
   const r = c.lineas[0];
-  assert.equal(r.estado, 'sin-calculo');
-  assert.ok(r.estado === 'sin-calculo' && r.motivo === 'forma-distinta');
-  assert.equal(c.costoTotalCop.ok, false);
-  // Lo mismo con K frente a K₂O.
+  assert.ok(r.estado === 'calculada');
+  if (r.estado !== 'calculada') return;
+  // A mano: 52 × 2,2914 = 119,15 kg/ha de P₂O₅; ÷ 0,46 = 259,02 kg/ha de DAP; × 2.500 ÷ 10.000 = 64,76 kg.
+  assert.ok(Math.abs(r.conversion!.metaConvertidaKgHa - 119.151) < 0.001);
+  assert.ok(Math.abs(r.productoKgHa - 259.024) < 0.001);
+  assert.ok(r.productoKgLote.ok && Math.abs(r.productoKgLote.valor - 64.756) < 0.001);
+  // Lo mismo con K frente a K₂O: 125 × 1,2046 = 150,58 kg/ha de K₂O; ÷ 0,60 = 250,96 kg/ha de KCl.
   const k = calcularPlan({ areaM2AlCrear: 2500, metas: [meta('mk', 'Potasio', 'K', 125)], lineas: [{ id: 'l', metaId: 'mk', producto: KCL }] });
-  assert.ok(k.lineas[0].estado === 'sin-calculo' && k.lineas[0].motivo === 'forma-distinta');
+  const rk = k.lineas[0];
+  assert.ok(rk.estado === 'calculada' && Math.abs(rk.productoKgHa - 250.959) < 0.001);
 });
 
 test('Límite L2: análisis sin densidad aparente → se guarda, pero no calcula masa ni kg/ha', () => {

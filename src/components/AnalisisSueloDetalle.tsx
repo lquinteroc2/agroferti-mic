@@ -1,4 +1,5 @@
 import { equivalenciasAnalisis, type Calculo } from '../lib/calculos';
+import { conversionEntre, factorTexto, otraForma } from '../lib/conversionFormas';
 import { fechaLegible, formatearExacto, formatearResultado } from '../lib/formato';
 import { estadoDocumentacion } from '../lib/validacion';
 import type { AnalisisVerificado } from '../types';
@@ -116,13 +117,19 @@ export function AnalisisSueloDetalle({ analisis, onEditar, onEliminar }: Props) 
           <strong>3. Equivalencia de mg/kg a kg/ha y total del lote</strong>
           <p>mg/kg indica miligramos de la forma química reportada por cada kilo de suelo. Se multiplica por la masa de suelo y se divide entre 1.000.000 para pasar de mg a kg. Luego se multiplica por las hectáreas del lote.</p>
           {enMgKg.map((n, i) => <div className="calc-nutrient" key={i}>
-            <span className="calc-name">{n.nutriente.elemento || 'Resultado sin elemento'} <small>forma química reportada: {n.nutriente.forma || "—"} (sin conversión entre formas)</small></span>
+            <span className="calc-name">{n.nutriente.elemento || 'Resultado sin elemento'} <small>forma química reportada: {n.nutriente.forma || "—"}</small></span>
             {n.estado === 'suspendida' && <p className="calc-skip">No calculado: {n.mensaje}</p>}
             {n.estado === 'calculada' && eq.masaKgHa.ok && <>
               <code>{formatearExacto(n.nutriente.valor!)} mg/kg × {formatearResultado(eq.masaKgHa.valor, 0)} kg/ha ÷ 1.000.000 = <b>{formatearResultado(n.kgHa, 3)} kg de {n.nutriente.forma} por ha</b> <em>(equivalencia dimensional)</em></code>
               {n.kgLote.ok && eq.areaHa.ok
                 ? <code>{formatearResultado(n.kgHa, 3)} kg/ha × {formatearResultado(eq.areaHa.valor, 4)} ha = <b>{formatearResultado(n.kgLote.valor, 3)} kg de {n.nutriente.forma} en el lote</b> <em>(equivalencia total; no es una dosis)</em></code>
                 : !n.kgLote.ok && <p className="calc-skip">Total del lote no calculado: {n.kgLote.mensaje}</p>}
+              {(() => {
+                // La misma equivalencia en la otra forma del nutriente (P → P₂O₅), la de las etiquetas y metas.
+                const otra = n.nutriente.elemento ? otraForma(n.nutriente) : undefined;
+                const conv = otra ? conversionEntre(n.nutriente, { elemento: n.nutriente.elemento, forma: otra }) : undefined;
+                return conv && <code>{formatearResultado(n.kgHa, 3)} kg/ha de {conv.desde} × {factorTexto(conv.factor)} = <b>{formatearResultado(n.kgHa * conv.factor, 3)} kg de {conv.hacia} por ha</b> <em>(la misma cantidad en la otra forma del nutriente; relación química exacta)</em></code>;
+              })()}
             </>}
           </div>)}
         </div>}
@@ -135,7 +142,7 @@ export function AnalisisSueloDetalle({ analisis, onEditar, onEliminar }: Props) 
 
       <div className="warning-box" role="note">
         <span className="badge badge-warn">Advertencia</span>
-        <p>Estos números solo cambian la unidad del resultado del laboratorio (equivalencia dimensional); no miden el total de nutrientes del lote. <strong>No son una dosis de fertilización ni lo que la planta puede aprovechar.</strong> Cambian si cambian la profundidad o la densidad aparente, y solo valen si la muestra representa bien el lote. Cada resultado conserva la forma química del informe: P no se convierte en P₂O₅ ni K en K₂O. Los valores con “≈” están redondeados para mostrarlos; el cálculo usa el valor completo. Cualquier dosis requiere una meta nutricional validada por un profesional.</p>
+        <p>Estos números solo cambian la unidad del resultado del laboratorio (equivalencia dimensional); no miden el total de nutrientes del lote. <strong>No son una dosis de fertilización ni lo que la planta puede aprovechar.</strong> Cambian si cambian la profundidad o la densidad aparente, y solo valen si la muestra representa bien el lote. Cada resultado conserva la forma química del informe; los de fósforo, potasio, calcio y magnesio en mg/kg también se muestran en su otra forma, para comparar con las etiquetas (por ejemplo, P₂O₅ = P × 2,2914), con la relación química exacta. Los valores con “≈” están redondeados para mostrarlos; el cálculo usa el valor completo. Cualquier dosis requiere una meta nutricional validada por un profesional.</p>
       </div>
       </details>
     </article>

@@ -1,7 +1,8 @@
 /**
  * Catálogo de NOTACIÓN química (no de valores): qué formas corresponden a cada elemento.
- * Sirve para detectar combinaciones incoherentes como Fósforo / K₂O. No convierte entre formas:
- * P y P₂O₅, o K y K₂O, son formas distintas y se conservan tal como las reporta el laboratorio.
+ * Sirve para detectar combinaciones incoherentes como Fósforo / K₂O. Aquí no se convierte entre formas:
+ * P y P₂O₅, o K y K₂O, son formas distintas y se conservan tal como las reporta el laboratorio. La
+ * conversión (con la relación química exacta) está en conversionFormas.ts y la usa el plan.
  */
 export interface ElementoCatalogo {
   nombre: string;

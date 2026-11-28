@@ -1,5 +1,6 @@
 import { calcularPlan, type Calculo, type ResultadoLineaPlan } from '../lib/calculos';
 import { mismaForma } from '../lib/catalogoNutrientes';
+import { factorTexto } from '../lib/conversionFormas';
 import { fechaDeMarca, fechaLegible, formatearDiferencia, formatearExacto, formatearResultado, pesos, pesosResultado } from '../lib/formato';
 import type { DatosRegistro } from '../lib/validacionSeguimiento';
 import type { AnalisisVerificado, EstadoPlan, PlanVerificado, RegistroAplicacion } from '../types';
@@ -41,13 +42,18 @@ function Linea({ r, areaM2 }: { r: ResultadoLineaPlan; areaM2?: number }) {
       <div className="missing-box"><strong>{r.motivo === 'forma-distinta' ? 'Formas químicas distintas' : 'No se puede calcular'}:</strong> {r.mensaje}</div>
     </div>;
   }
-  const { meta } = r;
-  // La forma de la meta aporta exactamente la meta; las demás formas de la etiqueta son aportes acompañantes.
-  const acompanantes = r.aportes.filter(a => !mismaForma(a, meta));
+  const { meta, conversion } = r;
+  // La forma con que se cubre la meta aporta exactamente la meta; las demás formas de la etiqueta son aportes acompañantes.
+  const acompanantes = r.aportes.filter(a => !a.principal && !mismaForma(a, meta));
   return (
     <div className="calc-nutrient">
       {titulo}
-      <code>{formatearExacto(meta.kgHa)} kg/ha de {meta.forma} ÷ ({formatearExacto(r.porcentaje)} % ÷ 100) = <b>{kg(r.productoKgHa)} kg/ha de {p.nombre}</b></code>
+      {conversion
+        ? <>
+          <code>{formatearExacto(meta.kgHa)} kg/ha de {conversion.desde} × {factorTexto(conversion.factor)} = <b>{kg(conversion.metaConvertidaKgHa)} kg/ha de {conversion.hacia}</b> <em>(la etiqueta declara {conversion.hacia}: {conversion.hacia} = {conversion.desde} × {factorTexto(conversion.factor)}, relación química exacta)</em></code>
+          <code>{kg(conversion.metaConvertidaKgHa)} kg/ha de {conversion.hacia} ÷ ({formatearExacto(r.porcentaje)} % ÷ 100) = <b>{kg(r.productoKgHa)} kg/ha de {p.nombre}</b></code>
+        </>
+        : <code>{formatearExacto(meta.kgHa)} kg/ha de {meta.forma} ÷ ({formatearExacto(r.porcentaje)} % ÷ 100) = <b>{kg(r.productoKgHa)} kg/ha de {p.nombre}</b></code>}
       {r.productoKgLote.ok && areaM2 !== undefined
         ? <code>{kg(r.productoKgHa)} kg/ha × {formatearExacto(areaM2)} m² ÷ 10.000 = <b>{kg(r.productoKgLote.valor)} kg de {p.nombre} en el lote</b></code>
         : !r.productoKgLote.ok && <Falta calculo={r.productoKgLote} />}
@@ -159,12 +165,12 @@ export function PlanDetalle({
       <summary>Ver cómo se calculó cada cantidad</summary>
       <section className="soil-block calculated" aria-labelledby={`calc-plan-${plan.id}`}>
         <h4 id={`calc-plan-${plan.id}`}><span className="badge badge-calc">Resultados calculados</span> Cantidad y costo de cada producto</h4>
-        <p className="calc-intro">Cada cantidad sale de la meta que escribiste y del porcentaje que declara la etiqueta para <strong>la misma forma química</strong>. Los datos del producto son la copia guardada en el plan.</p>
+        <p className="calc-intro">Cada cantidad sale de la meta que escribiste y del porcentaje que declara la etiqueta para esa forma química. Si la etiqueta la declara en otra forma del mismo nutriente (P₂O₅ para una meta en P, K₂O para una meta en K), la meta se convierte primero con la relación química exacta. Los datos del producto son la copia guardada en el plan.</p>
         <Terminos ids={['tambien-aporta', 'diferencia-meta', 'precio-por-kg']} />
         {calculo.lineas.length === 0 && <p className="muted">Todavía no hay productos elegidos para las metas.</p>}
         {calculo.lineas.length > 0 && <div className="calc-step">
           <strong>Producto por hectárea, en el lote, bultos y costo</strong>
-          <p>Producto (kg/ha) = meta ÷ (porcentaje ÷ 100). En el lote = kg/ha × área ÷ 10.000. Bultos = kg ÷ kg por bulto. Costo = kg × precio por kg.</p>
+          <p>Producto (kg/ha) = meta (en la forma de la etiqueta) ÷ (porcentaje ÷ 100). En el lote = kg/ha × área ÷ 10.000. Bultos = kg ÷ kg por bulto. Costo = kg × precio por kg.</p>
           {calculo.lineas.map(r => <Linea key={r.linea.id} r={r} areaM2={area} />)}
         </div>}
         {sinProducto.length > 0 && <p className="calc-skip">Metas sin producto todavía: {sinProducto.map(m => `${m.elemento} (${m.forma})`).join(', ')}.</p>}
@@ -176,7 +182,7 @@ export function PlanDetalle({
             <caption className="sr-only">Meta frente a lo aportado por forma química</caption>
             <thead><tr><th scope="col">Forma química</th><th scope="col">Meta (kg/ha)</th><th scope="col">Aportan los productos (kg/ha)</th><th scope="col">Diferencia con la meta</th></tr></thead>
             <tbody>{calculo.resumen.map(x => <tr key={`${x.elemento}-${x.forma}`}>
-              <td>{x.forma} <small>({x.elemento})</small></td>
+              <td>{x.forma} <small>({x.elemento})</small>{x.convertidos?.map(c => <small key={c.desde} className="convertido"> · incluye {c.desde} convertido ({c.hacia} = {c.desde} × {factorTexto(c.factor)})</small>)}</td>
               <td>{x.metaKgHa !== undefined ? formatearExacto(x.metaKgHa) : '—'}</td>
               <td>{x.aportadoKgHa.ok ? kg(x.aportadoKgHa.valor) : x.aportadoKgHa.mensaje}</td>
               <td>{x.diferenciaKgHa?.ok ? formatearDiferencia(x.diferenciaKgHa.valor).texto : '—'}</td>
@@ -201,7 +207,7 @@ export function PlanDetalle({
 
       <div className="warning-box" role="note">
         <span className="badge badge-warn">Importante</span>
-        <p>Las cantidades salen de las metas del plan, cada una con su fuente técnica, y de lo que declara la etiqueta en la misma forma química: la app no convierte P en P₂O₅ ni K en K₂O. Los valores con “≈” están redondeados para mostrarlos; el cálculo usa el valor completo.</p>
+        <p>Las cantidades salen de las metas del plan, cada una con su fuente técnica, y de lo que declara la etiqueta. P y P₂O₅ (o K y K₂O) no son lo mismo: cuando la meta y la etiqueta usan formas distintas, la app convierte con la relación química exacta y muestra la operación. Los valores con “≈” están redondeados para mostrarlos; el cálculo usa el valor completo.</p>
       </div>
 
       {plan.id && <PlanEstado plan={plan} calculo={calculo} onCambiarEstado={onCambiarEstado} onCopiar={onCopiar} />}

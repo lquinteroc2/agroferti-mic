@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { CATALOGO_NUTRIENTES, OPCION_OTRO, buscarElemento, mismaForma } from '../lib/catalogoNutrientes';
+import { conversionEntre, factorTexto } from '../lib/conversionFormas';
 import { fechaLegible, formatearExacto, formatearNumero } from '../lib/formato';
 import { ErrorPersistencia } from '../lib/repositorioAnalisis';
 import { fechaLocalISO, numeroSinAmbiguedad } from '../lib/validacion';
@@ -77,15 +78,22 @@ function filaDesdeGuardado(m: MetaNutrimental, plan: PlanVerificado): FilaMeta {
   };
 }
 
-/** Lo que declara la etiqueta y si la meta se podrá calcular con ella (misma forma química). */
+/** Lo que declara la etiqueta y si la meta se podrá calcular con ella (misma forma o la otra forma del nutriente). */
 function avisoProducto(fila: FilaMeta, producto?: Pick<CopiaProducto, 'nombre' | 'contenido'>) {
   if (!producto) return null;
   const declara = `La etiqueta de ${producto.nombre} declara: ${resumenContenido(producto)}.`;
   const forma = fila.forma.trim();
   if (!fila.elemento.trim() || !forma) return <p className="hint">{declara}</p>;
-  if (producto.contenido.some(c => mismaForma(c, { elemento: fila.elemento, forma }))) return <p className="hint">{declara}</p>;
-  return <p className="hint hint-warn">{declara} <strong>Esta meta no se calculará:</strong> la meta está en {forma} y la etiqueta no declara esa forma. La app no convierte entre formas químicas (P y P₂O₅, K y K₂O).</p>;
+  const meta = { elemento: fila.elemento, forma };
+  if (producto.contenido.some(c => mismaForma(c, meta))) return <p className="hint">{declara}</p>;
+  const conv = producto.contenido.map(c => conversionEntre(meta, c)).find(Boolean);
+  if (conv) return <p className="hint">{declara} La meta está en {conv.desde} y la etiqueta en {conv.hacia}: la app convierte la meta ({conv.hacia} = {conv.desde} × {factorTexto(conv.factor)}, relación química exacta) y muestra la operación en el plan.</p>;
+  return <p className="hint hint-warn">{declara} <strong>Esta meta no se calculará:</strong> la meta está en {forma} y la etiqueta no declara ese nutriente en una forma que se pueda convertir.</p>;
 }
+
+/** El producto sirve para la meta: declara su forma o la otra forma del mismo nutriente (P₂O₅ para P). */
+const sirveParaMeta = (p: Pick<CopiaProducto, 'contenido'>, meta: { elemento: string; forma: string }) =>
+  p.contenido.some(c => mismaForma(c, meta) || conversionEntre(meta, c));
 
 export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCancelar, reglas, referencias = [], onAgregarProducto, onGuardarPrecio, onGuardarZona }: Props) {
   const departamentoLote = departamentoNombrado(lote);
@@ -232,7 +240,7 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
 
       <fieldset className="form-group">
         <legend>Metas y productos</legend>
-        <p className="hint">Cada meta tiene el nutriente, su <Termino id="forma-quimica"><strong>forma química</strong></Termino>, la cantidad en kg/ha y de dónde sale. Para cada una, elige el producto que la cubrirá: la app te muestra los fertilizantes que aportan esa forma. Solo se calcula si la meta y la etiqueta usan la misma forma química (una meta en P no se calcula con una etiqueta en P₂O₅). Puedes guardar una meta sin producto y completarla después; los demás datos de cada meta son obligatorios.</p>
+        <p className="hint">Cada meta tiene el nutriente, su <Termino id="forma-quimica"><strong>forma química</strong></Termino>, la cantidad en kg/ha y de dónde sale. Para cada una, elige el producto que la cubrirá: la app te muestra los fertilizantes que aportan ese nutriente. Si la etiqueta lo declara en otra forma (P₂O₅ para una meta en P, K₂O para una meta en K), la app convierte con la relación química exacta y muestra la operación. Puedes guardar una meta sin producto y completarla después; los demás datos de cada meta son obligatorios.</p>
         <Terminos ids={['meta', 'fuente-tecnica', 'formas-distintas', 'copia-guardada', 'agregar-y-usar']} />
         {productos.length === 0 && <p className="hint hint-warn">Tu catálogo no tiene productos disponibles. Puedes guardar las metas ahora y registrar los productos en <strong>Productos</strong>.</p>}
         {entrada.metas.map((m, i) => {
@@ -248,7 +256,7 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
           const compacta = !!m.rangoSugerido && !m.abierta && !error;
           // Productos que declaran la forma de la meta primero; los demás no permitirían calcularla.
           const forma = m.elemento.trim() ? m.forma.trim() : '';
-          const aportan = forma ? productos.filter(p => p.contenido.some(c => mismaForma(c, { elemento: m.elemento, forma }))) : [];
+          const aportan = forma ? productos.filter(p => sirveParaMeta(p, { elemento: m.elemento, forma })) : [];
           const otros = productos.filter(p => !aportan.includes(p));
           const opcion = (p: ProductoFertilizante) => <option key={p.id} value={p.id}>{p.nombre}{p.esEjemplo ? ' (EJEMPLO)' : ''}{p.id === guardada?.productoId ? ' — datos actuales del catálogo' : ''}</option>;
           return (
@@ -298,13 +306,13 @@ export function PlanForm({ inicial, lote, productos, analisis, onGuardar, onCanc
                   <select value={m.productoId} onChange={e => cambiarCampo(i, 'productoId', e.target.value)} aria-invalid={!!error}>
                     <option value="">Sin producto todavía</option>
                     {guardada && <option value={COPIA_GUARDADA}>{guardada.nombre}{guardada.esEjemplo ? ' (EJEMPLO)' : ''} — copia guardada en el plan{guardada.fechaPrecio ? `, precio del ${fechaLegible(guardada.fechaPrecio)}` : ''}</option>}
-                    {aportan.length > 0 && <optgroup label={`Declaran ${forma}`}>{aportan.map(opcion)}</optgroup>}
-                    {forma ? otros.length > 0 && <optgroup label={`No declaran ${forma}: esta meta no se calcularía`}>{otros.map(opcion)}</optgroup> : otros.map(opcion)}
+                    {aportan.length > 0 && <optgroup label={`Aportan ${forma}`}>{aportan.map(opcion)}</optgroup>}
+                    {forma ? otros.length > 0 && <optgroup label={`No aportan ${forma}: esta meta no se calcularía`}>{otros.map(opcion)}</optgroup> : otros.map(opcion)}
                   </select>
                 </label>
               </div>
               <button type="button" className="row-remove" onClick={() => quitarFila(i)}>Quitar meta {i + 1}</button>
-              {!m.productoId && m.forma && onAgregarProducto && <ProductosSugeridos forma={m.forma} productos={productos} referencias={referencias}
+              {!m.productoId && m.forma && onAgregarProducto && <ProductosSugeridos forma={m.forma} elemento={m.elemento} productos={productos} referencias={referencias}
                 lote={lote} onElegir={id => cambiarCampo(i, 'productoId', id)} onAgregar={onAgregarProducto} />}
               <div className="full-row">
                 {avisoProducto(m, elegido)}

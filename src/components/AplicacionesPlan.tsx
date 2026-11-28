@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { factorTexto } from '../lib/conversionFormas';
 import { resumenAplicaciones, type AvanceLinea, type CalculoPlan } from '../lib/calculos';
 import { fechaLegible, formatearDiferencia, formatearExacto, formatearResultado, pesos, textoCostoRegistrado } from '../lib/formato';
 import { ErrorPersistencia } from '../lib/repositorioAnalisis';
@@ -147,8 +148,12 @@ function PasosAvance({ a, areaM2 }: { a: AvanceLinea<RegistroAplicacion>; areaM2
       return <code>Se aplicó exactamente lo planeado.</code>;
     })()}
     {a.porcentaje?.ok && <code>Avance: {kg(aplicado)} ÷ {kg(planeado)} × 100 = <b>{formatearResultado(a.porcentaje.valor, 1)} %</b></code>}
-    {a.aplicadoFormaKgHa?.ok && areaM2 !== undefined && porcentajeEtiqueta !== undefined &&
-      <code>En la forma de la meta: {kg(aplicado)} kg × 10.000 ÷ {formatearExacto(areaM2)} m² × {formatearExacto(porcentajeEtiqueta)} % ÷ 100 = <b>{kg(a.aplicadoFormaKgHa.valor)} kg/ha de {forma}</b> <em>(meta: {a.meta ? formatearExacto(a.meta.kgHa) : '—'} kg/ha)</em></code>}
+    {a.aplicadoFormaKgHa?.ok && areaM2 !== undefined && porcentajeEtiqueta !== undefined && (a.conversion
+      ? <>
+        <code>En la forma de la etiqueta: {kg(aplicado)} kg × 10.000 ÷ {formatearExacto(areaM2)} m² × {formatearExacto(porcentajeEtiqueta)} % ÷ 100 = <b>{kg(a.conversion.aplicadoEtiquetaKgHa)} kg/ha de {a.conversion.desde}</b></code>
+        <code>En la forma de la meta: {kg(a.conversion.aplicadoEtiquetaKgHa)} kg/ha de {a.conversion.desde} × {factorTexto(a.conversion.factor)} = <b>{kg(a.aplicadoFormaKgHa.valor)} kg/ha de {forma}</b> <em>(meta: {a.meta ? formatearExacto(a.meta.kgHa) : '—'} kg/ha)</em></code>
+      </>
+      : <code>En la forma de la meta: {kg(aplicado)} kg × 10.000 ÷ {formatearExacto(areaM2)} m² × {formatearExacto(porcentajeEtiqueta)} % ÷ 100 = <b>{kg(a.aplicadoFormaKgHa.valor)} kg/ha de {forma}</b> <em>(meta: {a.meta ? formatearExacto(a.meta.kgHa) : '—'} kg/ha)</em></code>)}
   </>;
 }
 

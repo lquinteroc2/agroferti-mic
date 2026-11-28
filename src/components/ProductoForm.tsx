@@ -231,7 +231,7 @@ export function ProductoForm({ inicial, onGuardar, onCancelar, referencias = [],
 
       {referencias.length > 0 && <fieldset className="form-group referencia-picker">
         <legend>Llenar desde el catálogo de referencia</legend>
-        <p className="hint">Los {formatearExacto(referencias.length)} fertilizantes de aplicación al suelo con registro <strong>vigente ante el ICA</strong>, con su composición garantizada. Los más comunes traen además el precio promedio que publica el <strong>DANE</strong> por departamento. Busca el tuyo para llenar el formulario; después revisa que coincida con la etiqueta de tu bulto.</p>
+        <p className="hint">Los {formatearExacto(referencias.length)} fertilizantes con registro <strong>ICA</strong> que tienen precio promedio del <strong>DANE</strong> por departamento, con su composición garantizada. Busca el tuyo para llenar el formulario; después revisa que coincida con la etiqueta de tu bulto.</p>
         <div className="fields">
           <label className="full">Buscar fertilizante
             <input type="search" value={busqueda} onChange={e => { setBusqueda(e.target.value); setReferenciaId(''); setDepartamento(''); }} placeholder="Nombre, empresa o grado: urea, DAP, 15-15-15, Yara…" />
@@ -292,7 +292,7 @@ export function ProductoForm({ inicial, onGuardar, onCancelar, referencias = [],
 
       <fieldset className="form-group">
         <legend>Contenido declarado en la etiqueta</legend>
-        <p className="hint">Registra cada nutriente con su <Termino id="forma-quimica"><strong>forma química</strong></Termino> y su porcentaje, tal como los declara la etiqueta. En muchas etiquetas el grado N-P-K se expresa como N-P₂O₅-K₂O; verifica la forma en la tuya. P₂O₅ no es lo mismo que P, ni K₂O lo mismo que K, y la app no convierte entre formas. No registres los nutrientes con 0 %.</p>
+        <p className="hint">Registra cada nutriente con su <Termino id="forma-quimica"><strong>forma química</strong></Termino> y su porcentaje, tal como los declara la etiqueta. En muchas etiquetas el grado N-P-K se expresa como N-P₂O₅-K₂O; verifica la forma en la tuya. P₂O₅ no es lo mismo que P, ni K₂O lo mismo que K: registra la forma de tu etiqueta. Si una meta está en la otra forma, la app convierte con la relación química exacta y muestra la operación. No registres los nutrientes con 0 %.</p>
         <Terminos ids={['grado', 'p-p2o5', 'k-k2o', 'porcentaje-etiqueta', 'registro-ica']} />
         {entrada.contenido.map((c, i) => {
           const el = c.elementoLibre ? undefined : buscarElemento(c.elemento);

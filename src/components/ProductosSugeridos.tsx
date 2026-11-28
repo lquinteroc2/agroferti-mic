@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { conversionEntre, otraForma } from '../lib/conversionFormas';
 import { formatearExacto, pesos } from '../lib/formato';
 import { departamentoNombrado, fertilizantesQueAportan, nombreMes, precioParaDepartamento, resumenComposicion, type FertilizanteReferencia } from '../lib/referencias';
 import type { ProductoFertilizante } from '../types';
@@ -9,8 +10,10 @@ import type { ProductoFertilizante } from '../types';
  * del ICA se agrega a tu catálogo con un toque, con el precio del DANE del departamento del lote o,
  * si allí no se publica, el del departamento más cercano que lo publica (dicho claramente).
  */
-export function ProductosSugeridos({ forma, productos, referencias, lote, onElegir, onAgregar }: {
+export function ProductosSugeridos({ forma, elemento, productos, referencias, lote, onElegir, onAgregar }: {
   forma: string;
+  /** Nutriente de la meta: también sirven las etiquetas con la otra forma (P₂O₅ para una meta en P). */
+  elemento?: string;
   productos: ReadonlyArray<ProductoFertilizante>;
   referencias: ReadonlyArray<FertilizanteReferencia>;
   /** Departamento elegido y ubicación escrita del lote, para tomar el precio DANE de esa zona. */
@@ -20,10 +23,13 @@ export function ProductosSugeridos({ forma, productos, referencias, lote, onEleg
 }) {
   const [agregando, setAgregando] = useState('');
   const [error, setError] = useState('');
-  const propios = productos.filter(p => p.contenido.some(c => c.forma === forma)).slice(0, 4);
+  // La forma de la etiqueta con que el producto cubre la meta: la misma o la otra forma del nutriente.
+  const formaQueSirve = (contenido: ProductoFertilizante['contenido']) =>
+    contenido.find(c => c.forma === forma) ?? (elemento ? contenido.find(c => conversionEntre(c, { elemento, forma })) : undefined);
+  const propios = productos.filter(p => formaQueSirve(p.contenido)).slice(0, 4);
   const yaEnCatalogo = new Set(productos.map(p => p.registroIca).filter(Boolean));
   const departamentoLote = departamentoNombrado(lote);
-  const delIca = fertilizantesQueAportan(referencias.filter(r => !yaEnCatalogo.has(r.registroIca)), forma, 3, departamentoLote);
+  const delIca = fertilizantesQueAportan(referencias.filter(r => !yaEnCatalogo.has(r.registroIca)), forma, 3, departamentoLote, elemento);
   if (!propios.length && !delIca.length) return null;
 
   async function agregar(r: FertilizanteReferencia, departamento?: string, sinPrecioEn?: string) {
@@ -40,10 +46,10 @@ export function ProductosSugeridos({ forma, productos, referencias, lote, onEleg
 
   return (
     <div className="productos-sugeridos full-row">
-      <strong>Fertilizantes que aportan {forma}</strong>
+      <strong>Fertilizantes que aportan {forma}{elemento && otraForma({ elemento, forma }) ? ` (también los que lo declaran como ${otraForma({ elemento, forma })})` : ''}</strong>
       <ul>
         {propios.map(p => <li key={p.id}>
-          <span><strong>{p.nombre}</strong> · {forma} {formatearExacto(p.contenido.find(c => c.forma === forma)!.porcentaje)} % · en tu catálogo</span>
+          <span><strong>{p.nombre}</strong> · {formaQueSirve(p.contenido)!.forma} {formatearExacto(formaQueSirve(p.contenido)!.porcentaje)} % · en tu catálogo</span>
           <button type="button" className="btn btn-outline btn-small" onClick={() => onElegir(p.id)}>Usar</button>
         </li>)}
         {delIca.map(r => {

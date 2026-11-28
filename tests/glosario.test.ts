@@ -7,6 +7,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { buscarEnGlosario, CATEGORIAS_GLOSARIO, GLOSARIO, normalizarBusqueda, terminoGlosario } from '../src/lib/glosario.ts';
+import { factorTexto, PARES_CONVERSION } from '../src/lib/conversionFormas.ts';
 
 test('glosario: ids únicos y en formato estable; cada término completo y en una categoría que existe', () => {
   const ids = GLOSARIO.map(t => t.id);
@@ -59,9 +60,14 @@ test('buscador: entiende los iones y unidades como se escriben en el celular (re
   assert.deepEqual(buscarEnGlosario('+').length, GLOSARIO.length, 'solo signos: se muestra todo');
 });
 
-test('glosario: los nombres vigentes de la interfaz (tanda 1) y sin factores de conversión entre formas', () => {
+test('glosario: los nombres vigentes de la interfaz (tanda 1) y los factores de conversión son los que usa la app', () => {
   assert.equal(GLOSARIO.find(t => t.id === 'tambien-aporta')?.termino, 'También aporta');
-  for (const t of GLOSARIO) assert.doesNotMatch(`${t.definicion} ${t.ejemplo ?? ''}`, /2,29|1,2 kg/, `${t.id}: no dar factores que inviten a convertir a mano`);
+  // Desde el 27 de noviembre de 2026 la app convierte P↔P₂O₅ y K↔K₂O: el glosario muestra los mismos factores.
+  const [p, k] = ['P', 'K'].map(x => PARES_CONVERSION.find(c => c.simbolo === x)!);
+  const pp = GLOSARIO.find(t => t.id === 'p-p2o5')!.definicion;
+  assert.ok(pp.includes(`P × ${factorTexto(p.factor)}`) && pp.includes(`P₂O₅ × ${factorTexto(1 / p.factor)}`));
+  const kk = GLOSARIO.find(t => t.id === 'k-k2o')!.definicion;
+  assert.ok(kk.includes(`K × ${factorTexto(k.factor)}`) && kk.includes(`K₂O × ${factorTexto(1 / k.factor)}`));
 });
 
 test('buscador: sin texto devuelve todo o solo el tema elegido, en el orden del glosario', () => {

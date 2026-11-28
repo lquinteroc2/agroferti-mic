@@ -7,6 +7,7 @@
  * Todo lo que llega se verifica: una referencia con la estructura equivocada se descarta.
  */
 import { CAPITALES, DEPARTAMENTOS_COLOMBIA } from './departamentos.ts';
+import { conversionEntre } from './conversionFormas.ts';
 import type { ContenidoDeclarado } from '../types.ts';
 import { esObjeto, validarFecha } from './validacion.ts';
 import { validarFilaContenido } from './validacionPlan.ts';
@@ -377,8 +378,19 @@ export function buscarFertilizantes(lista: ReadonlyArray<FertilizanteReferencia>
  * costo), y entre ellos los que lo tienen en el departamento del lote; luego los verificados y, entre ellos, los de mayor concentración de esa forma. Solo ordena
  * lo que declara el registro: no es una recomendación agronómica.
  */
-export function fertilizantesQueAportan(lista: ReadonlyArray<FertilizanteReferencia>, forma: string, limite = 5, departamento?: string): FertilizanteReferencia[] {
-  const porcentaje = (f: FertilizanteReferencia) => f.contenido.find(c => c.forma === forma)?.porcentaje ?? 0;
+export function fertilizantesQueAportan(lista: ReadonlyArray<FertilizanteReferencia>, forma: string, limite = 5, departamento?: string, elemento?: string): FertilizanteReferencia[] {
+  // Con el elemento de la meta también sirven los que declaran la otra forma del nutriente (P₂O₅ para
+  // una meta en P); su concentración se compara ya convertida a la forma de la meta.
+  const porcentaje = (f: FertilizanteReferencia) => {
+    const igual = f.contenido.find(c => c.forma === forma);
+    if (igual) return igual.porcentaje;
+    if (!elemento) return 0;
+    for (const c of f.contenido) {
+      const conv = conversionEntre(c, { elemento, forma });
+      if (conv) return c.porcentaje * conv.factor;
+    }
+    return 0;
+  };
   // Con el departamento del lote, primero los que tienen precio allí; luego los que lo tienen en otro.
   const conPrecio = (f: FertilizanteReferencia) => {
     if (!f.precios.length) return 0;

@@ -48,7 +48,7 @@ B10b;Papa (lote B);EJEMPLO;K2O acompañante;200 × 10 / 100;20 kg K2O/ha;;;;;;Si
 B12;Papa (lote B);EJEMPLO;Aplicado − planeado (una aplicación de 16 kg);16 − 16;0 kg;;;;;;Igual a lo planeado
 B12b;Papa (lote B);EJEMPLO;Avance;16 / 16 × 100;100 %;;;;;;
 B13;Papa (lote B);EJEMPLO;Aplicado en forma P2O5;16 × 10000 / 800 × 30 / 100;60 kg P2O5/ha;;;;;;Meta: 60
-L1;—;EJEMPLO;Meta en P con etiqueta en P2O5;no se calcula;Formas químicas distintas;;;;;;No debe aparecer ninguna cantidad (tampoco K frente a K2O)
+L1;—;EJEMPLO;Meta 52 kg/ha de P con DAP (P2O5 46 %), 2500 m2;52 × 2,2914 / 0,46 (desde el 27 nov 2026 la app convierte);259,02 kg/ha de DAP (64,76 kg en el lote);;;;;;Con K: 125 × 1,2046 / 0,60 = 250,96 kg/ha de KCl. K+ frente a K2O sigue sin calcularse
 L2;—;EJEMPLO;Análisis sin densidad aparente;no se calcula;Falta un dato para calcular;;;;;;Se guarda pero sin kg/ha
 L3;—;EJEMPLO;Nutriente en cmol(+)/kg;no se convierte;No convertible;;;;;;
 L4;—;EJEMPLO;Área 1.500 m2;rechazo;Se puede leer de dos formas;;;;;;Igual en meta 1.200 y en aplicación 1.500 kg

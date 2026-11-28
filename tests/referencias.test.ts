@@ -105,14 +105,17 @@ test('sugerencias: el nivel del análisis elige la fila de la tabla; el nitróge
   assert.deepEqual(en40.sugerencias.filter(s => s.forma === 'P₂O₅').map(s => s.regla.id), ['p-medio']);
 });
 
-test('sugerencias: no se sugiere si el método, la unidad o la forma no coinciden, y se explica por qué', () => {
+test('sugerencias: no se sugiere si el método o la unidad no coinciden (y se explica); P₂O₅ del análisis se convierte a P', () => {
   const otroMetodo = sugerirMetas({ cultivo: 'papa', region: 'Región EJEMPLO', analisis: analisisEjemplo({ metodoLaboratorio: 'Olsen' }), reglas });
   assert.ok(!otroMetodo.sugerencias.some(s => s.forma === 'P₂O₅'));
   assert.ok(otroMetodo.noAplican.some(n => /otro método \(«Olsen»\) y la tabla usa Bray II/.test(n.motivo)));
   const sinMetodo = sugerirMetas({ cultivo: 'papa', region: 'Región EJEMPLO', analisis: analisisEjemplo({ metodoLaboratorio: '' }), reglas });
   assert.ok(sinMetodo.noAplican.some(n => /no dice cómo se midió el fósforo \(P\)\. Si el laboratorio usó Bray II, edita el análisis/.test(n.motivo)), 'fase 6: sin método se dice qué hacer');
   const p2o5 = sugerirMetas({ cultivo: 'papa', region: 'Región EJEMPLO', analisis: analisisEjemplo({ nutrientes: [{ elemento: 'Fósforo', forma: 'P₂O₅', valor: 35, unidad: 'mg/kg' }] }), reglas });
-  assert.ok(!p2o5.sugerencias.some(s => s.forma === 'P₂O₅'), 'P₂O₅ del análisis no se toma como P');
+  // Desde el 27 de noviembre de 2026: P₂O₅ del análisis (mg/kg) se pasa a P con la relación química exacta, y se dice.
+  const deP2o5 = p2o5.sugerencias.find(s => s.forma === 'P₂O₅');
+  assert.ok(deP2o5, 'P₂O₅ 35 mg/kg × 0,4364 = P 15,27 mg/kg: aplica la fila de P bajo');
+  assert.match(deP2o5!.motivo, /P \(Bray II\) = ≈ 15,275 mg\/kg \(de P₂O₅ 35 mg\/kg × 0,4364\), menos de 40/);
   const kMgKg = sugerirMetas({ cultivo: 'papa', region: 'Región EJEMPLO', analisis: analisisEjemplo({ nutrientes: [{ elemento: 'Potasio', forma: 'K', valor: 120, unidad: 'mg/kg' }] }), reglas });
   assert.ok(kMgKg.noAplican.some(n => /no convierte/.test(n.motivo)));
   const sinRegion = sugerirMetas({ cultivo: 'papa', analisis: analisisEjemplo(), reglas });

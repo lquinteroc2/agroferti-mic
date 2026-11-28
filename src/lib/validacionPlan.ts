@@ -18,6 +18,7 @@ import type {
 } from '../types';
 import { calcularPlan, type CalculoPlan, type ResultadoLineaPlan } from './calculos.ts';
 import { coherenciaNutriente, mismaForma } from './catalogoNutrientes.ts';
+import { conversionEntre } from './conversionFormas.ts';
 import {
   ausente,
   comprobarNumero,
@@ -709,6 +710,9 @@ export function validarPlanFormulario(
     if (!r.ok) return errorFila(i, r.error);
     const meta = r.valor;
     if (metas.some(m => mismaForma(m, meta))) return errorFila(i, `Ya hay otra meta para ${meta.elemento} (${meta.forma}).`);
+    // Con conversión, P y P₂O₅ (o K y K₂O) son el mismo nutriente: una sola meta por nutriente.
+    const otra = metas.find(m => conversionEntre(m, meta));
+    if (otra) return errorFila(i, `Ya hay una meta para ${otra.elemento} en ${otra.forma}: es el mismo nutriente que ${meta.forma}. Deja una sola meta y escríbela en una forma.`);
     metas.push(meta);
     filaDeMeta.set(meta.id, i);
     if (!fila.productoId) return;

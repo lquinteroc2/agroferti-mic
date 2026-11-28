@@ -1,4 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks';
+import { factorTexto } from '../lib/conversionFormas';
 import { repositorioAnalisis, repositorioCiclos, repositorioPlanes, repositorioSeguimiento } from '../lib/db';
 import { areaM2AHa, type Calculo } from '../lib/calculos';
 import {
@@ -122,12 +123,12 @@ function SeccionRecomendacion({ d }: { d: DatosInforme }) {
       <caption className="sr-only">Meta frente a lo que aportan los productos</caption>
       <thead><tr><th scope="col">Nutriente</th><th scope="col">Meta (kg/ha)</th><th scope="col">Aportan los productos (kg/ha)</th></tr></thead>
       <tbody>{r.calculo.resumen.map(x => <tr key={`${x.elemento}-${x.forma}`}>
-        <td>{x.elemento} ({x.forma})</td>
+        <td>{x.elemento} ({x.forma}){x.convertidos?.map(c => <small key={c.desde}> · incluye {c.desde} convertido a {c.hacia} (× {factorTexto(c.factor)})</small>)}</td>
         <td>{x.metaKgHa !== undefined ? formatearExacto(x.metaKgHa) : 'Sin meta (aporte adicional)'}</td>
         <td><Valor c={x.aportadoKgHa} formato={kg} /></td>
       </tr>)}</tbody>
     </table>
-    <p className="informe-nota">Cómo se calculó: dosis por hectárea = meta ÷ (% del nutriente en la etiqueta ÷ 100). Para tu lote = dosis × área ÷ 10.000. Bultos = kg ÷ kg del bulto (número exacto; al comprar se redondea a bultos enteros). Costo = kg × precio por kg.</p>
+    <p className="informe-nota">Cómo se calculó: dosis por hectárea = meta ÷ (% del nutriente en la etiqueta ÷ 100). Si la meta está en otra forma que la etiqueta, primero se convierte con la relación química exacta: P₂O₅ = P × 2,2914; K₂O = K × 1,2046. Para tu lote = dosis × área ÷ 10.000. Bultos = kg ÷ kg del bulto (número exacto; al comprar se redondea a bultos enteros). Costo = kg × precio por kg.</p>
   </>;
 }
 
