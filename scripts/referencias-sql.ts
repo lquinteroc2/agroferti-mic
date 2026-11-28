@@ -7,17 +7,19 @@
  */
 import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { ARCHIVOS_REFERENCIAS, validarReferencias } from '../src/lib/paqueteReferencias.ts';
+import { ARCHIVOS_REFERENCIAS, filasParaLaApp, validarReferencias } from '../src/lib/paqueteReferencias.ts';
 
 const RAIZ = new URL('../', import.meta.url);
 const leer = (archivo: string): unknown[] => JSON.parse(readFileSync(new URL(`data/referencias/${archivo}`, RAIZ), 'utf8'));
 
-const { filas, errores } = validarReferencias(ARCHIVOS_REFERENCIAS.map(a => ({ ...a, items: leer(a.archivo) })));
+const { filas: todas, errores } = validarReferencias(ARCHIVOS_REFERENCIAS.map(a => ({ ...a, items: leer(a.archivo) })));
 if (errores.length) {
   console.error(`No se generó el SQL. ${errores.length} problema(s):\n- ${errores.join('\n- ')}`);
   process.exit(1);
 }
 
+// La app solo recibe los fertilizantes con precio del DANE (ver filasParaLaApp).
+const filas = filasParaLaApp(todas);
 const version = createHash('sha256').update(JSON.stringify(filas)).digest('hex').slice(0, 16);
 const cadena = (s: string) => `'${s.replace(/'/g, "''")}'`;
 const sql = [

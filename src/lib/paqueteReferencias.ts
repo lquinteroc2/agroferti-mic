@@ -40,6 +40,16 @@ export function validarReferencias(conjuntos: ReadonlyArray<{ tipo: TipoReferenc
   return { filas, errores };
 }
 
+/**
+ * Lo que se publica para la app. Decisión del 27 de noviembre de 2026 (dueño del proyecto, por
+ * sugerencia del instructor): la app solo ofrece fertilizantes con precio del DANE, para dar siempre
+ * el costo. El registro completo del ICA se queda en data/referencias/: con él, la actualización
+ * mensual encuentra los precios nuevos (y un fertilizante entra a la app cuando el DANE lo publica).
+ */
+export function filasParaLaApp(filas: ReadonlyArray<FilaReferencia>): FilaReferencia[] {
+  return filas.filter(f => f.tipo !== 'fertilizante' || (JSON.parse(f.datos) as { precios?: unknown[] }).precios?.length);
+}
+
 const DESTINO: Record<TipoReferencia, 'fertilizantes' | 'reglasDosis' | 'niveles'> = { fertilizante: 'fertilizantes', dosis: 'reglasDosis', nivel: 'niveles' };
 
 /** JSON que entrega la API (mismo formato que arma el Worker desde D1). */

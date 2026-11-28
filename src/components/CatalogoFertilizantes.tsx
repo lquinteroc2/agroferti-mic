@@ -39,9 +39,8 @@ export function CatalogoFertilizantes({ referencias, registrosPropios, departame
 }) {
   const [texto, setTexto] = useState('');
   const [formas, setFormas] = useState<string[]>([]);
-  const [soloConPrecio, setSoloConPrecio] = useState(false);
   const [mostrar, setMostrar] = useState(POR_PAGINA);
-  const resultado = useMemo(() => filtrarCatalogo(referencias, { texto, formas, soloConPrecio }), [referencias, texto, formas, soloConPrecio]);
+  const resultado = useMemo(() => filtrarCatalogo(referencias, { texto, formas }), [referencias, texto, formas]);
   // Mes más reciente de los precios del DANE (cambia cada mes con la actualización automática).
   const mesPrecios = useMemo(() => {
     const ultimo = referencias.reduce((m, r) => r.precios.reduce((n, p) => (p.periodo > n ? p.periodo : n), m), '');
@@ -53,7 +52,7 @@ export function CatalogoFertilizantes({ referencias, registrosPropios, departame
 
   return (
     <div className="catalogo-ica">
-      <p className="muted">Los <strong>{formatearExacto(referencias.length)} fertilizantes</strong> con registro <strong>vigente ante el ICA</strong> para aplicar al suelo, con la composición garantizada que declara el registro. Los más comunes traen además el precio promedio del <strong>DANE</strong> por departamento. Busca por nombre, empresa o grado, o filtra por lo que necesitas que aporte.</p>
+      <p className="muted">Los <strong>{formatearExacto(referencias.length)} fertilizantes</strong> con registro <strong>ICA</strong> que tienen precio promedio del <strong>DANE</strong> por departamento{mesPrecios ? ` (${mesPrecios})` : ''}, con la composición garantizada que declara el registro. Así cada plan trae su costo. Los precios se actualizan cada mes y, cuando el DANE publica un fertilizante nuevo, aparece aquí. Busca por nombre, empresa o grado, o filtra por lo que necesitas que aporte.</p>
       <Terminos ids={['composicion-garantizada', 'grado', 'sipsa', 'por-verificar-composicion']} />
       <div className="catalogo-filtros">
         <label className="catalogo-buscar">Buscar
@@ -66,7 +65,6 @@ export function CatalogoFertilizantes({ referencias, registrosPropios, departame
             {etiqueta}
           </label>)}
         </fieldset>
-        <label className="check"><input type="checkbox" checked={soloConPrecio} onChange={e => { const si = e.target.checked; cambiarFiltro(() => setSoloConPrecio(si)); }} /> Solo los que tienen precio del DANE</label>
       </div>
       <p className="hint" role="status">{resultado.length === 0 ? 'No se encontraron fertilizantes con esos filtros.' : `${formatearExacto(resultado.length)} ${resultado.length === 1 ? 'fertilizante' : 'fertilizantes'}`}</p>
       <ul className="catalogo-lista">

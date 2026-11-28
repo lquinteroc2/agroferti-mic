@@ -5,7 +5,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { ARCHIVOS_REFERENCIAS, cuerpoReferencias, validarReferencias } from '../src/lib/paqueteReferencias.ts';
+import { ARCHIVOS_REFERENCIAS, cuerpoReferencias, filasParaLaApp, validarReferencias } from '../src/lib/paqueteReferencias.ts';
 import { leerConjunto } from '../src/lib/referencias.ts';
 
 const leer = (archivo: string): unknown[] => JSON.parse(readFileSync(new URL(`../data/referencias/${archivo}`, import.meta.url), 'utf8'));
@@ -36,4 +36,13 @@ test('referencias: una referencia dañada o repetida se informa con archivo y po
   assert.equal(errores.length, 2);
   assert.match(errores[0], /prueba\.json, posición 1: no cumple el formato/);
   assert.match(errores[1], /prueba\.json: el id ".+" está repetido/);
+});
+
+test('decisión del 27 de noviembre de 2026: la app solo recibe fertilizantes con precio del DANE (y todas las reglas)', () => {
+  const { filas } = validarReferencias(ARCHIVOS_REFERENCIAS.map(a => ({ ...a, items: leer(a.archivo) })));
+  const app = filasParaLaApp(filas);
+  const fertilizantes = app.filter(f => f.tipo === 'fertilizante');
+  assert.ok(fertilizantes.length > 26 && fertilizantes.length < 1000);
+  assert.ok(fertilizantes.every(f => (JSON.parse(f.datos) as { precios: unknown[] }).precios.length > 0), 'ninguno sin precio');
+  assert.equal(app.filter(f => f.tipo !== 'fertilizante').length, filas.filter(f => f.tipo !== 'fertilizante').length, 'reglas de dosis y niveles completos');
 });

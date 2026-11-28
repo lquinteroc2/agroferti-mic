@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
-import { ARCHIVOS_REFERENCIAS, cuerpoReferencias, validarReferencias } from './src/lib/paqueteReferencias.ts';
+import { ARCHIVOS_REFERENCIAS, cuerpoReferencias, filasParaLaApp, validarReferencias } from './src/lib/paqueteReferencias.ts';
 
 /**
  * Publica las referencias técnicas (catálogo ICA, precios DANE, reglas de dosis) con cada despliegue,
@@ -18,8 +18,10 @@ function referenciasEstaticas(): Plugin {
     apply: 'build',
     generateBundle() {
       const leer = (archivo: string): unknown[] => JSON.parse(readFileSync(new URL(`./data/referencias/${archivo}`, import.meta.url), 'utf8'));
-      const { filas, errores } = validarReferencias(ARCHIVOS_REFERENCIAS.map(a => ({ ...a, items: leer(a.archivo) })));
+      const { filas: todas, errores } = validarReferencias(ARCHIVOS_REFERENCIAS.map(a => ({ ...a, items: leer(a.archivo) })));
       if (errores.length) throw new Error(`Referencias no válidas:\n- ${errores.slice(0, 20).join('\n- ')}`);
+      // Solo los fertilizantes con precio del DANE (ver filasParaLaApp).
+      const filas = filasParaLaApp(todas);
       const version = createHash('sha256').update(JSON.stringify(filas)).digest('hex').slice(0, 16);
       this.emitFile({ type: 'asset', fileName: 'api/referencias/datos.json', source: cuerpoReferencias(filas, version) });
       this.emitFile({ type: 'asset', fileName: 'api/referencias/version.json', source: JSON.stringify({ version }) });
