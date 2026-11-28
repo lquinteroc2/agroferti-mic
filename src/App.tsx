@@ -1,28 +1,23 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { AnalisisSueloSeccion } from './components/AnalisisSueloSeccion';
-import { HistorialLoteSeccion } from './components/HistorialLoteSeccion';
+import { FichaLote } from './components/FichaLote';
 import { Encabezado, Logo, saludoDe } from './components/Encabezado';
 import { InformeGeneral } from './components/InformeGeneral';
 import { InformeLote } from './components/InformeLote';
 import { LoteForm, type DatosLote } from './components/LoteForm';
-import { PlanesSeccion } from './components/PlanesSeccion';
 import { ProductosSeccion } from './components/ProductosSeccion';
 import { NubeSeccion } from './components/NubeSeccion';
 import { PantallaIngreso } from './components/PantallaIngreso';
 import { Glosario } from './components/Glosario';
 import { Termino } from './components/Terminos';
-import { SeguimientoSeccion } from './components/SeguimientoSeccion';
 import { actualizarLote, db, eliminarLoteYRelacionados, leerEstadoNube, leerReferencias } from './lib/db';
 import { alVolver, reemplazarPantalla, registrarPantalla, volverPantalla } from './lib/navegacion';
 import { sesionVencida } from './lib/nube';
 import { contarTareasPendientes } from './lib/validacionSeguimiento';
 import { fechaLocalISO, problemaLote } from './lib/validacion';
-import { avancesPorLote } from './lib/avance';
-import { PasosLote } from './components/PasosLote';
+import { avancesPorLote, type IdPaso } from './lib/avance';
 import { preferenciasExternas } from './lib/preferencias';
 import { ErrorPersistencia } from './lib/repositorioAnalisis';
-import { areaM2AHa } from './lib/calculos';
 import { fechaLegible, formatearNumero, nombreCultivo } from './lib/formato';
 import type { Lote } from './types';
 import { confirmar } from './components/Confirmacion';
@@ -37,11 +32,16 @@ function useEnLinea(): boolean {
 }
 
 type Vista = 'inicio' | 'nuevo' | 'editar' | 'detalle' | 'informe' | 'informe-general' | 'productos' | 'ayuda' | 'glosario' | 'cuenta';
-interface Pantalla { vista: Vista; loteId: string | null }
+/** En la ficha del lote, `paso` es el paso abierto; sin él, la vista general con los cinco pasos. */
+interface Pantalla { vista: Vista; loteId: string | null; paso?: IdPaso }
+/** Pantallas de un lote; las demás no guardan el lote, para reconocerlas al volver (p. ej. Mis lotes). */
+const VISTAS_DE_LOTE = new Set<Vista>(['detalle', 'editar', 'informe']);
+const mismaPantalla = (a: Pantalla, b: Pantalla) => a.vista === b.vista && a.loteId === b.loteId && a.paso === b.paso;
 
 export default function App() {
   const [vista, setVista] = useState<Vista>('inicio');
   const [loteId, setLoteId] = useState<string | null>(null);
+  const [paso, setPaso] = useState<IdPaso | undefined>(undefined);
   const [mensaje, setMensaje] = useState('');
   const [mensajeEsError, setMensajeEsError] = useState(false);
   const [guardando, setGuardando] = useState(false);
@@ -79,6 +79,7 @@ export default function App() {
     setMensaje(aviso?.texto ?? '');
     setMensajeEsError(aviso?.error ?? false);
     setLoteId(p.loteId);
+    setPaso(p.paso);
     setVista(p.vista);
   }
 
@@ -86,8 +87,14 @@ export default function App() {
     reemplazarPantalla(pila.current[0]);
     alVolver(estado => {
       const p = estado as Partial<Pantalla> | null;
-      if (pila.current.length > 1) pila.current.pop();
-      mostrar(p?.vista ? { vista: p.vista, loteId: p.loteId ?? null } : pila.current.at(-1) ?? { vista: 'inicio', loteId: null });
+      const destino: Pantalla | undefined = p?.vista ? { vista: p.vista, loteId: p.loteId ?? null, paso: p.paso } : undefined;
+      // Un "atrás" puede saltar varias pantallas (p. ej. al eliminar un lote): la pila queda hasta el destino.
+      const pila_ = pila.current;
+      let i = pila_.length - 2;
+      while (destino && i >= 0 && !mismaPantalla(pila_[i], destino)) i--;
+      if (destino && i >= 0) pila_.length = i + 1;
+      else if (pila_.length > 1) pila_.pop();
+      mostrar(destino ?? pila_.at(-1) ?? { vista: 'inicio', loteId: null });
     });
   }, []);
 
@@ -95,11 +102,11 @@ export default function App() {
    * Cambia de pantalla. Si el destino es la pantalla anterior, equivale a "atrás" (así el historial
    * no se llena de pantallas repetidas). Con reemplazar, la pantalla actual no queda en el historial.
    */
-  function ir(v: Vista, lote: string | null = loteId, { aviso, reemplazar = false }: { aviso?: { texto: string; error?: boolean }; reemplazar?: boolean } = {}) {
-    const destino: Pantalla = { vista: v, loteId: lote };
+  function ir(v: Vista, lote: string | null = loteId, { aviso, reemplazar = false, paso }: { aviso?: { texto: string; error?: boolean }; reemplazar?: boolean; paso?: IdPaso } = {}) {
+    const destino: Pantalla = { vista: v, loteId: VISTAS_DE_LOTE.has(v) ? lote : null, paso: v === 'detalle' ? paso : undefined };
     avisoPendiente.current = aviso ? { texto: aviso.texto, error: aviso.error ?? false } : null;
     const anterior = pila.current.at(-2);
-    if (!reemplazar && anterior && anterior.vista === destino.vista && anterior.loteId === destino.loteId) {
+    if (!reemplazar && anterior && mismaPantalla(anterior, destino)) {
       volverPantalla();
       return;
     }
@@ -111,6 +118,12 @@ export default function App() {
       registrarPantalla(destino);
     }
     mostrar(destino);
+  }
+
+  /** Vuelve a la ficha del lote desde editar o el informe: al paso que estaba abierto, si se llegó desde uno. */
+  function volverAlLote(opciones: { aviso?: { texto: string } } = {}) {
+    const anterior = pila.current.at(-2);
+    ir('detalle', loteId, { ...opciones, paso: anterior?.vista === 'detalle' && anterior.loteId === loteId ? anterior.paso : undefined });
   }
 
   async function guardarLote(datos: DatosLote, versionInicial?: string) {
@@ -131,7 +144,9 @@ export default function App() {
         await db.lotes.put(lote);
       }
       // Tras guardar, el formulario no queda en el historial: "atrás" desde la ficha vuelve a la lista.
-      ir('detalle', id, { aviso: { texto: vista === 'editar' ? 'Los cambios del lote se guardaron.' : 'El lote se guardó.' }, reemplazar: vista === 'nuevo' });
+      // Un lote nuevo abre la vista general de sus pasos; al editar, se vuelve al paso de los datos.
+      if (vista === 'editar') volverAlLote({ aviso: { texto: 'Los cambios del lote se guardaron.' } });
+      else ir('detalle', id, { aviso: { texto: 'El lote se guardó. Ahora sigue el paso 2: el análisis de suelo.' }, reemplazar: true });
     } finally {
       setGuardando(false);
     }
@@ -142,7 +157,13 @@ export default function App() {
     if (!(await confirmar({ titulo: 'Eliminar lote', mensaje: `¿Eliminar “${activo.nombre}” y todos los datos asociados? Esta acción no se puede deshacer.`, boton: 'Eliminar', peligro: true }))) return;
     try {
       await eliminarLoteYRelacionados(activo.id);
-      ir('inicio', null, { aviso: { texto: 'El lote se eliminó.' } });
+      // Se vuelve a Mis lotes por el historial, para que "atrás" no pase por las pantallas del lote eliminado.
+      let i = pila.current.length - 2;
+      while (i >= 0 && pila.current[i].vista !== 'inicio') i--;
+      if (i >= 0) {
+        avisoPendiente.current = { texto: 'El lote se eliminó.', error: false };
+        volverPantalla(pila.current.length - 1 - i);
+      } else ir('inicio', null, { aviso: { texto: 'El lote se eliminó.' }, reemplazar: true });
     } catch {
       setMensaje('No se pudo eliminar el lote; vuelve a intentarlo.');
       setMensajeEsError(true);
@@ -211,30 +232,22 @@ export default function App() {
         {vista === 'cuenta' && <div className="page-narrow"><button className="back" onClick={() => ir('inicio')}>← Volver a mis lotes</button><NubeSeccion estado={estadoNube} /></div>}
 
         {vista === 'nuevo' && <div className="page-narrow"><button className="back" onClick={() => ir('inicio')}>← Volver a mis lotes</button><LoteForm reglas={reglas ?? undefined} onGuardar={guardarLote} onCancelar={() => ir('inicio')} /></div>}
-        {vista === 'editar' && activo && <div className="page-narrow"><button className="back" onClick={() => ir('detalle')}>← Volver al lote</button><LoteForm inicial={activo} reglas={reglas ?? undefined} onGuardar={guardarLote} onCancelar={() => ir('detalle')} /></div>}
-        {vista === 'detalle' && activo && <>
-          <button className="back" onClick={() => ir('inicio')}>← Volver a mis lotes</button>
-          <section className="detail-header"><div><div className="section-kicker">FICHA DEL LOTE</div><h1 id="titulo-ficha">{activo.nombre}</h1><p>{nombreCultivo(activo.cultivo)} · {[activo.ubicacion, activo.departamento].filter(Boolean).join(', ') || 'Ubicación no registrada'}{activo.zona ? ` · Zona: ${activo.zona}` : ''}</p></div><div className="detalle-botones"><button className="btn btn-primary" onClick={() => ir('informe')}>Informe para el productor</button><button className="btn btn-outline" onClick={() => ir('editar')}>Editar información</button></div></section>
-          {avances?.get(activo.id) && <PasosLote avance={avances.get(activo.id)!} />}
-          <div className="detail-grid"><div className="detail-panel"><span>Superficie</span><strong>{formatearNumero(activo.areaM2)} m²</strong><small>{formatearNumero(areaM2AHa(activo.areaM2), 4)} hectáreas</small></div><div className="detail-panel"><span>Cultivo</span><strong>{nombreCultivo(activo.cultivo)}</strong><small>Cultivo actual del lote</small></div><div className="detail-panel"><span>Fecha de siembra</span><strong className="detail-date">{fechaLegible(activo.fechaSiembra)}</strong></div></div>
-          <AnalisisSueloSeccion key={activo.id} lote={activo} />
-          <PlanesSeccion key={`plan-${activo.id}`} lote={activo} onIrAProductos={() => ir('productos')} />
-          <SeguimientoSeccion key={`seg-${activo.id}`} lote={activo} />
-          <HistorialLoteSeccion key={`hist-${activo.id}`} lote={activo} />
-          <button className="danger-link" onClick={() => void borrarLote()}>Eliminar este lote</button>
-        </>}
+        {vista === 'editar' && activo && <div className="page-narrow"><button className="back" onClick={() => volverAlLote()}>← Volver al lote</button><LoteForm inicial={activo} reglas={reglas ?? undefined} onGuardar={guardarLote} onCancelar={() => volverAlLote()} /></div>}
+        {vista === 'detalle' && activo && <FichaLote key={activo.id} lote={activo} avance={avances?.get(activo.id)} paso={paso}
+          onPaso={(p, vecino) => ir('detalle', activo.id, { paso: p, reemplazar: vecino && !!paso })} onGeneral={() => ir('detalle', activo.id)}
+          onVolver={() => ir('inicio')} onEditar={() => ir('editar')} onInforme={() => ir('informe')} onEliminar={() => void borrarLote()} onIrAProductos={() => ir('productos')} />}
 
-        {vista === 'informe' && activo && <InformeLote lote={activo} onVolver={() => ir('detalle')} />}
+        {vista === 'informe' && activo && <InformeLote lote={activo} onVolver={() => volverAlLote()} />}
         {vista === 'informe-general' && <InformeGeneral usuario={estadoNube.usuario.nombre ? `${estadoNube.usuario.nombre} (${estadoNube.usuario.email})` : saludoDe(estadoNube.usuario)} onVolver={() => ir('inicio')} />}
         {vista === 'productos' && <ProductosSeccion key={visita} />}
 
-        {vista === 'ayuda' && <div className="page-narrow help"><div className="section-kicker">GUÍA PARA EL PRODUCTOR</div><h1>Cómo funciona AgroFerti MIC</h1><p className="muted">Organiza la información de tus lotes y registra lo que realmente pasa en el campo. Funciona en el celular y en el computador, también sin internet. En la ficha de cada lote, la barra de pasos te dice qué sigue.</p>
+        {vista === 'ayuda' && <div className="page-narrow help"><div className="section-kicker">GUÍA PARA EL PRODUCTOR</div><h1>Cómo funciona AgroFerti MIC</h1><p className="muted">Organiza la información de tus lotes y registra lo que realmente pasa en el campo. Funciona en el celular y en el computador, también sin internet. Cada lote se trabaja en cinco pasos. Al abrir un lote ves los cinco, con lo que ya hiciste y el que te toca ahora, marcado con <strong>Ahora</strong>. Abre un paso para trabajar en él; al final de cada paso hay botones para ir al anterior o al siguiente.</p>
           <div className="ayuda-glosario"><p>¿Hay una palabra que no entiendes? El glosario explica cada término de la app.</p><button className="btn btn-outline" onClick={() => ir('glosario')}>Abrir el glosario</button></div>
           <div className="help-item"><span>1</span><div><h3>Crea tus lotes</h3><p>En <strong>Mis lotes</strong>, registra cada terreno con su nombre, cultivo, área, fecha de siembra y ubicación.</p></div></div>
-          <div className="help-item"><span>2</span><div><h3>Registra el análisis de suelo</h3><p>En la ficha del lote, adjunta el informe del laboratorio o copia sus resultados tal como aparecen. Si el informe trae la <Termino id="profundidad">profundidad de muestreo</Termino> y la <Termino id="densidad-aparente">densidad aparente</Termino>, la app también expresa cada resultado en kilos por hectárea de la <Termino id="capa-arable">capa arable</Termino>. Esos kilos no son una dosis.</p></div></div>
-          <div className="help-item"><span>3</span><div><h3>Prepara el plan de fertilización</h3><p>En la ficha del lote, crea una propuesta de plan: la app te propone las metas de nitrógeno, fósforo y potasio según tu análisis de suelo y la zona, y te sugiere fertilizantes con registro ICA para cubrirlas. Con eso calcula cuánto aplicar, cuántos bultos y cuánto cuesta. Puedes cambiar todo antes de guardar; después, el plan se revisa y se aprueba.</p></div></div>
-          <div className="help-item"><span>4</span><div><h3>Haz seguimiento</h3><p>Registra lo que aplicaste, tus observaciones y las tareas pendientes. La app compara lo aplicado con el plan aprobado.</p></div></div>
-          <div className="help-item"><span>5</span><div><h3>Cierra el ciclo e imprime</h3><p>Al cosechar, cierra el ciclo en el <strong>historial del lote</strong> para empezar un nuevo ciclo sin perder lo anterior. Imprime o guarda en PDF el informe de un lote o el de todos tus lotes.</p></div></div>
+          <div className="help-item"><span>2</span><div><h3>Registra el análisis de suelo</h3><p>En el paso 2 del lote, adjunta el informe del laboratorio o copia sus resultados tal como aparecen. Si el informe trae la <Termino id="profundidad">profundidad de muestreo</Termino> y la <Termino id="densidad-aparente">densidad aparente</Termino>, la app también expresa cada resultado en kilos por hectárea de la <Termino id="capa-arable">capa arable</Termino>. Esos kilos no son una dosis.</p></div></div>
+          <div className="help-item"><span>3</span><div><h3>Prepara el plan de fertilización</h3><p>En el paso 3, crea una propuesta de plan: la app te propone las metas de nitrógeno, fósforo y potasio según tu análisis de suelo y la zona, y te sugiere fertilizantes con registro ICA para cubrirlas. Con eso calcula cuánto aplicar, cuántos bultos y cuánto cuesta. Puedes cambiar todo antes de guardar; después, el plan se revisa y se aprueba.</p></div></div>
+          <div className="help-item"><span>4</span><div><h3>Aplica y haz seguimiento</h3><p>En el paso 4, registra lo que aplicaste, tus observaciones y las tareas pendientes. La app compara lo aplicado con el plan aprobado.</p></div></div>
+          <div className="help-item"><span>5</span><div><h3>Cosecha, cierra el ciclo e imprime</h3><p>Al cosechar, cierra el ciclo en el paso 5, <strong>historial del lote</strong>, para empezar un nuevo ciclo sin perder lo anterior. Imprime o guarda en PDF el informe de un lote o el de todos tus lotes.</p></div></div>
           <div className="info-box"><strong>Tus datos:</strong> se guardan en este dispositivo y en tu cuenta en la nube (con tu autorización), así no se pierden si cambias de dispositivo. La app funciona sin internet y se sincroniza cuando hay conexión. Para tenerlos en papel o en PDF, usa <strong>Informe para el productor</strong> en la ficha de cada lote. Puedes borrar tus datos de la nube en <strong>Mi cuenta</strong>: toca tu nombre o tu foto, arriba.</div>
           <div className="detalle-botones"><button className="btn btn-primary" onClick={() => ir('inicio')}>Ir a mis lotes</button><button className="btn btn-outline" onClick={() => ir('glosario')}>Abrir el glosario</button></div>
         </div>}

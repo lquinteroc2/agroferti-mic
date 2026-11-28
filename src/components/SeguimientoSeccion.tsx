@@ -199,7 +199,7 @@ function NuevaAplicacion({ planes, onGuardar, onCancelar }: {
         <p className="error" role="alert">No se pudieron leer los planes del lote. Recarga la página y vuelve a intentarlo.</p>
         <div className="form-actions"><button type="button" className="btn btn-outline" onClick={onCancelar}>Volver</button></div>
       </> : opciones.length === 0 ? <>
-        <p className="muted">El cultivo actual de este lote todavía no tiene un plan aprobado. Cada aplicación se compara con lo que dice el plan, así que primero aprueba un plan en «Plan de fertilización».</p>
+        <p className="muted">El cultivo actual de este lote todavía no tiene un plan aprobado. Cada aplicación se compara con lo que dice el plan, así que primero aprueba un plan en el paso 3, Plan.</p>
         <div className="form-actions"><button type="button" className="btn btn-outline" onClick={onCancelar}>Volver</button></div>
       </> : <>
         <p className="muted">Elige el producto del plan aprobado que aplicaste. La aplicación también aparece en el plan, frente a lo planeado.</p>
@@ -323,7 +323,7 @@ export function SeguimientoSeccion({ lote }: { lote: Lote }) {
       return <li>
         <span className="registro-cabeza"><strong>Aplicación</strong> · {fechaLegible(r.fecha)} <OrigenBadge esEjemplo={r.esEjemplo} real="Dato real" /></span>
         <span>{r.productoNombre}: {formatearExacto(r.cantidadKg)} kg{r.costoCop !== undefined ? ` · ${pesos(r.costoCop)}` : ''}{r.responsable ? ` · ${r.responsable}` : ''}</span>
-        <small>Del {nombrePlan(r.planId)}. Se edita en el detalle del plan.{r.nota ? ` Nota: ${r.nota}` : ''}</small>
+        <small>Del {nombrePlan(r.planId)}. Se edita en el plan (paso 3).{r.nota ? ` Nota: ${r.nota}` : ''}</small>
       </li>;
     }
     if (r.tipo === 'observacion') {
@@ -362,7 +362,7 @@ export function SeguimientoSeccion({ lote }: { lote: Lote }) {
     <section className="soil-section" aria-labelledby="titulo-seguimiento">
       <div className="section-header">
         <div>
-          <div className="section-kicker">PASO 4 · SEGUIMIENTO</div>
+          <div className="section-kicker">PASO 4 DE 5 · APLICAR Y SEGUIMIENTO</div>
           <h2 id="titulo-seguimiento">Seguimiento del lote</h2>
           <p>Observaciones, tareas y las aplicaciones registradas en los planes aprobados. Es un registro manual: no es una medición ni un sensor.</p>
           <Terminos ids={['observacion', 'tarea', 'aplicacion', 'estado-tarea']} />

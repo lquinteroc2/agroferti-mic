@@ -56,7 +56,7 @@ export function SugerenciasPlan({ cultivo, analisis, reglas, descargadas, zonaLo
     setAvisoZona(null);
     try {
       await onGuardarZona(region);
-      setAvisoZona({ error: false, texto: 'Se guardó como zona del lote. Puedes cambiarla en «Editar información» del lote.' });
+      setAvisoZona({ error: false, texto: 'Se guardó como zona del lote. Puedes cambiarla en el paso 1, Lote («Editar información»).' });
     } catch {
       setAvisoZona({ error: true, texto: 'No se pudo guardar la zona en el lote. Vuelve a intentarlo.' });
     } finally {

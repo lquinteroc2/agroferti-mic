@@ -58,7 +58,7 @@ export function AnalisisSueloSeccion({ lote }: { lote: Lote }) {
     <section className="soil-section" aria-labelledby="titulo-suelo">
       <div className="section-header">
         <div>
-          <div className="section-kicker">PASO 2 · SUELO</div>
+          <div className="section-kicker">PASO 2 DE 5 · ANÁLISIS</div>
           <h2 id="titulo-suelo">Análisis de suelo</h2>
           <p>Guarda los resultados del laboratorio y entiende sus unidades. Con ellos, el plan te propone las metas de fertilización.</p>
           <Terminos ids={['analisis-de-suelo', 'muestra', 'leer-archivo']} />

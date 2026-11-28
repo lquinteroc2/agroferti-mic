@@ -302,7 +302,7 @@ export function HistorialLoteSeccion({ lote }: { lote: Lote }) {
     <section className="soil-section" aria-labelledby="titulo-historial">
       <div className="section-header">
         <div>
-          <div className="section-kicker">PASO 5 · CIERRE E HISTORIAL</div>
+          <div className="section-kicker">PASO 5 DE 5 · COSECHA E HISTORIAL</div>
           <h2 id="titulo-historial">Historial del lote</h2>
           <p>Los cultivos que ha tenido este lote y lo registrado en cada uno, para comparar con cultivos anteriores. Al cosechar, cierra el ciclo y empieza el siguiente cultivo.</p>
           <Terminos ids={['ciclo', 'cultivo-actual', 'cerrar-ciclo']} />

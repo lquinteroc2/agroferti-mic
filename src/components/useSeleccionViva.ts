@@ -19,7 +19,7 @@ export function useSeleccionViva<T extends { id: string }>(lista: ReadonlyArray<
   useEffect(() => {
     if (seleccionado && seleccionado.id === pendienteId) setPendienteId(null);
   }, [seleccionado, pendienteId]);
-  useCapaAtras(modo !== 'lista', () => setModo('lista'), anclaId);
+  useCapaAtras(modo !== 'lista', () => setModo('lista'), anclaId, modo === 'nuevo' || modo === 'editar');
 
   return {
     /** Modo pedido por el usuario (para montar formularios y detalle). */

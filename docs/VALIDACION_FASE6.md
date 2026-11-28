@@ -64,9 +64,9 @@ Para cada lote de papa (la app trabaja solo con papa desde el 19 de noviembre de
 
 1. Abre https://agroferti-mic.senaedu.workers.dev/ (en el computador o en el teléfono).
 2. **Mis lotes → + Nuevo lote**: nombre, cultivo y área en m². Revisa la vista previa de cómo se interpretó el número.
-3. En la ficha del lote, **Análisis de suelo → + Agregar análisis**: fecha, profundidad, densidad, laboratorio, método y cada nutriente con **+ Agregar nutriente**.
+3. En la ficha del lote, abre el **paso 2, Registrar el análisis de suelo → + Agregar análisis**: fecha, profundidad, densidad, laboratorio, método y cada nutriente con **+ Agregar nutriente**.
 4. **Productos** (barra superior) **→ + Agregar producto**: copia la etiqueta. Marca **"etiqueta real"** solo si es real; si no, **EJEMPLO**.
-5. En la ficha del lote, **Plan de fertilización → + Nueva propuesta**: **+ Agregar meta** (nutriente, forma, kg/ha, fuente, fecha, origen real o EJEMPLO) y elige el producto de cada meta.
+5. En la ficha del lote, abre el **paso 3, Preparar el plan de fertilización → + Nueva propuesta**: **+ Agregar meta** (nutriente, forma, kg/ha, fuente, fecha, origen real o EJEMPLO) y elige el producto de cada meta.
 6. Abre el plan y copia en la hoja cada resultado del bloque **"Resultados calculados"**.
 7. **Estado del plan**: «Ya se revisó este plan» → «Aprobar: este es el plan que voy a aplicar» (con el nombre de quien revisa/aprueba).
 8. En el plan aprobado, **+ Registrar aplicación** para cada aplicación real y copia el bloque "Lo aplicado frente al plan".

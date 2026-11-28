@@ -129,7 +129,7 @@ export function PlanesSeccion({ lote, onIrAProductos }: { lote: Lote; onIrAProdu
     <section className="soil-section" aria-labelledby="titulo-planes">
       <div className="section-header">
         <div>
-          <div className="section-kicker">PASO 3 · PLAN</div>
+          <div className="section-kicker">PASO 3 DE 5 · PLAN</div>
           <h2 id="titulo-planes">Plan de fertilización</h2>
           <p>La app propone metas según tu análisis de suelo, a partir de referencias técnicas citadas (para papa, Castro Franco, 2005), y fertilizantes con registro ICA para cubrirlas; calcula cantidad y costo y explica cada operación. <strong>Es una propuesta, no una prescripción:</strong> revisa el plan con tu asistente técnico antes de aplicar.</p>
           <Terminos ids={['meta', 'propuesta', 'aprobado', 'asistente-tecnico']} />

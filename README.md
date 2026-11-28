@@ -10,7 +10,7 @@ Aplicación web progresiva (PWA) para preparar el cálculo, la explicación y el
 ✅ Registro de área (m², con coma o punto decimal y vista previa de cómo se interpretó el número), fecha de siembra y ubicación; conversión de m² a hectáreas. Escrituras ambiguas como `1.500` o `1,500` se rechazan y se pide `1500` (o `1,5` si es un decimal).
 ✅ Datos persistentes en el navegador (IndexedDB + Dexie), interfaz adaptable y configuración PWA.
 
-**Fase 2 (análisis de suelo, dentro de la ficha de cada lote)**
+**Fase 2 (análisis de suelo, paso 2 de la ficha de cada lote)**
 ✅ Registrar, consultar, editar y eliminar (con confirmación) análisis de suelo por lote, sin mezclar lotes.
 ✅ Fecha (válida y no futura), profundidad (cm), densidad aparente (g/cm³, opcional), pH (0–14, opcional), laboratorio, método y observaciones.
 ✅ Nutrientes con elemento, forma química, valor y unidad (`mg/kg` o `cmol(+)/kg`), guardados tal como los reporta el laboratorio.
@@ -43,7 +43,7 @@ Aplicación web progresiva (PWA) para preparar el cálculo, la explicación y el
 ✅ Detalle con datos ingresados y el precio por kg explicado. Un producto con datos dañados se muestra con su valor original y solo se reemplaza con confirmación expresa.
 ✅ 93 pruebas automáticas al cerrar 3b. Una revisión de código posterior encontró 10 puntos (entre ellos, que vaciar un nutriente guardado lo borraba sin aviso); todos están corregidos.
 
-**Fase 3 — 3c: plan de fertilización (sección "Plan de fertilización" en la ficha del lote)**
+**Fase 3 — 3c: plan de fertilización (paso 3 de la ficha del lote)**
 ✅ Crear, consultar, editar y eliminar (con confirmación) propuestas de plan por lote.
 ✅ Cada meta se escribe con nutriente, forma química, kg/ha, **fuente técnica, fecha de la fuente** y origen (fuente real o EJEMPLO). La app no propone metas, no las deduce del análisis de suelo y rechaza escrituras ambiguas como `1.200`.
 ✅ Un producto del catálogo por meta. El formulario muestra lo que declara la etiqueta y avisa si la meta no se podrá calcular (p. ej. meta en P con etiqueta en P₂O₅). El plan guarda una copia del producto: editar o borrar el producto del catálogo no lo altera.
@@ -78,7 +78,7 @@ Aplicación web progresiva (PWA) para preparar el cálculo, la explicación y el
 ✅ Registrar, editar o eliminar aplicaciones no cambia el plan aprobado. Al editar, una aplicación no cambia de plan ni de producto. Una aplicación con fecha anterior a la aprobación del plan se acepta, pero se marca "Antes de la aprobación". Las aplicaciones con datos dañados no se suman al avance y se avisa en su plan.
 ✅ 136 pruebas automáticas. Recorrido en Chrome: 91 comprobaciones. Una revisión de código del 4a y el 4b encontró 10 puntos; todos están corregidos.
 
-**Fase 4 — 4c: seguimiento del lote (sección "Seguimiento del lote" en la ficha)**
+**Fase 4 — 4c: seguimiento del lote (paso 4 de la ficha, «Aplicar y hacer seguimiento»)**
 ✅ Lista de todos los registros del lote, del más reciente al más antiguo, con filtro por tipo: aplicaciones (se editan en su plan), observaciones y tareas.
 ✅ Observaciones (fecha no futura, descripción, responsable, origen real o EJEMPLO) y tareas (descripción, fecha prevista, pendiente o hecha con su fecha). Crear, editar, eliminar con confirmación y "Marcar como hecha hoy". Una tarea pendiente con fecha prevista pasada se marca "Pendiente · fecha pasada" (hecho de calendario, sin notificaciones).
 ✅ Los registros con datos dañados se muestran con su valor original. Las observaciones y tareas se corrigen precargando los datos válidos y el texto original de los dañados, con confirmación expresa; una aplicación dañada se elimina y se registra de nuevo desde su plan.
@@ -90,7 +90,7 @@ Aplicación web progresiva (PWA) para preparar el cálculo, la explicación y el
 ✅ La recomendación es la del plan aprobado: sus metas vienen de la fuente técnica escrita por el usuario. La app no calcula dosis por su cuenta ni a partir del análisis de suelo. Sin plan aprobado, el informe lo dice y no incluye recomendación. Avisa si hay datos de EJEMPLO, planes aprobados con datos por corregir y aplicaciones que no se suman.
 ✅ 149 pruebas automáticas. Recorrido en Chrome: 117 comprobaciones, incluida la impresión a PDF. Una revisión de código del informe encontró 10 puntos; todos están corregidos.
 
-**Historial del lote (sección "Historial del lote" en la ficha; pedido del instructor)**
+**Historial del lote (paso 5 de la ficha, «Cosechar y cerrar el ciclo»; pedido del instructor)**
 ✅ Ciclos de cultivo: al cosechar (o perder el cultivo), **"Cerrar ciclo y empezar otro cultivo"** guarda en el historial el cultivo actual con su siembra, la fecha de cierre, el área del lote, cómo terminó (se cosechó, se perdió, otro motivo), resultado y notas escritos por el productor (p. ej. lo cosechado) y la marca real/EJEMPLO. El lote sigue con el nuevo cultivo y, si se indica, su fecha de siembra.
 ✅ El historial muestra el cultivo actual y cada cultivo anterior con su duración en días y lo registrado en su periodo: análisis de suelo, planes, aplicaciones, observaciones y tareas. Cada registro se ubica por su fecha (análisis: fecha del análisis; plan: día de creación; seguimiento: fecha; tarea hecha: día en que se hizo; tarea pendiente: fecha prevista) entre el día siguiente al cierre anterior y su cierre, inclusive. Un análisis tomado antes de sembrar queda con el cultivo siguiente.
 ✅ **No se mueve, borra ni modifica ningún registro:** los análisis, planes y registros siguen en sus secciones; el historial solo los agrupa al leerlos. La app no calcula rendimientos ni interpreta las notas.
@@ -163,7 +163,7 @@ Las pruebas de persistencia (`tests/persistencia.test.ts`) usan un almacén en m
 
 ### Pruebas manuales en navegador (fase 2)
 
-1. Crea un lote de **500 m²** y abre su ficha. En **Análisis de suelo**, pulsa **+ Agregar análisis**.
+1. Crea un lote de **500 m²** y abre su ficha. Abre el **paso 2, Registrar el análisis de suelo**, y pulsa **+ Agregar análisis**.
 2. Registra profundidad `20`, densidad `1,2`, laboratorio y método (datos de **EJEMPLO**) y Fósforo / P / `20` / mg/kg. Debe mostrar 2.400.000 kg de suelo/ha, 48 kg de P por ha y 2,4 kg de P en el lote, con el estado **Análisis documentado**.
 3. Edita el lote y cambia el área a 1.000 m². El análisis debe seguir mostrando 500 m² y 2,4 kg. Edita el análisis, marca **Usar el área actual del lote** y guarda: ahora debe mostrar 4,8 kg.
 4. Intenta guardar Fósforo con la forma "Otra forma / No reconocida" escribiendo `K2O`: debe rechazarse. Con `H₂PO₄⁻` debe guardarse con la etiqueta "No reconocida".
@@ -189,7 +189,7 @@ Las pruebas de persistencia (`tests/persistencia.test.ts`) usan un almacén en m
 ### Pruebas manuales en navegador (fase 3c, plan)
 
 1. Registra en el catálogo "DAP EJEMPLO" (N 18 %, P₂O₅ 46 %, bulto de 50 kg a 160000 COP) y "KCl EJEMPLO" (K₂O 60 %, sin precio).
-2. En un lote de **1500,5 m²**, en **Plan de fertilización**, crea una propuesta. Meta 1: Fósforo / **P** / 100 kg/ha con fuente, fecha y la casilla EJEMPLO marcada, producto DAP: debe avisar "Esta meta no se calculará". Cambia la forma a P₂O₅: el aviso desaparece y se ve "declara: N 18 % · P₂O₅ 46 %".
+2. En un lote de **1500,5 m²**, en el **paso 3, Preparar el plan de fertilización**, crea una propuesta. Meta 1: Fósforo / **P** / 100 kg/ha con fuente, fecha y la casilla EJEMPLO marcada, producto DAP: debe explicar que la meta está en P y la etiqueta en P₂O₅ y que la app la convierte (P₂O₅ = P × 2,2914). Cambia la forma a P₂O₅: la explicación de la conversión desaparece y se ve "declara: N 18 % · P₂O₅ 46 %".
 3. Meta 2: Potasio / K₂O / `1.200` con producto KCl: al guardar debe rechazar "1.200". Escribe `90` y guarda.
 4. El detalle debe mostrar ≈ 217,39 kg/ha de DAP, ≈ 32,62 kg en el lote, ≈ 0,65 bultos, $ 3.200 por kg, ≈ $ 104.383 y ≈ 39,13 kg/ha de N (también aporta); KCl: 150 kg/ha y ≈ 22,51 kg en el lote, sin costo por falta de precio; y "no se muestra un total parcial".
 5. Edita la propuesta: la meta 2 se precarga con `90` y el producto como "copia guardada en el plan". Cambia el precio del DAP en el catálogo a `200000`: el plan sigue mostrando ≈ $ 104.383; al editarlo avisa del cambio y, si eliges "datos actuales del catálogo", pasa a ≈ $ 130.478.
@@ -228,9 +228,9 @@ Las pruebas de persistencia (`tests/persistencia.test.ts`) usan un almacén en m
 
 ### Pruebas manuales en navegador (historial del lote)
 
-1. Abre un lote de papa con siembra registrada y algún análisis u observación. En **Historial del lote** debe verse solo "Cultivo actual", con esos registros.
+1. Abre un lote de papa con siembra registrada y algún análisis u observación. En el **paso 5, Cosechar y cerrar el ciclo**, debe verse solo "Cultivo actual", con esos registros.
 2. Pulsa **Cerrar ciclo y empezar otro cultivo** y guarda sin elegir nada: debe pedir cómo terminó y el origen del dato. Pon una fecha de cierre anterior a la siembra: debe rechazarla.
-3. Cierra con una fecha válida, "Se cosechó", notas de EJEMPLO, cultivo del nuevo ciclo Papa y su siembra. La ficha debe mostrar la nueva siembra; el historial, el ciclo de papa con su duración, la marca EJEMPLO y, al abrirlo, sus análisis y observaciones. Esos registros siguen en sus secciones.
+3. Cierra con una fecha válida, "Se cosechó", notas de EJEMPLO, cultivo del nuevo ciclo Papa y su siembra. El paso 1 de la ficha debe mostrar la nueva siembra; el historial, el ciclo de papa con su duración, la marca EJEMPLO y, al abrirlo, sus análisis y observaciones. Esos registros siguen en sus secciones.
 4. Pulsa **Editar notas**, cambia el texto y recarga la página: el cambio debe seguir ahí.
 5. Intenta cerrar otro ciclo con una fecha anterior al cierre anterior: debe rechazarla.
 6. **Quitar del historial** pide confirmación y no cambia el cultivo actual ni borra registros.
@@ -255,6 +255,8 @@ agroferti-mic/
 │  │  ├─ ProductosSeccion.tsx      # Fase 3b: catálogo de productos (lista y flujo)
 │  │  ├─ ProductoForm.tsx          # Fase 3b: formulario según la etiqueta
 │  │  ├─ ProductoDetalle.tsx       # Fase 3b: datos de la etiqueta y precio por kg
+│  │  ├─ FichaLote.tsx             # Ficha del lote: vista general de los 5 pasos y un paso a la vez
+│  │  ├─ PasosLote.tsx             # Lista de los 5 pasos (estado y resumen) y barra "Paso N de 5"
 │  │  ├─ PlanesSeccion.tsx         # Fase 3c: planes dentro de la ficha del lote
 │  │  ├─ PlanForm.tsx              # Fase 3c: metas con su fuente y producto por meta
 │  │  ├─ PlanDetalle.tsx           # Fase 3c: cálculo del plan explicado paso a paso
@@ -420,6 +422,7 @@ No inventar resultados de campo. Etiquetar todos los datos simulados como **EJEM
 - **Detalles vistos en las capturas (23 de noviembre de 2026):** en celular, la tarjeta de cada meta del plan ocupa todo el ancho (antes apretaba la fuente en una columna angosta); en las tablas ya no se parten palabras como «Nitrógen o» ni la etiqueta «EJEM PLO»; «Última vez: … p. m.» ya no lleva doble punto; los motivos de las metas escriben los decimales con coma (0,25, no 0.25); el aviso del modo práctica alinea el «!» y su enlace tiene el mismo tamaño que el texto.
 - **Solo fertilizantes con precio (27 de noviembre de 2026, sugerencia del instructor):** la app solo ofrece los fertilizantes que tienen precio del DANE (120 con octubre de 2026), para que cada plan dé el costo. El registro completo del ICA (4.078) sigue en `data/referencias/`: con él, la actualización mensual encuentra precios nuevos y un fertilizante aparece en la app cuando el DANE lo publica (`filasParaLaApp`). Los productos que el productor registró a mano o con su precio no cambian. Además, lo que cada teléfono descarga al ingresar pasó de 5 MB a 231 kB (27 kB comprimido).
 - **Conversión P↔P₂O₅ y K↔K₂O (27 de noviembre de 2026, sugerencia del instructor):** si la meta y la etiqueta usan formas distintas del mismo nutriente, el plan convierte la meta con la relación química exacta (`src/lib/conversionFormas.ts`, pesos atómicos IUPAC: P₂O₅ = P × 2,2914; K₂O = K × 1,2046; también Ca↔CaO y Mg↔MgO) y muestra la operación en «Ver cómo se calculó», en el resumen por forma química y en lo aplicado frente al plan. Las sugerencias de fertilizantes incluyen los que declaran la otra forma. Si el laboratorio reporta P₂O₅ en mg/kg, se pasa a P para la tabla de Castro (y se dice). El análisis de suelo muestra el fósforo también como P₂O₅. No se convierten formas iónicas (K⁺) ni unidades (cmol(+)/kg). Antes la app no convertía; los casos de prueba y el caso L1 del kit de validación se actualizaron.
+- **Ficha del lote por pasos (28 de noviembre de 2026):** al presentar la app en clase no se entendía la ficha, que apilaba las cinco secciones en una sola página. Ahora abre en una **vista general** con los 5 pasos del cultivo en una lista (patrón "lista de tareas" de GOV.UK): cada paso dice su estado (**Listo**, **Ahora**, **Más adelante**) y lo registrado en él (fecha del análisis, plan aprobado con su **costo estimado**, aplicaciones y tareas, cultivos anteriores); el paso que sigue se destaca con qué hacer y el botón «Abrir el paso N». Cada paso se abre solo, en su propio contenedor, con «Paso N de 5», una barra de avance, qué hacer y botones al paso anterior y al siguiente; «atrás» vuelve a la vista general. Ningún paso se bloquea. Lógica pura en `src/lib/avance.ts` (`resumen`, `pasoActual`, `posicionPaso`, con pruebas) y pantalla en `src/components/FichaLote.tsx` y `PasosLote.tsx`.
 - **Leer el análisis desde un PDF o una foto (19 de noviembre de 2026):** en el formulario de un análisis nuevo, "Elegir PDF o foto". Los PDF con texto se leen con PDF.js y las fotos o PDF escaneados con Tesseract.js (español), todo en el navegador y sin servicios de pago (la primera lectura de una foto descarga el idioma español, unos MB). La app muestra cada dato leído con la línea del informe de donde salió; el productor confirma y corrige uno por uno, y **solo lo confirmado pasa al formulario**. Unidades: ppm se lee como mg/kg y meq/100 g como cmol(+)/kg; otras no se leen. Con un PDF de EJEMPLO se leyeron los 10 datos; con una foto, 4 de 8 (sin ningún valor equivocado: las líneas dudosas se descartan). Las librerías se descargan solo al usarlas.
 - **Sugerencia de metas (19 de noviembre de 2026):** 14 reglas de dosis y 11 tablas de niveles para papa en D1, cada una con fuente, página y transcripción: Castro Franco (2005), Tabla 2 (P₂O₅ según P Bray II, K₂O según K intercambiable y N por región: Subpáramos de Cundinamarca y Boyacá; Altiplano Cundiboyacense, Nariño y Antioquia) y Tabla 3 (niveles críticos). Para lechuga, kale y arveja no se encontró una tabla colombiana o andina completa por análisis; por eso la app quedó solo con papa. Se dejaron fuera ensayos, requerimientos por rendimiento y dosis generales. Las fuentes se contradicen en algunos puntos (p. ej. P₂O₅ para papa a 20 t/ha): la app muestra un rango con su cita y el productor y su agrónomo deciden.
 - **Revisión de interfaz (19 de noviembre de 2026):** 18 hallazgos corregidos. El botón "atrás" del celular cierra el formulario abierto o vuelve a la pantalla anterior (sin salir de la app); las tablas del informe y del plan se desplazan de lado en celular en vez de partir palabras; "Cómo funciona" en 5 pasos actualizados; sin el bloque "Tres pasos"; botones de sección a lo ancho en celular; acciones de al menos 44 px y "Eliminar" separado de "Editar"; el plan muestra arriba "Qué comprar y aplicar" y las fórmulas plegadas; "Falta por aplicar" en vez de diferencias negativas; informe con "Plan aprobado: qué aplicar" y trato de tú; textos sin jerga del proyecto; más contraste; "Volver" en el formulario de producto.

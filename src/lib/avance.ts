@@ -4,8 +4,8 @@
  * qué falta registrar o decidir en la app.
  */
 import type { AnalisisVerificado, CicloVerificado, PlanVerificado, RegistroAplicacion, RegistroVerificado } from '../types';
-import { resumenAplicaciones } from './calculos.ts';
-import { formatearDiferencia } from './formato.ts';
+import { calcularPlan, resumenAplicaciones } from './calculos.ts';
+import { fechaLegible, formatearDiferencia, pesosResultado } from './formato.ts';
 import { datosCultivoActual, ordenarCiclos, verificarCiclo } from './historial.ts';
 import { ordenarAnalisis, verificarAnalisis } from './validacion.ts';
 import { cambioAprobacion, ordenarPlanes, verificarPlan } from './validacionPlan.ts';
@@ -16,6 +16,11 @@ export type EstadoPaso = 'hecho' | 'actual' | 'pendiente';
 export type AccionSiguiente = 'analisis' | 'corregir-analisis' | 'crear-plan' | 'revisar-plan' | 'aprobar-plan' | 'aplicar' | 'cosechar';
 
 export interface PasoLote { id: IdPaso; nombre: string; estado: EstadoPaso }
+/**
+ * Lo que la vista general dice de cada paso. Un paso sin hacer puede quedar antes del que toca (p. ej.
+ * un plan de fuente propia sin análisis), así que no siempre es "Más adelante".
+ */
+export type EtiquetaPaso = 'Listo' | 'Ahora' | 'En curso' | 'Por corregir' | 'Sin hacer' | 'Más adelante';
 
 export interface AvanceLote {
   pasos: PasoLote[];
@@ -27,10 +32,43 @@ export interface AvanceLote {
     texto: string;
   };
   tareas: { pendientes: number; vencidas: number };
+  /** Una línea con lo registrado en cada paso, para la vista general de la ficha (la del lote la arma la ficha). */
+  resumen: Record<Exclude<IdPaso, 'lote'>, string>;
+  etiquetas: Record<IdPaso, EtiquetaPaso>;
+  /** Aplicaciones del plan aprobado (o todas, si no hay plan aprobado). */
+  aplicaciones: { cantidad: number; delPlanAprobado: boolean };
 }
 
 const NOMBRES: Record<IdPaso, string> = { lote: 'Lote', analisis: 'Análisis', plan: 'Plan', aplicar: 'Aplicar', cosechar: 'Cosechar' };
 const ORDEN: IdPaso[] = ['lote', 'analisis', 'plan', 'aplicar', 'cosechar'];
+/** Los pasos de la ficha, en orden. */
+export const PASOS_LOTE: ReadonlyArray<IdPaso> = ORDEN;
+export const nombrePaso = (id: IdPaso) => NOMBRES[id];
+/** Nombre de cada paso con lo que se hace en él, para la vista general de la ficha. */
+const TITULOS: Record<IdPaso, string> = {
+  lote: 'Registrar el lote', analisis: 'Registrar el análisis de suelo', plan: 'Preparar el plan de fertilización',
+  aplicar: 'Aplicar y hacer seguimiento', cosechar: 'Cosechar y cerrar el ciclo'
+};
+export const tituloPaso = (id: IdPaso) => TITULOS[id];
+
+const plural = (n: number, uno: string, varios: string) => `${n} ${n === 1 ? uno : varios}`;
+
+/** Lo aplicado y las tareas pendientes, en una línea. */
+function resumenAplicar({ cantidad, delPlanAprobado }: AvanceLote['aplicaciones'], tareas: { pendientes: number; vencidas: number }): string {
+  const aplicado = delPlanAprobado
+    ? (cantidad ? `${plural(cantidad, 'aplicación', 'aplicaciones')} del plan aprobado` : 'Aún no hay aplicaciones del plan aprobado')
+    : (cantidad ? plural(cantidad, 'aplicación registrada', 'aplicaciones registradas') : 'Aún no hay aplicaciones registradas');
+  return [
+    aplicado,
+    tareas.pendientes ? `${plural(tareas.pendientes, 'tarea pendiente', 'tareas pendientes')}${tareas.vencidas ? ` (${tareas.vencidas} con la fecha pasada)` : ''}` : ''
+  ].filter(Boolean).join(' · ');
+}
+
+
+/** Cultivos anteriores del lote en el historial. */
+const resumenCosechar = (anteriores: number) => anteriores
+  ? `${plural(anteriores, 'cultivo anterior', 'cultivos anteriores')} en el historial. Al cosechar, cierra el ciclo.`
+  : 'Al cosechar, cierra el ciclo para empezar otro sin perder lo registrado.';
 
 /** Paso de la barra al que corresponde cada acción siguiente. */
 const PASO_DE: Record<AccionSiguiente, IdPaso> = {
@@ -38,6 +76,11 @@ const PASO_DE: Record<AccionSiguiente, IdPaso> = {
 };
 
 const nombrePlan = (p: PlanVerificado) => `«${p.nombre || 'Plan sin nombre'}»`;
+
+function costoPlan(p: PlanVerificado): string {
+  const total = calcularPlan(p).costoTotalCop;
+  return total.ok ? `costo estimado ${pesosResultado(total.valor)}` : 'sin costo total';
+}
 
 /** Aplicado frente al plan: 'nada', 'parcial' o 'completo' (todas las líneas con lo planeado o más). */
 function estadoAplicado(plan: PlanVerificado, registros: ReadonlyArray<RegistroVerificado>): 'nada' | 'parcial' | 'completo' {
@@ -95,13 +138,54 @@ export function avanceLote(
     siguiente = { accion: 'crear-plan', corto: 'Falta el plan de fertilización', texto: 'Crea la propuesta de plan: la app te propone las metas según tu análisis y te sugiere fertilizantes con registro ICA.' };
   }
 
+  const validos = datos.analisis.filter(a => a.problemas.length === 0)
+    .sort((a, b) => (b.fechaAnalisis ?? '').localeCompare(a.fechaAnalisis ?? ''));
+  const ultimo = validos[0];
+  const enCursoNuevo = aprobado ? revisado ?? propuesta : undefined;
+  const conProblemas = datos.analisis.length - validos.length;
+  const tareas = tareasPendientesDe(datos.registros, hoy);
+  // Con un plan aprobado, cuentan solo sus aplicaciones (las de un plan anterior no son de este).
+  const aplicaciones = {
+    cantidad: datos.registros.filter(v => v.registro?.tipo === 'aplicacion' && (!aprobado || v.registro.planId === aprobado.id)).length,
+    delPlanAprobado: !!aprobado
+  };
+  const resumen: AvanceLote['resumen'] = {
+    analisis: ultimo
+      ? `Análisis del ${fechaLegible(ultimo.fechaAnalisis).toLowerCase()} · ${plural(ultimo.nutrientes.length, 'resultado', 'resultados')}${validos.length > 1 ? ` · ${validos.length} análisis guardados` : ''}${conProblemas ? ` · ${conProblemas} con datos por corregir` : ''}`
+      : datos.analisis.length ? 'El análisis guardado tiene datos por corregir' : 'Aún no hay análisis de suelo',
+    plan: aprobado
+      ? `${nombrePlan(aprobado)} aprobado · ${costoPlan(aprobado)}${enCursoNuevo ? ' · hay un plan nuevo en curso' : ''}`
+      : revisado ? `${nombrePlan(revisado)} revisado, falta aprobarlo · ${costoPlan(revisado)}`
+      : propuesta ? `${nombrePlan(propuesta)} en propuesta, falta revisarlo · ${costoPlan(propuesta)}`
+      : 'Aún no hay plan de fertilización',
+    aplicar: resumenAplicar(aplicaciones, tareas),
+    cosechar: resumenCosechar(0)
+  };
+
   const hechos: Record<IdPaso, boolean> = {
     lote: true, analisis: hayAnalisis, plan: !!aprobado, aplicar: aplicado === 'completo', cosechar: false
   };
   // Con un plan nuevo en curso, "plan" es el paso actual aunque haya uno aprobado (ver PASO_DE).
   const actual = PASO_DE[siguiente.accion];
   const pasos = ORDEN.map(id => ({ id, nombre: NOMBRES[id], estado: (id === actual ? 'actual' : hechos[id] ? 'hecho' : 'pendiente') as EstadoPaso }));
-  return { pasos, siguiente, tareas: tareasPendientesDe(datos.registros, hoy) };
+  const etiqueta = (id: IdPaso): EtiquetaPaso => {
+    if (id === actual) return 'Ahora';
+    if (hechos[id]) return 'Listo';
+    if (id === 'analisis' && datos.analisis.length > 0) return 'Por corregir';
+    if (id === 'aplicar' && aprobado) return 'En curso';
+    return ORDEN.indexOf(id) < ORDEN.indexOf(actual) ? 'Sin hacer' : 'Más adelante';
+  };
+  const etiquetas = Object.fromEntries(ORDEN.map(id => [id, etiqueta(id)])) as Record<IdPaso, EtiquetaPaso>;
+  return { pasos, siguiente, tareas, resumen, etiquetas, aplicaciones };
+}
+
+/** Paso en que va el lote (el del siguiente paso): en la vista general dice "Ahora". */
+export const pasoActual = (avance: AvanceLote): IdPaso => PASO_DE[avance.siguiente.accion];
+
+/** Número del paso (1 a 5) y los pasos vecinos, para "Paso 2 de 5" y los botones anterior y siguiente. */
+export function posicionPaso(id: IdPaso): { numero: number; total: number; anterior?: IdPaso; siguiente?: IdPaso } {
+  const i = ORDEN.indexOf(id);
+  return { numero: i + 1, total: ORDEN.length, anterior: ORDEN[i - 1], siguiente: ORDEN[i + 1] };
 }
 
 /**
@@ -132,7 +216,10 @@ export function avancesPorLote(
     });
     // Las tareas pendientes se cuentan en todo el lote: una tarea vencida de antes del último cierre
     // sigue pendiente en Seguimiento y en el total de Mis lotes.
-    resultado.set(id, { ...avanceLote(actual, hoy), tareas: tareasPendientesDe(registros.get(id) ?? [], hoy) });
+    const avance = avanceLote(actual, hoy);
+    const tareas = tareasPendientesDe(registros.get(id) ?? [], hoy);
+    const anteriores = (ciclos.get(id) ?? []).filter(c => c.problemas.length === 0).length;
+    resultado.set(id, { ...avance, tareas, resumen: { ...avance.resumen, aplicar: resumenAplicar(avance.aplicaciones, tareas), cosechar: resumenCosechar(anteriores) } });
   }
   return resultado;
 }

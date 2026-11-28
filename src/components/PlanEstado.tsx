@@ -33,7 +33,7 @@ const QUE_SIGUE: Record<EstadoPlan, { texto: string; boton: string; destino: 'es
     boton: 'Ir al estado del plan', destino: 'estado'
   },
   aprobado: {
-    texto: 'Es el registro de lo que vas a aplicar: no se edita ni se elimina. Registra cada aplicación en «Lo aplicado frente al plan», más abajo, o desde Seguimiento. Para cambiarlo, crea una copia como nueva propuesta al final.',
+    texto: 'Es el registro de lo que vas a aplicar: no se edita ni se elimina. Registra cada aplicación en «Lo aplicado frente al plan», más abajo, o en el paso 4, Aplicar. Para cambiarlo, crea una copia como nueva propuesta al final.',
     boton: 'Ir a lo aplicado', destino: 'aplicado'
   }
 };

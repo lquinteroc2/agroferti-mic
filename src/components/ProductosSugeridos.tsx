@@ -59,7 +59,7 @@ export function ProductosSugeridos({ forma, elemento, productos, referencias, lo
             <span>
               <strong>{r.nombre}</strong> · {resumenComposicion(r)} · registro ICA {r.registroIca}
               <small>{precio ? `Precio DANE ${precio.departamento}: ${pesos(Math.round(precio.precioPromedioCop))} (${precio.presentacion}, ${nombreMes(precio.periodo)})${eleccion.sinPrecioEn ? ` · en ${eleccion.sinPrecioEn} el DANE no lo publica; es el del departamento más cercano que sí` : ''}`
-                : r.precios.length ? 'Con precio DANE en otros departamentos: elige el departamento del lote en «Editar información» para usarlo.'
+                : r.precios.length ? 'Con precio DANE en otros departamentos: elige el departamento del lote en el paso 1, Lote («Editar información»), para usarlo.'
                 : 'Sin precio del DANE: después de agregarlo puedes escribir lo que te cobran.'}{r.verificacion !== 'ok' && ' · composición pendiente de verificar'}</small>
             </span>
             <button type="button" className="btn btn-outline btn-small" disabled={!!agregando} onClick={() => void agregar(r, precio?.departamento, eleccion?.sinPrecioEn)}>{agregando === r.id ? 'Agregando…' : 'Agregar y usar'}</button>
